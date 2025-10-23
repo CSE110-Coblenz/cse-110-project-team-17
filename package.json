@@ -10,9 +10,13 @@
   },
   "devDependencies": {
     "typescript": "~5.9.3",
-    "vite": "^7.1.7"
+    "vite": "^7.1.7",
+    "vitest": "^4.0.1"
   },
   "dependencies": {
     "konva": "^10.0.2"
+  },
+  "scripts": {
+    "test": "vitest run"
   }
 }
