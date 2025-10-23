@@ -8,6 +8,7 @@ export class Player extends BaseEntity {
     private inventory: string[] = [];
     private imageFrames: CanvasImageSource[] = [];
     private currentImage: Konva.Image | null = null;
+    private currentFrameIndex: number = 0;
 
     constructor(name: string, screen: Screen, x: number = 0, y: number = 0) {
         super(name);
@@ -47,6 +48,33 @@ export class Player extends BaseEntity {
         this.currentImage = image;
         this.group.add(image);
         this.screen.render();
+    }
+
+    /**
+     * Switch to a specific frame
+     */
+    setFrame(frameIndex: number): void {
+        if (frameIndex >= 0 && frameIndex < this.imageFrames.length) {
+            this.currentFrameIndex = frameIndex;
+            this.loadImage(this.imageFrames[frameIndex]);
+        }
+    }
+
+    /**
+     * Switch to the next frame (useful for animation)
+     */
+    nextFrame(): void {
+        if (this.imageFrames.length > 0) {
+            this.currentFrameIndex = (this.currentFrameIndex + 1) % this.imageFrames.length;
+            this.loadImage(this.imageFrames[this.currentFrameIndex]);
+        }
+    }
+
+    /**
+     * Get total number of frames
+     */
+    getFrameCount(): number {
+        return this.imageFrames.length;
     }
 
     /**
