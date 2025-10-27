@@ -5,6 +5,21 @@ const MAP_HEIGHT = 720;
 // Placeholder background image path
 const MAP_BACKGROUND_IMAGE = 'assets/map-background.png';
 
+// Robot part interface
+interface RobotPart {
+  name: string
+}
+
+// List of robot parts
+const ROBOT_PARTS: RobotPart[] = [
+  {name: "Left Arm"},
+  {name: "Right Arm"},
+  {name: "Left leg"},
+  {name: "Right leg"},
+  {name: "Body"},
+  {name: "Head"},
+];
+
 interface Position {
     x: number;
     y: number;
