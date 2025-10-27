@@ -10,16 +10,6 @@ interface RobotPart {
   name: string
 }
 
-// List of robot parts
-const ROBOT_PARTS: RobotPart[] = [
-  {name: "Left Arm"},
-  {name: "Right Arm"},
-  {name: "Left leg"},
-  {name: "Right leg"},
-  {name: "Body"},
-  {name: "Head"},
-];
-
 interface Position {
     x: number;
     y: number;
@@ -29,11 +19,34 @@ class MapScene {
   private width: number;
   private height: number;
   private backgroundImage: string;
+  // List of robot parts
+  private ROBOT_PARTS: RobotPart[]
 
   constructor() {
     this.width = MAP_WIDTH;
     this.height = MAP_HEIGHT;
     this.backgroundImage = MAP_BACKGROUND_IMAGE;
+    this.ROBOT_PARTS = [
+      {name: "Left Arm"},
+      {name: "Right Arm"},
+      {name: "Left leg"},
+      {name: "Right leg"},
+      {name: "Body"},
+      {name: "Head"},
+    ];
+  }
+
+  /**
+   * Transfers a robot part by name, removing and returning it from the list
+   * @param name - The name of the robot part to transfer
+   * @returns The robot part if found, null otherwise
+   */
+  transferPart(name: string): RobotPart | null {
+    const index = this.ROBOT_PARTS.findIndex(part => part.name === name);
+    if (index !== -1) {
+      return this.ROBOT_PARTS.splice(index, 1)[0];
+    }
+    return null;
   }
 
   /**
