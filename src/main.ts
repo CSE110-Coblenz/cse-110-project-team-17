@@ -18,6 +18,7 @@ import { STAGE_WIDTH, STAGE_HEIGHT } from "./constants.ts";
 class App implements ScreenSwitcher {
 	private stage: Konva.Stage;
 	private layer: Konva.Layer;
+	private entityLayer: Konva.Layer;
 
 	private menuController: MenuScreenController;
 	private gameController: GameScreenController;
@@ -35,6 +36,10 @@ class App implements ScreenSwitcher {
 		this.layer = new Konva.Layer();
 		this.stage.add(this.layer);
 
+		/* add entityLayer that gets redrawn frequently */
+		this.entityLayer = new Konva.Layer();
+    	this.stage.add(this.entityLayer);
+
 		// Initialize all screen controllers
 		// Each controller manages a Model, View, and handles user interactions
 		this.menuController = new MenuScreenController(this);
@@ -50,8 +55,11 @@ class App implements ScreenSwitcher {
 		this.layer.add(this.gameController.getView().getGroup());
 		this.layer.add(this.resultsController.getView().getGroup());
 
+		this.entityLayer.add(this.gameController.getView().getEntityGroup());
+
 		// Draw the layer (render everything to the canvas)
 		this.layer.draw();
+		this.entityLayer.draw();
 
 		// Start with menu screen visible
 		this.menuController.getView().show();
@@ -96,6 +104,14 @@ class App implements ScreenSwitcher {
 
 	getLayer(): Konva.Layer {
 		return this.layer;
+	}
+
+	redrawEntities(): void {
+		this.entityLayer.batchDraw();
+	}
+
+	getEntityLayer(): Konva.Layer {
+		return this.entityLayer;
 	}
 }
 

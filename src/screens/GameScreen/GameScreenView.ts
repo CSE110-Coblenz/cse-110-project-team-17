@@ -6,11 +6,15 @@ import type { View } from "../../types.ts";
  * GameScreenView - Renders the game UI using Konva
  */
 export class GameScreenView implements View {
-	private group: Konva.Group;
+	private screenGroup: Konva.Group;
+	private mapGroup: Konva.Group;
+	private entityGroup: Konva.Group;
 	private playerSprite: Konva.Image | Konva.Circle | null = null;
 
 	constructor() {
-		this.group = new Konva.Group({ visible: false });
+		this.screenGroup = new Konva.Group({ visible: false });
+		this.mapGroup = new Konva.Group;
+		this.entityGroup = new Konva.Group({ visible: false });
 	}
 
 	async build(
@@ -24,51 +28,73 @@ export class GameScreenView implements View {
 		const tileset = await loadImage("/tiles/colony.png");
 		const tilesPerRow = Math.floor(tileset.width / tileWidth);
 
+		/* Build map and add it to the a Konva.Group */
 		for(const layer of mapData.layers){
-			if (layer.type !== "tilelayer") continue;
-			const mapGroup = new Konva.Group();
+			if(layer.type !== "tilelayer") continue;
+
+			const tiledLayerGroup = new Konva.Group();
 			const tiles = layer.data;
 			const mapWidth = layer.width;
 			const mapHeight = layer.height;
 
+			/* Render the layers of the Tiled map */
 			for(let y = 0; y < mapHeight; y++){
 				for(let x = 0; x < mapWidth; x++){
 					const tileId = tiles[y * mapWidth + x];
-					if(tileId === 0) continue;
+					if (tileId === 0) continue; // empty tile
+
 					const gid = tileId - tilesetInfo.firstgid;
 
 					const tile = new Konva.Image({
-						x: x * tileWidth,
-						y: y * tileHeight,
+					x: x * tileWidth,
+					y: y * tileHeight,
+					width: tileWidth,
+					height: tileHeight,
+					image: tileset,
+					crop: {
+						x: (gid % tilesPerRow) * tileWidth,
+						y: Math.floor(gid / tilesPerRow) * tileHeight,
 						width: tileWidth,
 						height: tileHeight,
-						image: tileset,
-						crop: {
-							x: (gid % tilesPerRow) * tileWidth,
-							y: Math.floor(gid / tilesPerRow) * tileHeight,
-							width: tileWidth,
-							height: tileHeight,
 						},
 					});
-					mapGroup.add(tile);
+					tiledLayerGroup.add(tile);
 				}
 			}
-			this.group.add(mapGroup);
+			/* add the built map to this.mapLayer */
+			this.mapGroup.add(tiledLayerGroup);
 		}
-		this.group.add(player.getCurrentImage());
-	}
 
-	show(): void {
-		this.group.visible(true);
-		this.group.getLayer()?.draw();
-	}
+		/* add player to entity layer */
+		this.entityGroup.add(player.getCurrentImage());
 
-	hide(): void {
-		this.group.visible(false);
-		this.group.getLayer()?.draw();
+		/* add both groups to this.screenGroup */
+		this.screenGroup.add(this.mapGroup);
+		//this.screenGroup.add(this.entityGroup);
+
 	}
 
 	getGroup(): Konva.Group {
-		return this.group;
+		return this.screenGroup;
+	}
+
+	getMapGroup(): Konva.Group {
+		return this.mapGroup;
+	}
+
+	getEntityGroup(): Konva.Group {
+		return this.entityGroup;
+	}
+
+	show(): void {
+		this.screenGroup.visible(true);
+		this.mapGroup.visible(true);
+		this.entityGroup.visible(true);
+	}
+
+	hide(): void {
+		this.screenGroup.visible(false);
+		this.mapGroup.visible(false);
+		this.entityGroup.visible(false);
 	}
 }

@@ -20,7 +20,7 @@ export class Player extends BaseEntity {
     private imageFrames: CanvasImageSource[] = [];
     private currentImage: Konva.Image;
     private currentFrameIndex: number = 0;
-    private speed = 6;
+    private speed = 5;
 
     constructor(name: string, x: number, y: number, playerImage: HTMLImageElement){
         super(name);
