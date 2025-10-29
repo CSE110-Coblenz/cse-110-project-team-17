@@ -7,7 +7,12 @@ import { Player } from "../../entities/player.ts";
 import type { ScreenSwitcher } from "../../types.ts";
 
 /**
- * GameScreenController - Coordinates game logic between Model and View
+ * The game renders slowly because we are re-drawing the layer every frame (60 fps)
+ * 
+ * Since the layer contains multiple screens, all screens are re-drawn every frame
+ * even if they are not visible. This makes the game move/feel very slow.
+ * 
+ * Potential Solution: new PlayerLayer, so we can redraw that layer ONLY.
  */
 export class GameScreenController extends ScreenController {
 	private model: GameScreenModel;

@@ -24,38 +24,37 @@ export class GameScreenView implements View {
 		const tileset = await loadImage("/tiles/colony.png");
 		const tilesPerRow = Math.floor(tileset.width / tileWidth);
 
-		for (const layer of mapData.layers) {
-		if (layer.type !== "tilelayer") continue;
-		const mapGroup = new Konva.Group();
-		const tiles = layer.data;
-		const mapWidth = layer.width;
-		const mapHeight = layer.height;
+		for(const layer of mapData.layers){
+			if (layer.type !== "tilelayer") continue;
+			const mapGroup = new Konva.Group();
+			const tiles = layer.data;
+			const mapWidth = layer.width;
+			const mapHeight = layer.height;
 
-		for (let y = 0; y < mapHeight; y++) {
-			for (let x = 0; x < mapWidth; x++) {
-			const tileId = tiles[y * mapWidth + x];
-			if (tileId === 0) continue;
-			const gid = tileId - tilesetInfo.firstgid;
+			for(let y = 0; y < mapHeight; y++){
+				for(let x = 0; x < mapWidth; x++){
+					const tileId = tiles[y * mapWidth + x];
+					if(tileId === 0) continue;
+					const gid = tileId - tilesetInfo.firstgid;
 
-			const tile = new Konva.Image({
-				x: x * tileWidth,
-				y: y * tileHeight,
-				width: tileWidth,
-				height: tileHeight,
-				image: tileset,
-				crop: {
-				x: (gid % tilesPerRow) * tileWidth,
-				y: Math.floor(gid / tilesPerRow) * tileHeight,
-				width: tileWidth,
-				height: tileHeight,
-				},
-			});
-			mapGroup.add(tile);
+					const tile = new Konva.Image({
+						x: x * tileWidth,
+						y: y * tileHeight,
+						width: tileWidth,
+						height: tileHeight,
+						image: tileset,
+						crop: {
+							x: (gid % tilesPerRow) * tileWidth,
+							y: Math.floor(gid / tilesPerRow) * tileHeight,
+							width: tileWidth,
+							height: tileHeight,
+						},
+					});
+					mapGroup.add(tile);
+				}
 			}
+			this.group.add(mapGroup);
 		}
-		this.group.add(mapGroup);
-		}
-
 		this.group.add(player.getCurrentImage());
 	}
 

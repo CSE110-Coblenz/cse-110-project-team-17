@@ -1,11 +1,18 @@
-import { BaseEntity } from './base';
-import { Screen } from '../screen';
-import Konva from 'konva';
-
 /* (in my opinion) the Player class shouldn't worry about adding itself */
 /*                 to a screen. Instead the class should just worry abt */
 /*                 the details of the Players while being oblivious abt */
 /*                 the screen. Let ScreenControllers worry about adding */
+
+import { BaseEntity } from './base';
+import { Screen } from '../screen';
+import Konva from 'konva';
+
+/* 
+* Set the Player Sprite, and control how it moves across the map.
+*
+* TODO: change Group to Layer so that only this playerLayer is redrawn 
+*       every frame. Will improve performance.
+*/
 export class Player extends BaseEntity {
     //private screen: Screen;
     private group: Konva.Group;
@@ -13,9 +20,9 @@ export class Player extends BaseEntity {
     private imageFrames: CanvasImageSource[] = [];
     private currentImage: Konva.Image;
     private currentFrameIndex: number = 0;
-    private speed = 3;
+    private speed = 6;
 
-    constructor(name: string, x: number, y: number, playerImage: HTMLImageElement) {
+    constructor(name: string, x: number, y: number, playerImage: HTMLImageElement){
         super(name);
         //this.screen = screen;
         this.group = new Konva.Group({ x, y });
@@ -29,11 +36,11 @@ export class Player extends BaseEntity {
         //this.screen.addEntity(this.group);
     }
 
-    getCurrentImage() {
+    getCurrentImage(){
         return this.currentImage;
     }
 
-    move(dx: number, dy: number) {
+    move(dx: number, dy: number){
         this.currentImage.x(this.currentImage.x() + dx * this.speed);
         this.currentImage.y(this.currentImage.y() + dy * this.speed);
     }
