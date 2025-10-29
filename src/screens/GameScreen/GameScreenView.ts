@@ -1,4 +1,5 @@
 import Konva from "konva";
+import { Player } from "../../entities/player.ts";
 import type { View } from "../../types.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 
@@ -8,58 +9,62 @@ import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 export class GameScreenView implements View {
 	private group: Konva.Group;
 	private playerSprite: Konva.Image | Konva.Circle | null = null;
-	//private scoreText: Konva.Text;
-	//private timerText: Konva.Text;
 
 	constructor() {
 		this.group = new Konva.Group({ visible: false });
-
-		// TODO: Task 2 - Load and display lemon image using Konva.Image.fromURL()
-		// Placeholder circle (remove this when implementing the image)
-		Konva.Image.fromURL("/lemon.png", (image) => {
-			this.playerSprite = image;
-			this.playerSprite.width(32).height(32);
-			this.playerSprite.offsetX(image.width() / 2)
-			.offsetY(image.height() / 2);
-			this.playerSprite.x(STAGE_WIDTH / 2).y(STAGE_HEIGHT / 2);
-			this.group.add(this.playerSprite);
-		});
 	}
 
-	/**
-	 * Randomize lemon position
-	 */
-	randomizeLemonPosition(): void {
-		if (!this.playerSprite) return;
+	async build(
+		mapData: any,
+		player: Player,
+		loadImage: (src: string) => Promise<HTMLImageElement>
+	): Promise<void> {
+		const tilesetInfo = mapData.tilesets[0];
+		const tileWidth = mapData.tilewidth;
+		const tileHeight = mapData.tileheight;
+		const tileset = await loadImage("/tiles/main.png");
+		const tilesPerRow = Math.floor(tileset.width / tileWidth);
 
-		// Define safe boundaries (avoid edges)
-		const padding = 100;
-		const minX = padding;
-		const maxX = STAGE_WIDTH - padding;
-		const minY = padding;
-		const maxY = STAGE_HEIGHT - padding;
+		for (const layer of mapData.layers) {
+		if (layer.type !== "tilelayer") continue;
+		const mapGroup = new Konva.Group();
+		const tiles = layer.data;
+		const mapWidth = layer.width;
+		const mapHeight = layer.height;
 
-		// Generate random position
-		const randomX = Math.random() * (maxX - minX) + minX;
-		const randomY = Math.random() * (maxY - minY) + minY;
+		for (let y = 0; y < mapHeight; y++) {
+			for (let x = 0; x < mapWidth; x++) {
+			const tileId = tiles[y * mapWidth + x];
+			if (tileId === 0) continue;
+			const gid = tileId - tilesetInfo.firstgid;
 
-		// Update lemon position
-		this.playerSprite.x(randomX);
-		this.playerSprite.y(randomY);
-		this.group.getLayer()?.draw();
+			const tile = new Konva.Image({
+				x: x * tileWidth,
+				y: y * tileHeight,
+				width: tileWidth,
+				height: tileHeight,
+				image: tileset,
+				crop: {
+				x: (gid % tilesPerRow) * tileWidth,
+				y: Math.floor(gid / tilesPerRow) * tileHeight,
+				width: tileWidth,
+				height: tileHeight,
+				},
+			});
+			mapGroup.add(tile);
+			}
+		}
+		this.group.add(mapGroup);
+		}
+
+		this.group.add(player.getCurrentImage());
 	}
 
-	/**
-	 * Show the screen
-	 */
 	show(): void {
 		this.group.visible(true);
 		this.group.getLayer()?.draw();
 	}
 
-	/**
-	 * Hide the screen
-	 */
 	hide(): void {
 		this.group.visible(false);
 		this.group.getLayer()?.draw();

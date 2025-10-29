@@ -86,6 +86,14 @@ class App implements ScreenSwitcher {
 				break;
 		}
 	}
+
+	redraw(): void {
+		this.layer.batchDraw();
+	}
+
+	getLayer(): Konva.Layer {
+		return this.layer;
+	}
 }
 
 // Initialize the application
