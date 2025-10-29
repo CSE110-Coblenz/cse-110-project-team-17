@@ -1,7 +1,6 @@
 import Konva from "konva";
 import { Player } from "../../entities/player.ts";
 import type { View } from "../../types.ts";
-import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 
 /**
  * GameScreenView - Renders the game UI using Konva
@@ -22,7 +21,7 @@ export class GameScreenView implements View {
 		const tilesetInfo = mapData.tilesets[0];
 		const tileWidth = mapData.tilewidth;
 		const tileHeight = mapData.tileheight;
-		const tileset = await loadImage("/tiles/main.png");
+		const tileset = await loadImage("/tiles/colony.png");
 		const tilesPerRow = Math.floor(tileset.width / tileWidth);
 
 		for (const layer of mapData.layers) {

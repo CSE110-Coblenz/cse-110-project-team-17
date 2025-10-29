@@ -41,6 +41,9 @@ class App implements ScreenSwitcher {
 		this.gameController = new GameScreenController(this);
 		this.resultsController = new ResultsScreenController(this);
 
+		/* LOAD MAP FROM .JSON, LOAD PLAYER as well */
+		this.gameController.init();
+
 		// Add all screen groups to the layer
 		// All screens exist simultaneously but only one is visible at a time
 		this.layer.add(this.menuController.getView().getGroup());
