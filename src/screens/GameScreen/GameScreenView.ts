@@ -13,7 +13,7 @@ export class GameScreenView implements View {
 
 	constructor() {
 		this.screenGroup = new Konva.Group({ visible: false });
-		this.mapGroup = new Konva.Group;
+		this.mapGroup = new Konva.Group({ visible: false });
 		this.entityGroup = new Konva.Group({ visible: false });
 	}
 

@@ -36,17 +36,16 @@ class App implements ScreenSwitcher {
 		this.layer = new Konva.Layer();
 		this.stage.add(this.layer);
 
-		/* add entityLayer that gets redrawn frequently */
+		/* Create entityLayer that gets redrawn frequently */
 		this.entityLayer = new Konva.Layer();
     	this.stage.add(this.entityLayer);
 
 		// Initialize all screen controllers
-		// Each controller manages a Model, View, and handles user interactions
 		this.menuController = new MenuScreenController(this);
 		this.gameController = new GameScreenController(this);
 		this.resultsController = new ResultsScreenController(this);
 
-		/* LOAD MAP FROM .JSON, LOAD PLAYER as well */
+		/* LOAD MAP FROM .JSON, and LOAD PLAYER as well */
 		this.gameController.init();
 
 		// Add all screen groups to the layer
@@ -55,15 +54,18 @@ class App implements ScreenSwitcher {
 		this.layer.add(this.gameController.getView().getGroup());
 		this.layer.add(this.resultsController.getView().getGroup());
 
+		/* Add Konva.Group holding movable entities to the entityLayer (from GameScreenController) */
 		this.entityLayer.add(this.gameController.getView().getEntityGroup());
 
-		// Draw the layer (render everything to the canvas)
+		/* Draw both layer (entityLayer is invisible until startGame() is called) */
 		this.layer.draw();
 		this.entityLayer.draw();
 
 		// Start with menu screen visible
 		this.menuController.getView().show();
 	}
+
+	
 
 	/**
 	 * Switch to a different screen

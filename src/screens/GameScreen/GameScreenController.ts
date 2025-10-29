@@ -15,6 +15,7 @@ export class GameScreenController extends ScreenController {
 	private player!: Player;
 	private running: boolean;
 
+	/* Create model and view, instantiate reference to top-level App class */
 	constructor(screenSwitcher: ScreenSwitcher) {
 		super();
 		this.screenSwitcher = screenSwitcher;
@@ -23,6 +24,7 @@ export class GameScreenController extends ScreenController {
 		this.running = false;
 	}
 
+	/* Loads Map and Player data (on boot) */
 	async init(): Promise<void> {
 		const mapData = await this.loadMap("/porj0.json");
 		const playerImage = await this.loadImage("/lemon.png");
@@ -30,10 +32,10 @@ export class GameScreenController extends ScreenController {
 		await this.view.build(mapData, this.player, this.loadImage.bind(this));
 	}
 
-	getView(): GameScreenView {
-		return this.view;
-	}
-
+	/* Called by App class when switchToScreen("game") is executed */
+	/* 	--> start gameLoop function 							   */
+	/* 	--> create InputManager object to process user input 	   */
+	/*  --> show GameScreenView (all three Konva.Groups) 		   */
 	startGame(): void {
 		this.running = true;
 		this.input = new InputManager();
@@ -41,11 +43,13 @@ export class GameScreenController extends ScreenController {
 		requestAnimationFrame(this.gameLoop);
 	}
 
+	/* make all groups in GameScreenView invisible */
 	hide(): void {
 		this.running = false;
 		this.view.hide();
 	}
 
+	/* gameLoop runs 60 times/sec, updates position of Player sprite */
 	private gameLoop = (): void => {
 		if(!this.running) return;
 
@@ -68,5 +72,9 @@ export class GameScreenController extends ScreenController {
 		img.onload = () => resolve(img);
 		img.onerror = () => reject(`Failed to load image: ${src}`);
 		});
+	}
+	
+	getView(): GameScreenView {
+		return this.view;
 	}
 }
