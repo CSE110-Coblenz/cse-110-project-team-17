@@ -2,28 +2,45 @@ import { BaseEntity } from './base';
 import { Screen } from '../screen';
 import Konva from 'konva';
 
+/* (in my opinion) the Player class shouldn't worry about adding itself */
+/*                 to a screen. Instead the class should just worry abt */
+/*                 the details of the Players while being oblivious abt */
+/*                 the screen. Let ScreenControllers worry about adding */
 export class Player extends BaseEntity {
-    private screen: Screen;
+    //private screen: Screen;
     private group: Konva.Group;
     private inventory: string[] = [];
     private imageFrames: CanvasImageSource[] = [];
-    private currentImage: Konva.Image | null = null;
+    private currentImage: Konva.Image;
     private currentFrameIndex: number = 0;
+    private speed = 3;
 
-    constructor(name: string, screen: Screen, x: number = 0, y: number = 0) {
+    constructor(name: string, x: number, y: number, playerImage: HTMLImageElement) {
         super(name);
-        this.screen = screen;
-        
-        // Create a group to hold all player visuals
+        //this.screen = screen;
         this.group = new Konva.Group({ x, y });
-        
-        // Spawn the player on the screen
-        this.screen.addEntity(this.group);
+        this.currentImage = new Konva.Image({
+            x,
+            y,
+            width: 32,
+            height: 32,
+            image: playerImage,
+        });
+        //this.screen.addEntity(this.group);
+    }
+
+    getCurrentImage() {
+        return this.currentImage;
+    }
+
+    move(dx: number, dy: number) {
+        this.currentImage.x(this.currentImage.x() + dx * this.speed);
+        this.currentImage.y(this.currentImage.y() + dy * this.speed);
     }
 
     /**
      * Set image frames and initialize the visual representation
-     */
+     *
     setImageFrames(frames: CanvasImageSource[]): void {
         this.imageFrames = frames;
         if (frames.length > 0) {
@@ -33,7 +50,7 @@ export class Player extends BaseEntity {
 
     /**
      * Load an image onto the player
-     */
+     *
     private loadImage(imageSource: CanvasImageSource): void {
         if (this.currentImage) {
             this.currentImage.destroy();
@@ -52,7 +69,7 @@ export class Player extends BaseEntity {
 
     /**
      * Switch to a specific frame
-     */
+     *
     setFrame(frameIndex: number): void {
         if (frameIndex >= 0 && frameIndex < this.imageFrames.length) {
             this.currentFrameIndex = frameIndex;
@@ -62,7 +79,7 @@ export class Player extends BaseEntity {
 
     /**
      * Switch to the next frame (useful for animation)
-     */
+     *
     nextFrame(): void {
         if (this.imageFrames.length > 0) {
             this.currentFrameIndex = (this.currentFrameIndex + 1) % this.imageFrames.length;
@@ -72,21 +89,21 @@ export class Player extends BaseEntity {
 
     /**
      * Get total number of frames
-     */
+     *
     getFrameCount(): number {
         return this.imageFrames.length;
     }
 
     /**
      * Render the Player (update the screen)
-     */
+     *
     render(): void {
         this.screen.render();
     }
 
     /**
      * Move the player to a specific position
-     */
+     *
     moveTo(x: number, y: number): void {
         this.group.position({ x, y });
         this.screen.render();
@@ -108,7 +125,7 @@ export class Player extends BaseEntity {
 
     /**
      * Show the player
-     */
+     
     show(): void {
         this.group.visible(true);
         this.screen.render();
@@ -116,7 +133,7 @@ export class Player extends BaseEntity {
 
     /**
      * Hide the player
-     */
+     
     hide(): void {
         this.group.visible(false);
         this.screen.render();
@@ -124,8 +141,8 @@ export class Player extends BaseEntity {
 
     /**
      * Clean up resources
-     */
+     
     destroy(): void {
         this.screen.removeEntity(this.group);
-    }
+    } */
 }

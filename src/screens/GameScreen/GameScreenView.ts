@@ -7,71 +7,30 @@ import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
  */
 export class GameScreenView implements View {
 	private group: Konva.Group;
-	private lemonImage: Konva.Image | Konva.Circle | null = null;
-	private scoreText: Konva.Text;
-	private timerText: Konva.Text;
+	private playerSprite: Konva.Image | Konva.Circle | null = null;
+	//private scoreText: Konva.Text;
+	//private timerText: Konva.Text;
 
-	constructor(onLemonClick: () => void) {
+	constructor() {
 		this.group = new Konva.Group({ visible: false });
-
-		// Background
-		const bg = new Konva.Rect({
-			x: 0,
-			y: 0,
-			width: STAGE_WIDTH,
-			height: STAGE_HEIGHT,
-			fill: "#87CEEB", // Sky blue
-		});
-		this.group.add(bg);
-
-		// Score display (top-left)
-		this.scoreText = new Konva.Text({
-			x: 20,
-			y: 20,
-			text: "Score: 0",
-			fontSize: 32,
-			fontFamily: "Arial",
-			fill: "black",
-		});
-		this.group.add(this.scoreText);
-
-		// Timer display (top-right)
-		this.timerText = new Konva.Text({
-			x: STAGE_WIDTH - 150,
-			y: 20,
-			text: "Time: 60",
-			fontSize: 32,
-			fontFamily: "Arial",
-			fill: "red",
-		});
-		this.group.add(this.timerText);
 
 		// TODO: Task 2 - Load and display lemon image using Konva.Image.fromURL()
 		// Placeholder circle (remove this when implementing the image)
 		Konva.Image.fromURL("/lemon.png", (image) => {
-			this.lemonImage = image;
-			this.lemonImage.width(150).height(150);
-			this.lemonImage.offsetX(image.width() / 2)
+			this.playerSprite = image;
+			this.playerSprite.width(32).height(32);
+			this.playerSprite.offsetX(image.width() / 2)
 			.offsetY(image.height() / 2);
-			this.lemonImage.x(STAGE_WIDTH / 2).y(STAGE_HEIGHT / 2);
-			this.lemonImage.on("click", onLemonClick);
-			this.group.add(this.lemonImage);
+			this.playerSprite.x(STAGE_WIDTH / 2).y(STAGE_HEIGHT / 2);
+			this.group.add(this.playerSprite);
 		});
-	}
-
-	/**
-	 * Update score display
-	 */
-	updateScore(score: number): void {
-		this.scoreText.text(`Score: ${score}`);
-		this.group.getLayer()?.draw();
 	}
 
 	/**
 	 * Randomize lemon position
 	 */
 	randomizeLemonPosition(): void {
-		if (!this.lemonImage) return;
+		if (!this.playerSprite) return;
 
 		// Define safe boundaries (avoid edges)
 		const padding = 100;
@@ -85,16 +44,8 @@ export class GameScreenView implements View {
 		const randomY = Math.random() * (maxY - minY) + minY;
 
 		// Update lemon position
-		this.lemonImage.x(randomX);
-		this.lemonImage.y(randomY);
-		this.group.getLayer()?.draw();
-	}
-
-	/**
-	 * Update timer display
-	 */
-	updateTimer(timeRemaining: number): void {
-		this.timerText.text(`Time: ${timeRemaining}`);
+		this.playerSprite.x(randomX);
+		this.playerSprite.y(randomY);
 		this.group.getLayer()?.draw();
 	}
 
