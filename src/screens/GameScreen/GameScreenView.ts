@@ -1,120 +1,100 @@
 import Konva from "konva";
+import { Player } from "../../entities/player.ts";
 import type { View } from "../../types.ts";
-import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 
 /**
  * GameScreenView - Renders the game UI using Konva
  */
 export class GameScreenView implements View {
-	private group: Konva.Group;
-	private lemonImage: Konva.Image | Konva.Circle | null = null;
-	private scoreText: Konva.Text;
-	private timerText: Konva.Text;
+	private screenGroup: Konva.Group;
+	private mapGroup: Konva.Group;
+	private entityGroup: Konva.Group;
+	private playerSprite: Konva.Image | Konva.Circle | null = null;
 
-	constructor(onLemonClick: () => void) {
-		this.group = new Konva.Group({ visible: false });
-
-		// Background
-		const bg = new Konva.Rect({
-			x: 0,
-			y: 0,
-			width: STAGE_WIDTH,
-			height: STAGE_HEIGHT,
-			fill: "#87CEEB", // Sky blue
-		});
-		this.group.add(bg);
-
-		// Score display (top-left)
-		this.scoreText = new Konva.Text({
-			x: 20,
-			y: 20,
-			text: "Score: 0",
-			fontSize: 32,
-			fontFamily: "Arial",
-			fill: "black",
-		});
-		this.group.add(this.scoreText);
-
-		// Timer display (top-right)
-		this.timerText = new Konva.Text({
-			x: STAGE_WIDTH - 150,
-			y: 20,
-			text: "Time: 60",
-			fontSize: 32,
-			fontFamily: "Arial",
-			fill: "red",
-		});
-		this.group.add(this.timerText);
-
-		// TODO: Task 2 - Load and display lemon image using Konva.Image.fromURL()
-		// Placeholder circle (remove this when implementing the image)
-		Konva.Image.fromURL("/lemon.png", (image) => {
-			this.lemonImage = image;
-			this.lemonImage.width(150).height(150);
-			this.lemonImage.offsetX(image.width() / 2)
-			.offsetY(image.height() / 2);
-			this.lemonImage.x(STAGE_WIDTH / 2).y(STAGE_HEIGHT / 2);
-			this.lemonImage.on("click", onLemonClick);
-			this.group.add(this.lemonImage);
-		});
+	constructor() {
+		this.screenGroup = new Konva.Group({ visible: false });
+		this.mapGroup = new Konva.Group({ visible: false });
+		this.entityGroup = new Konva.Group({ visible: false });
 	}
 
-	/**
-	 * Update score display
-	 */
-	updateScore(score: number): void {
-		this.scoreText.text(`Score: ${score}`);
-		this.group.getLayer()?.draw();
-	}
+	async build(
+		mapData: any,
+		player: Player,
+		loadImage: (src: string) => Promise<HTMLImageElement>
+	): Promise<void> {
+		const tilesetInfo = mapData.tilesets[0];
+		const tileWidth = mapData.tilewidth;
+		const tileHeight = mapData.tileheight;
+		const tileset = await loadImage("/tiles/colony.png");
+		const tilesPerRow = Math.floor(tileset.width / tileWidth);
 
-	/**
-	 * Randomize lemon position
-	 */
-	randomizeLemonPosition(): void {
-		if (!this.lemonImage) return;
+		/* Build map and add it to the a Konva.Group */
+		for(const layer of mapData.layers){
+			if(layer.type !== "tilelayer") continue;
 
-		// Define safe boundaries (avoid edges)
-		const padding = 100;
-		const minX = padding;
-		const maxX = STAGE_WIDTH - padding;
-		const minY = padding;
-		const maxY = STAGE_HEIGHT - padding;
+			const tiledLayerGroup = new Konva.Group();
+			const tiles = layer.data;
+			const mapWidth = layer.width;
+			const mapHeight = layer.height;
 
-		// Generate random position
-		const randomX = Math.random() * (maxX - minX) + minX;
-		const randomY = Math.random() * (maxY - minY) + minY;
+			/* Render the layers of the Tiled map */
+			for(let y = 0; y < mapHeight; y++){
+				for(let x = 0; x < mapWidth; x++){
+					const tileId = tiles[y * mapWidth + x];
+					if (tileId === 0) continue; // empty tile
 
-		// Update lemon position
-		this.lemonImage.x(randomX);
-		this.lemonImage.y(randomY);
-		this.group.getLayer()?.draw();
-	}
+					const gid = tileId - tilesetInfo.firstgid;
 
-	/**
-	 * Update timer display
-	 */
-	updateTimer(timeRemaining: number): void {
-		this.timerText.text(`Time: ${timeRemaining}`);
-		this.group.getLayer()?.draw();
-	}
+					const tile = new Konva.Image({
+					x: x * tileWidth,
+					y: y * tileHeight,
+					width: tileWidth,
+					height: tileHeight,
+					image: tileset,
+					crop: {
+						x: (gid % tilesPerRow) * tileWidth,
+						y: Math.floor(gid / tilesPerRow) * tileHeight,
+						width: tileWidth,
+						height: tileHeight,
+						},
+					});
+					tiledLayerGroup.add(tile);
+				}
+			}
+			/* add the built map to this.mapLayer */
+			this.mapGroup.add(tiledLayerGroup);
+		}
 
-	/**
-	 * Show the screen
-	 */
-	show(): void {
-		this.group.visible(true);
-		this.group.getLayer()?.draw();
-	}
+		/* add player to entity layer */
+		this.entityGroup.add(player.getCurrentImage());
 
-	/**
-	 * Hide the screen
-	 */
-	hide(): void {
-		this.group.visible(false);
-		this.group.getLayer()?.draw();
+		/* add both groups to this.screenGroup */
+		this.screenGroup.add(this.mapGroup);
+		//this.screenGroup.add(this.entityGroup);
+
 	}
 
 	getGroup(): Konva.Group {
-		return this.group;
+		return this.screenGroup;
+	}
+
+	getMapGroup(): Konva.Group {
+		return this.mapGroup;
+	}
+
+	getEntityGroup(): Konva.Group {
+		return this.entityGroup;
+	}
+
+	show(): void {
+		this.screenGroup.visible(true);
+		this.mapGroup.visible(true);
+		this.entityGroup.visible(true);
+	}
+
+	hide(): void {
+		this.screenGroup.visible(false);
+		this.mapGroup.visible(false);
+		this.entityGroup.visible(false);
 	}
 }
