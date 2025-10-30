@@ -15,7 +15,7 @@ interface Position {
     y: number;
 }
 
-class MapScene {
+class MapModel {
   private width: number;
   private height: number;
   private backgroundImage: string;
@@ -85,4 +85,4 @@ class MapScene {
   }
 }
 
-export default MapScene;
+export default MapModel;
