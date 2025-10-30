@@ -18,6 +18,7 @@ import { STAGE_WIDTH, STAGE_HEIGHT } from "./constants.ts";
 class App implements ScreenSwitcher {
 	private stage: Konva.Stage;
 	private layer: Konva.Layer;
+	private entityLayer: Konva.Layer;
 
 	private menuController: MenuScreenController;
 	private gameController: GameScreenController;
@@ -35,11 +36,17 @@ class App implements ScreenSwitcher {
 		this.layer = new Konva.Layer();
 		this.stage.add(this.layer);
 
+		/* Create entityLayer that gets redrawn frequently */
+		this.entityLayer = new Konva.Layer();
+    	this.stage.add(this.entityLayer);
+
 		// Initialize all screen controllers
-		// Each controller manages a Model, View, and handles user interactions
 		this.menuController = new MenuScreenController(this);
 		this.gameController = new GameScreenController(this);
 		this.resultsController = new ResultsScreenController(this);
+
+		/* LOAD MAP FROM .JSON, and LOAD PLAYER as well */
+		this.gameController.init();
 
 		// Add all screen groups to the layer
 		// All screens exist simultaneously but only one is visible at a time
@@ -47,12 +54,18 @@ class App implements ScreenSwitcher {
 		this.layer.add(this.gameController.getView().getGroup());
 		this.layer.add(this.resultsController.getView().getGroup());
 
-		// Draw the layer (render everything to the canvas)
+		/* Add Konva.Group holding movable entities to the entityLayer (from GameScreenController) */
+		this.entityLayer.add(this.gameController.getView().getEntityGroup());
+
+		/* Draw both layer (entityLayer is invisible until startGame() is called) */
 		this.layer.draw();
+		this.entityLayer.draw();
 
 		// Start with menu screen visible
 		this.menuController.getView().show();
 	}
+
+	
 
 	/**
 	 * Switch to a different screen
@@ -85,6 +98,22 @@ class App implements ScreenSwitcher {
 				this.resultsController.showResults(screen.score);
 				break;
 		}
+	}
+
+	redraw(): void {
+		this.layer.batchDraw();
+	}
+
+	getLayer(): Konva.Layer {
+		return this.layer;
+	}
+
+	redrawEntities(): void {
+		this.entityLayer.batchDraw();
+	}
+
+	getEntityLayer(): Konva.Layer {
+		return this.entityLayer;
 	}
 }
 
