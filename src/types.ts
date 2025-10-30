@@ -1,3 +1,4 @@
+import Konva from "konva";
 import type { Group } from "konva/lib/Group";
 
 export interface View {
@@ -14,10 +15,10 @@ export interface View {
  * - "result": Results screen with final score
  *   - score: Final score to display on results screen
  */
-export type Screen =
+/* export type Screen =
 	| { type: "menu" }
 	| { type: "game" }
-	| { type: "result"; score: number };
+	| { type: "result"; score: number };*/
 
 export abstract class ScreenController {
 	abstract getView(): View;
@@ -33,4 +34,11 @@ export abstract class ScreenController {
 
 export interface ScreenSwitcher {
 	switchToScreen(screen: Screen): void;
+	
+	/* added this function so that gameloop can update  */
+	/* the main layer from the GameScreenController 	*/
+	redraw(): void;
+	getLayer(): Konva.Layer;
+	redrawEntities(): void;
+	getEntityLayer(): Konva.Layer;
 }
