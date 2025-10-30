@@ -69,22 +69,6 @@ export class Screen {
 			// 	break;
 		}
 	}
-
-	redraw(): void {
-		this.layer.batchDraw();
-	}
-
-	getLayer(): Konva.Layer {
-		return this.layer;
-	}
-
-	redrawEntities(): void {
-		this.entityLayer.batchDraw();
-	}
-
-	getEntityLayer(): Konva.Layer {
-		return this.entityLayer;
-	}
 }
 
 new Screen("container");
