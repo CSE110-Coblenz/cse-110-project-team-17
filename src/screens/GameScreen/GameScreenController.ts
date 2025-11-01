@@ -4,6 +4,7 @@ import { GameScreenView } from "./GameScreenView.ts";
 import { InputManager } from "../../input.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
+import { Robot } from "../../entities/robot.ts";
 import type { ScreenSwitcher } from "../../types.ts";
 
 
@@ -12,7 +13,7 @@ export class GameScreenController extends ScreenController {
 	private view: GameScreenView;
 	private screenSwitcher: ScreenSwitcher;
 	private input!: InputManager;
-	private player!: Player;
+	private robot!: Robot;
 	private running: boolean;
 
 	/* Create model and view, instantiate reference to top-level App class */
@@ -27,9 +28,9 @@ export class GameScreenController extends ScreenController {
 	/* Loads Map and Player data (on boot) */
 	async init(): Promise<void> {
 		const mapData = await this.loadMap("/porj0.json");
-		const playerImage = await this.loadImage("/lemon.png");
-		this.player = new Player("player", STAGE_WIDTH / 2, STAGE_HEIGHT / 2, playerImage);
-		await this.view.build(mapData, this.player, this.loadImage.bind(this));
+		const robotImage = await this.loadImage("/lemon.png");
+		this.robot = new Robot("robot", null, 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
+		await this.view.build(mapData, this.robot, this.loadImage.bind(this));
 	}
 
 	/* Called by App class when switchToScreen("game") is executed */
@@ -54,7 +55,7 @@ export class GameScreenController extends ScreenController {
 		if(!this.running) return;
 
 		const { dx, dy } = this.input.getDirection();
-		this.player.move(dx, dy);
+		this.robot.moveTo(dx, dy);
 		this.screenSwitcher.redrawEntities();
 		
 		requestAnimationFrame(this.gameLoop);

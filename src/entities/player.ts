@@ -4,7 +4,6 @@
 /*                 the screen. Let ScreenControllers worry about adding */
 
 import { BaseEntity } from './base';
-import { Screen } from '../screen';
 import Konva from 'konva';
 
 /* 

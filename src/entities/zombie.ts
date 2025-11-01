@@ -2,25 +2,36 @@ import { BaseEntity } from './base';
 import { Screen } from '../screen';
 import Konva from 'konva';
 
+export type position = {
+    x : number;
+    y : number;
+};
+
+export type Directions = 'up' | 'down' | 'right' | 'left';
+
 export class Zombie extends BaseEntity {
-    private screen: Screen;
+    // private screen: Screen;
     private group: Konva.Group;
     private health: number;
     private maxAttack: number;
     private terminated: boolean = false;
     private sprite: Konva.Image | Konva.Rect | null = null;
+    private position: position;
+    private dir: Directions;
 
-    constructor(name: string, screen: Screen, health: number, maxAttack: number, x: number = 0, y: number = 0) {
+    constructor(name: string, screen: Screen | null, health: number, maxAttack: number, x: number = 0, y: number = 0) {
         super(name);
-        this.screen = screen;
+        // this.screen = screen;
         this.health = health;
         this.maxAttack = maxAttack;
+        this.position = { x, y };
+        this.dir = 'left';
         
         this.group = new Konva.Group({ x, y });
         this.createSprite();
         
         // Spawn the zombie on the screen
-        this.screen.addEntity(this.group);
+        // this.screen.addEntity(this.group);
     }
 
     /**
@@ -50,7 +61,7 @@ export class Zombie extends BaseEntity {
             }
             this.sprite = image;
             this.group.add(image);
-            this.screen.render();
+            // this.screen.render();
         });
     }
 
@@ -58,7 +69,7 @@ export class Zombie extends BaseEntity {
      * Render the Zombie (update the screen)
      */
     render(): void {
-        this.screen.render();
+        // this.screen.render();
     }
 
     /**
@@ -66,7 +77,8 @@ export class Zombie extends BaseEntity {
      */
     moveTo(x: number, y: number): void {
         this.group.position({ x, y });
-        this.screen.render();
+        this.position = { x, y };
+        // this.screen.render();
     }
 
     /**
@@ -105,6 +117,14 @@ export class Zombie extends BaseEntity {
         this.terminated = true;
     }
 
+    getPosition(): position {
+        return this.position;
+    }
+
+    getDirection(): Directions {
+        return this.dir;
+    }
+
     /**
      * Take damage
      */
@@ -134,7 +154,7 @@ export class Zombie extends BaseEntity {
      */
     show(): void {
         this.group.visible(true);
-        this.screen.render();
+        // this.screen.render();
     }
 
     /**
@@ -142,13 +162,13 @@ export class Zombie extends BaseEntity {
      */
     hide(): void {
         this.group.visible(false);
-        this.screen.render();
+        // this.screen.render();
     }
 
     /**
      * Clean up resources
      */
     destroy(): void {
-        this.screen.removeEntity(this.group);
+        // this.screen.removeEntity(this.group);
     }
 }
