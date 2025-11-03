@@ -20,6 +20,9 @@ export class GameScreenController extends ScreenController {
 	private running: boolean;
 	private attack: boolean = false;
 	private combat: Combat = new Combat();
+	private attackingImage!: HTMLImageElement;
+	private idleImage!: HTMLImageElement;
+	private attackDuration: number = 500; // milliseconds
 
 	/* Create model and view, instantiate reference to top-level App class */
 	constructor(screenSwitcher: ScreenSwitcher) {
@@ -35,6 +38,8 @@ export class GameScreenController extends ScreenController {
 		const mapData = await this.loadMap("/porj0.json");
 		const robotImage = await this.loadImage("/lemon.png");
 		const zombieImage = await this.loadImage("/imagesTemp.jpg");
+		this.attackingImage = await this.loadImage("/image.png");
+		this.idleImage = await this.loadImage("/lemon.png");
 		this.robot = new Robot("robot", null, 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
 		this.zombie = new Zombie("zombie", null, 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, zombieImage);
 		await this.view.build(mapData, this.robot, this.zombie, this.loadImage.bind(this));
@@ -88,6 +93,10 @@ export class GameScreenController extends ScreenController {
 			this.combat.performAttack({attacker: this.robot}, {attacked: this.zombie});
 			console.log('Zombie health after attack:', this.zombie.getHealth());
 			this.attack = false;
+			this.robot.loadImage(this.attackingImage);
+			setTimeout(() => {
+				this.robot.loadImage(this.idleImage);
+			}, this.attackDuration);
 		}
 		this.screenSwitcher.redrawEntities();
 		

@@ -63,15 +63,11 @@ export class Robot extends BaseEntity {
     /**
      * Load robot image from URL
      */
-    loadImage(imageUrl: string): void {
-        Konva.Image.fromURL(imageUrl, (image) => {
-            if (this.sprite) {
-                this.sprite.destroy();
-            }
-            this.sprite = image;
-            this.group.add(image);
-            // this.screen.render();
-        });
+    loadImage(image?: HTMLImageElement): void {
+        if (!image) return;
+
+        // Update existing image on the sprite
+        this.currentImage.image(image);
     }
 
     getCurrentImage(){
