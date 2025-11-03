@@ -17,9 +17,10 @@ export class Zombie extends BaseEntity {
     private terminated: boolean = false;
     private sprite: Konva.Image | Konva.Rect | null = null;
     private position: position;
+    private currentImage: Konva.Image;
     private dir: Directions;
 
-    constructor(name: string, screen: Screen | null, health: number, maxAttack: number, x: number = 0, y: number = 0) {
+    constructor(name: string, screen: Screen | null, health: number, maxAttack: number, x: number = 0, y: number = 0, robotImage?: HTMLImageElement) {
         super(name);
         // this.screen = screen;
         this.health = health;
@@ -29,6 +30,13 @@ export class Zombie extends BaseEntity {
         
         this.group = new Konva.Group({ x, y });
         this.createSprite();
+        this.currentImage = new Konva.Image({
+            x,
+            y,
+            width: 32,
+            height: 32,
+            image: robotImage,
+        });
         
         // Spawn the zombie on the screen
         // this.screen.addEntity(this.group);
@@ -65,6 +73,10 @@ export class Zombie extends BaseEntity {
         });
     }
 
+    getCurrentImage(){
+        return this.currentImage;
+    }
+
     /**
      * Render the Zombie (update the screen)
      */
@@ -76,8 +88,9 @@ export class Zombie extends BaseEntity {
      * Move the zombie to a specific position
      */
     moveTo(x: number, y: number): void {
-        this.group.position({ x, y });
-        this.position = { x, y };
+        this.currentImage.x(x);
+        this.currentImage.y(y);
+        this.position = { x: this.currentImage.x(), y: this.currentImage.y() };
         // this.screen.render();
     }
 

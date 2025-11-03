@@ -4,6 +4,8 @@ import { GameScreenView } from "./GameScreenView.ts";
 import { InputManager } from "../../input.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
+import { Zombie } from "../../entities/zombie.ts";
+import { Combat } from "../../combat.ts";
 import { Robot } from "../../entities/robot.ts";
 import type { ScreenSwitcher } from "../../types.ts";
 
@@ -14,7 +16,10 @@ export class GameScreenController extends ScreenController {
 	private screenSwitcher: ScreenSwitcher;
 	private input!: InputManager;
 	private robot!: Robot;
+	private zombie!: Zombie;
 	private running: boolean;
+	private attack: boolean = false;
+	private combat: Combat = new Combat();
 
 	/* Create model and view, instantiate reference to top-level App class */
 	constructor(screenSwitcher: ScreenSwitcher) {
@@ -29,8 +34,10 @@ export class GameScreenController extends ScreenController {
 	async init(): Promise<void> {
 		const mapData = await this.loadMap("/porj0.json");
 		const robotImage = await this.loadImage("/lemon.png");
+		const zombieImage = await this.loadImage("/imagesTemp.jpg");
 		this.robot = new Robot("robot", null, 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
-		await this.view.build(mapData, this.robot, this.loadImage.bind(this));
+		this.zombie = new Zombie("zombie", null, 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, zombieImage);
+		await this.view.build(mapData, this.robot, this.zombie, this.loadImage.bind(this));
 	}
 
 	/* Called by App class when switchToScreen("game") is executed */
@@ -55,7 +62,33 @@ export class GameScreenController extends ScreenController {
 		if(!this.running) return;
 
 		const { dx, dy } = this.input.getDirection();
+		const y = this.robot.getPosition().y;
+		const x = this.robot.getPosition().x;
 		this.robot.moveTo(dx, dy);
+		if (this.robot.getPosition().x != x) {
+			if (this.robot.getPosition().x > x) {
+				this.robot.faceDirection('right');
+			} 
+			else {
+				this.robot.faceDirection('left');
+			}
+		}
+		else if (this.robot.getPosition().y != y) {
+			if (this.robot.getPosition().y > y) {
+				this.robot.faceDirection('down');
+			} 
+			else {
+				this.robot.faceDirection('up');
+			}
+		}
+		console.log("direction: " + this.robot.getDirection());
+		this.attack = this.input.getAttack();
+		if (this.attack) {
+			console.log("Attack initiated!");
+			this.combat.performAttack({attacker: this.robot}, {attacked: this.zombie});
+			console.log('Zombie health after attack:', this.zombie.getHealth());
+			this.attack = false;
+		}
 		this.screenSwitcher.redrawEntities();
 		
 		requestAnimationFrame(this.gameLoop);

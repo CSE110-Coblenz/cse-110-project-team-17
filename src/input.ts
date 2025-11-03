@@ -8,6 +8,7 @@
 
 export class InputManager {
   private keys: Record<string, boolean> = {};
+  private attack: boolean = false;
 
   constructor() {
     window.addEventListener("keydown", (e) => this.keys[e.key.toLowerCase()] = true);
@@ -21,5 +22,18 @@ export class InputManager {
     if (this.keys["a"]) dx -= 1;
     if (this.keys["d"]) dx += 1;
     return { dx, dy };
+  }
+  getAttack(): boolean {
+    if (this.keys[" "] && !this.attack) {
+      this.attack = true;
+      return true;
+    }
+    else if (this.keys[" "] && this.attack) {
+      return false;
+    }
+    else {
+      this.attack = false;
+      return false;
+    }
   }
 }
