@@ -12,19 +12,13 @@ export interface Position {
 export abstract class MapModel {
 	private width: number;
 	private height: number;
-	private backgroundImage: string;
-	public ROBOT_PARTS: RobotPart[];
 
 	constructor(
 		width: number,
 		height: number,
-		backgroundImage: string,
-		robotParts: RobotPart[],
 	) {
 		this.width = width;
 		this.height = height;
-		this.backgroundImage = backgroundImage;
-		this.ROBOT_PARTS = robotParts;
 	}
 
 	isWithinBounds(position: Position): boolean {
@@ -42,9 +36,5 @@ export abstract class MapModel {
 
 	getHeight(): number {
 		return this.height;
-	}
-
-	getBackgroundImage(): string {
-		return this.backgroundImage;
 	}
 }
