@@ -1,25 +1,46 @@
 import { BaseEntity } from './base';
 import { Screen } from '../screen';
+import { Combat } from '../combat';
 import Konva from 'konva';
 
+export type position = {
+    x : number;
+    y : number;
+};
+
+export type Directions = 'up' | 'down' | 'right' | 'left';
+
 export class Robot extends BaseEntity {
-    private screen: Screen;
+    // private screen: Screen;
     private group: Konva.Group;
     private health: number;
     private maxAttack: number;
     private sprite: Konva.Image | Konva.Rect | null = null;
+    private position: position;
+    private currentImage: Konva.Image;
+    private dir: Directions;
+    private speed = 1;
 
-    constructor(name: string, screen: Screen, health: number, maxAttack: number, x: number = 0, y: number = 0) {
+    constructor(name: string, screen: Screen | null, health: number, maxAttack: number, x: number = 0, y: number = 0, robotImage?: HTMLImageElement) {
         super(name);
-        this.screen = screen;
+        // this.screen = screen;
         this.health = health;
         this.maxAttack = maxAttack;
+        this.position = { x, y };
+        this.dir = 'right';
+        this.currentImage = new Konva.Image({
+            x,
+            y,
+            width: 32,
+            height: 32,
+            image: robotImage,
+        });
         
         this.group = new Konva.Group({ x, y });
         this.createSprite();
         
         // Spawn the robot on the screen
-        this.screen.addEntity(this.group);
+        // this.screen.addEntity(this.group);
     }
 
     /**
@@ -42,30 +63,34 @@ export class Robot extends BaseEntity {
     /**
      * Load robot image from URL
      */
-    loadImage(imageUrl: string): void {
-        Konva.Image.fromURL(imageUrl, (image) => {
-            if (this.sprite) {
-                this.sprite.destroy();
-            }
-            this.sprite = image;
-            this.group.add(image);
-            this.screen.render();
-        });
+    loadImage(image?: HTMLImageElement): void {
+        if (!image) return;
+
+        // Update existing image on the sprite
+        this.currentImage.image(image);
     }
+
+    getCurrentImage(){
+        return this.currentImage;
+    }
+
+    
 
     /**
      * Render the Robot (update the screen)
      */
     render(): void {
-        this.screen.render();
+        // this.screen.render();
     }
 
     /**
      * Move the robot to a specific position
      */
-    moveTo(x: number, y: number): void {
-        this.group.position({ x, y });
-        this.screen.render();
+    moveTo(dx: number, dy: number): void {
+        this.currentImage.x(this.currentImage.x() + dx * this.speed);
+        this.currentImage.y(this.currentImage.y() + dy * this.speed);
+        this.position = { x: this.currentImage.x(), y: this.currentImage.y() };
+        // this.screen.render();
     }
 
     /**
@@ -82,6 +107,30 @@ export class Robot extends BaseEntity {
         return this.maxAttack;
     }
 
+    getPosition(): position {
+        return this.position;
+    }
+
+    getDirection(): Directions {
+        return this.dir;
+    }
+
+    faceDirection(direction: Directions): void {
+        this.dir = direction;
+    }
+
+    /**
+     * Take damage
+     */
+    takeDamage(amount: number): void {
+        this.health -= amount;
+        if (this.health <= 0) {
+            console.log("You have died");
+            this.destroy();
+        }
+    }
+
+
     /**
      * Set health
      */
@@ -94,7 +143,7 @@ export class Robot extends BaseEntity {
      */
     show(): void {
         this.group.visible(true);
-        this.screen.render();
+        // this.screen.render();
     }
 
     /**
@@ -102,13 +151,13 @@ export class Robot extends BaseEntity {
      */
     hide(): void {
         this.group.visible(false);
-        this.screen.render();
+        // this.screen.render();
     }
 
     /**
      * Clean up resources
      */
     destroy(): void {
-        this.screen.removeEntity(this.group);
+        // this.screen.removeEntity(this.group);
     }
 }

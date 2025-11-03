@@ -1,5 +1,7 @@
 import Konva from "konva";
 import { Player } from "../../entities/player.ts";
+import { Robot } from "../../entities/robot.ts";
+import { Zombie } from "../../entities/zombie.ts";
 import type { View } from "../../types.ts";
 
 /**
@@ -19,7 +21,8 @@ export class GameScreenView implements View {
 
 	async build(
 		mapData: any,
-		player: Player,
+		robot: Robot,
+		zombie: Zombie,
 		loadImage: (src: string) => Promise<HTMLImageElement>
 	): Promise<void> {
 		const tilesetInfo = mapData.tilesets[0];
@@ -65,8 +68,9 @@ export class GameScreenView implements View {
 			this.mapGroup.add(tiledLayerGroup);
 		}
 
-		/* add player to entity layer */
-		this.entityGroup.add(player.getCurrentImage());
+		/* add robot to entity layer */
+		this.entityGroup.add(robot.getCurrentImage());
+		this.entityGroup.add(zombie.getCurrentImage());
 
 		/* add both groups to this.screenGroup */
 		this.screenGroup.add(this.mapGroup);

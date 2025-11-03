@@ -71,4 +71,5 @@ export class Screen {
 	}
 }
 
-new Screen("container");
+// Initialize the application
+new App("container");
