@@ -1,88 +1,50 @@
-// Map size constants
-const MAP_WIDTH = 1280;
-const MAP_HEIGHT = 720;
+export type IllegalZone = [number, number, number, number];
 
-// Placeholder background image path
-const MAP_BACKGROUND_IMAGE = 'assets/map-background.png';
-
-// Robot part interface
-interface RobotPart {
-  name: string
+export interface RobotPart {
+	name: string;
 }
 
-interface Position {
-    x: number;
-    y: number;
+export interface Position {
+	x: number;
+	y: number;
 }
 
-class MapModel {
-  private width: number;
-  private height: number;
-  private backgroundImage: string;
-  // List of robot parts
-  private ROBOT_PARTS: RobotPart[]
+export abstract class MapModel {
+	private width: number;
+	private height: number;
+	private backgroundImage: string;
+	public ROBOT_PARTS: RobotPart[];
 
-  constructor() {
-    this.width = MAP_WIDTH;
-    this.height = MAP_HEIGHT;
-    this.backgroundImage = MAP_BACKGROUND_IMAGE;
-    this.ROBOT_PARTS = [
-      {name: "Left Arm"},
-      {name: "Right Arm"},
-      {name: "Left leg"},
-      {name: "Right leg"},
-      {name: "Body"},
-      {name: "Head"},
-    ];
-  }
+	constructor(
+		width: number,
+		height: number,
+		backgroundImage: string,
+		robotParts: RobotPart[],
+	) {
+		this.width = width;
+		this.height = height;
+		this.backgroundImage = backgroundImage;
+		this.ROBOT_PARTS = robotParts;
+	}
 
-  /**
-   * Transfers a robot part by name, removing and returning it from the list
-   * @param name - The name of the robot part to transfer
-   * @returns The robot part if found, null otherwise
-   */
-  transferPart(name: string): RobotPart | null {
-    const index = this.ROBOT_PARTS.findIndex(part => part.name === name);
-    if (index !== -1) {
-      return this.ROBOT_PARTS.splice(index, 1)[0];
-    }
-    return null;
-  }
+	isWithinBounds(position: Position): boolean {
+		return (
+			position.x >= 0 &&
+			position.x <= this.width &&
+			position.y >= 0 &&
+			position.y <= this.height
+		);
+	}
 
-  /**
-   * Checks if a player position is within the bounds of the map
-   * @param position - The player's position {x, y}
-   * @returns true if the player is within bounds, false otherwise
-   */
-  isEntityWithinBounds(position: Position): boolean {
-    return (
-      position.x >= 0 &&
-      position.x <= this.width &&
-      position.y >= 0 &&
-      position.y <= this.height
-    );
-  }
+	getWidth(): number {
+		return this.width;
+	}
 
-  /**
-   * Gets the map width
-   */
-  getWidth(): number {
-    return this.width;
-  }
+	getHeight(): number {
+		return this.height;
+	}
 
-  /**
-   * Gets the map height
-   */
-  getHeight(): number {
-    return this.height;
-  }
-
-  /**
-   * Gets the background image path
-   */
-  getBackgroundImage(): string {
-    return this.backgroundImage;
-  }
+	getBackgroundImage(): string {
+		return this.backgroundImage;
+	}
 }
-
-export default MapModel;
