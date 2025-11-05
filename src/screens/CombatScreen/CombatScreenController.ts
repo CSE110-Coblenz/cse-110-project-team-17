@@ -1,6 +1,6 @@
 import { ScreenController } from "../../types.ts";
-import { GameScreenModel } from "./GameScreenModel.ts";
-import { GameScreenView } from "./GameScreenView.ts";
+import { CombatScreenModel } from "./CombatScreenModel.ts";
+import { CombatScreenView } from "./CombatScreenView.ts";
 import { InputManager } from "../../input.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
@@ -10,9 +10,9 @@ import { Robot } from "../../entities/robot.ts";
 import type { ScreenSwitcher } from "../../types.ts";
 
 
-export class GameScreenController extends ScreenController {
-	private model: GameScreenModel;
-	private view: GameScreenView;
+export class CombatScreenController extends ScreenController {
+	private model: CombatScreenModel;
+	private view: CombatScreenView;
 	private screenSwitcher: ScreenSwitcher;
 	private input!: InputManager;
 	private robot!: Robot;
@@ -28,8 +28,8 @@ export class GameScreenController extends ScreenController {
 	constructor(screenSwitcher: ScreenSwitcher) {
 		super();
 		this.screenSwitcher = screenSwitcher;
-		this.model = new GameScreenModel();
-		this.view = new GameScreenView();
+		this.model = new CombatScreenModel();
+		this.view = new CombatScreenView();
 		this.running = false;
 	}
 
@@ -48,15 +48,15 @@ export class GameScreenController extends ScreenController {
 	/* Called by App class when switchToScreen("game") is executed */
 	/* 	--> start gameLoop function 							   */
 	/* 	--> create InputManager object to process user input 	   */
-	/*  --> show GameScreenView (all three Konva.Groups) 		   */
-	startGame(): void {
+	/*  --> show CombatScreenView (all three Konva.Groups) 		   */
+	startCombat(): void {
 		this.running = true;
 		this.input = new InputManager();
 		this.view.show();
 		requestAnimationFrame(this.gameLoop);
 	}
 
-	/* make all groups in GameScreenView invisible */
+	/* make all groups in CombatScreenView invisible */
 	hide(): void {
 		this.running = false;
 		this.view.hide();
@@ -117,7 +117,7 @@ export class GameScreenController extends ScreenController {
 		});
 	}
 	
-	getView(): GameScreenView {
+	getView(): CombatScreenView {
 		return this.view;
 	}
 }

@@ -5,9 +5,9 @@ import { Zombie } from "../../entities/zombie.ts";
 import type { View } from "../../types.ts";
 
 /**
- * GameScreenView - Renders the game UI using Konva
+ * CombatScreenView - Renders the game UI using Konva
  */
-export class GameScreenView implements View {
+export class CombatScreenView implements View {
 	private screenGroup: Konva.Group;
 	private mapGroup: Konva.Group;
 	private entityGroup: Konva.Group;

@@ -1,74 +1,109 @@
 import Konva from "konva";
+import type { ScreenSwitcher, Screen } from "./types.ts";
+import { MenuScreenController } from "./screens/MenuScreen/MenuScreenController.ts";
+import { ExplorationScreenController } from "./screens/ExplorationScreen/ExplorationScreenController.ts";
+import { CombatScreenController } from "./screens/CombatScreen/CombatScreenController.ts";
+import { ResultsScreenController } from "./screens/ResultsScreen/ResultsScreenController.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "./constants.ts";
-// import { MapController } from "";
 
-export class Screen {
+/**
+ * Main Application - Coordinates all screens
+ */
+class App implements ScreenSwitcher {
     private stage: Konva.Stage;
     private layer: Konva.Layer;
-    
-    // TODO: create instance variable for every class that implements MapController
-    // private __mapController: __MapController;
+    private entityLayer: Konva.Layer;
+
+    private menuController: MenuScreenController;
+    private explorationController: ExplorationScreenController;
+    private combatController: CombatScreenController;
+    private resultsController: ResultsScreenController;
 
     constructor(container: string) {
-        // Initialize Konva stage (the main canvas)
+        // Initialize Konva stage
         this.stage = new Konva.Stage({
             container,
             width: STAGE_WIDTH,
             height: STAGE_HEIGHT,
         });
 
-        // Create a layer (screens will be added to this layer)
+        // Create layers
         this.layer = new Konva.Layer();
-		this.stage.add(this.layer);
+        this.stage.add(this.layer);
 
-        // TODO: initialize every controller class
-        // this.__mapController = new __mapController(this);
+        this.entityLayer = new Konva.Layer();
+        this.stage.add(this.entityLayer);
 
-        // TODO: add every controller view to the layer
-        // this.layer.add(this.__mapController.getView().getGroup());
+        // Initialize all screen controllers
+        this.menuController = new MenuScreenController(this);
+        this.explorationController = new ExplorationScreenController(this);
+        this.combatController = new CombatScreenController(this);
+        this.resultsController = new ResultsScreenController(this);
 
-        // Draw the layer (render everything to the canvas)
+        // Load both screens
+        this.explorationController.init();
+        this.combatController.init();
+
+        // Add all screen groups to layers
+        this.layer.add(this.menuController.getView().getGroup());
+        this.layer.add(this.explorationController.getView().getGroup());
+        this.layer.add(this.combatController.getView().getGroup());
+        this.layer.add(this.resultsController.getView().getGroup());
+
+        // Add entity groups
+        this.entityLayer.add(this.explorationController.getView().getEntityGroup());
+        this.entityLayer.add(this.combatController.getView().getEntityGroup());
+
+        // Draw layers
         this.layer.draw();
+        this.entityLayer.draw();
 
-        // TODO: show the first screen (probably the menu)
-        // this.mapController.getView().show();
+        // Start with menu screen
+        this.menuController.getView().show();
     }
 
-    /**
-	 * Switch to a different screen
-	 *
-	 * This method implements screen management by:
-	 * 1. Hiding all screens (setting their Groups to invisible)
-	 * 2. Showing only the requested screen
-	 *
-	 * This pattern ensures only one screen is visible at a time.
-	 */
-	switchToScreen(screen: string): void {
-		// Hide all screens first by setting their Groups to invisible
-		// TODO: call hide on each screen controller
-        // this.menuController.hide();
-		// this.gameController.hide();
-		// this.resultsController.hide();
+    switchToScreen(screen: Screen): void {
+        // Hide all screens
+        this.menuController.hide();
+        this.explorationController.hide();
+        this.combatController.hide();
+        this.resultsController.hide();
 
-		// Show the requested screen based on the screen type
-		switch (screen) {
-			// TODO: add case for each screen
-            
-            // case "menu":
-			// 	this.menuController.show();
-			// 	break;
+        // Show requested screen
+        switch (screen.type) {
+            case "menu":
+                this.menuController.show();
+                break;
 
-			// case "game":
-			// 	// Start the game (which also shows the game screen)
-			// 	this.gameController.startGame();
-			// 	break;
+            case "exploration":
+                this.explorationController.startExploration();
+                break;
 
-			// case "result":
-			// 	// Show results with the final score
-			// 	this.resultsController.showResults(screen.score);
-			// 	break;
-		}
-	}
+            case "combat":
+                this.combatController.startCombat();
+                break;
+
+            case "result":
+                this.resultsController.showResults(screen.score);
+                break;
+        }
+    }
+
+    redraw(): void {
+        this.layer.batchDraw();
+    }
+
+    getLayer(): Konva.Layer {
+        return this.layer;
+    }
+
+    redrawEntities(): void {
+        this.entityLayer.batchDraw();
+    }
+
+    getEntityLayer(): Konva.Layer {
+        return this.entityLayer;
+    }
 }
 
 // Initialize the application

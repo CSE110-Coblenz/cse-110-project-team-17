@@ -1,7 +1,7 @@
 /**
- * GameScreenModel - Manages game state
+ * CombatScreenModel - Manages game state
  */
-export class GameScreenModel {
+export class CombatScreenModel {
 	private score = 0;
 
 	/**
