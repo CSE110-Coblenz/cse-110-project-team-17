@@ -51,6 +51,7 @@ export class ExplorationScreenController extends ScreenController {
         await this.view.build(mapData, this.player, this.gameObjects, this.loadImage.bind(this));
     }
 
+    /* check collisions 10 times a second */
     private logicTick = (): void => {
         if (!this.running) return;
 
@@ -81,10 +82,9 @@ export class ExplorationScreenController extends ScreenController {
         const x = playerImg.x();
         const y = playerImg.y();
 
-        // RIGHT EDGE: try to transition to combat only if all objects collected
+        // RIGHT EDGE
         if(x >= STAGE_WIDTH - EDGE_THRESHOLD){
             if(this.model.allObjectsCollected()){
-            // transition (stop running first to avoid double loops)
             this.running = false;
             this.screenSwitcher.switchToScreen({ type: "combat" });
             return;
@@ -109,8 +109,8 @@ export class ExplorationScreenController extends ScreenController {
             playerImg.y(0);
         }
 
-        // BOTTOM edge (player sprite height hardcoded or pull from player)
-        const playerHeight = 32; // or this.player.getHeight()
+        // BOTTOM edge
+        const playerHeight = 32;
         if (y > STAGE_HEIGHT - playerHeight) {
             playerImg.y(STAGE_HEIGHT - playerHeight);
         }

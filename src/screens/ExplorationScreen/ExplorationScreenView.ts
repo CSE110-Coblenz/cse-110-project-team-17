@@ -10,6 +10,7 @@ export class ExplorationScreenView implements View {
     private screenGroup: Konva.Group;
     private mapGroup: Konva.Group;
     private entityGroup: Konva.Group;
+    private playerGroup: Konva.Group;
     private uiGroup: Konva.Group;
     private inventoryText: Konva.Text;
     private collectionMessageText: Konva.Text;
@@ -20,6 +21,8 @@ export class ExplorationScreenView implements View {
         this.mapGroup = new Konva.Group({ visible: false });
         this.entityGroup = new Konva.Group({ visible: false });
         this.uiGroup = new Konva.Group({ visible: false });
+
+        this.playerGroup = new Konva.Group({ visible: false });
 
         // Create inventory display
         this.inventoryText = new Konva.Text({
@@ -100,7 +103,7 @@ export class ExplorationScreenView implements View {
         }
 
         /* Add player to entity layer */
-        this.entityGroup.add(player.getCurrentImage());
+        this.playerGroup.add(player.getCurrentImage());
 
         /* Add game objects to entity layer - use the group, not just the image */
         for (const obj of gameObjects) {
@@ -155,6 +158,10 @@ export class ExplorationScreenView implements View {
         return this.entityGroup;
     }
 
+    getPlayerGroup(): Konva.Group {
+        return this.playerGroup;
+    }
+
     getUIGroup(): Konva.Group {
         return this.uiGroup;
     }
@@ -164,6 +171,7 @@ export class ExplorationScreenView implements View {
         this.mapGroup.visible(true);
         this.entityGroup.visible(true);
         this.uiGroup.visible(true);
+        this.playerGroup.visible(true);
     }
 
     hide(): void {
@@ -171,5 +179,6 @@ export class ExplorationScreenView implements View {
         this.mapGroup.visible(false);
         this.entityGroup.visible(false);
         this.uiGroup.visible(false);
+        this.playerGroup.visible(false);
     }
 }

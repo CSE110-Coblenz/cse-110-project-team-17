@@ -8,7 +8,6 @@ export class ExplorationScreenModel {
     private objectsOnMap: Map<string, boolean> = new Map(); // objectName -> isCollected
 
     private collectedCount = 0;
-    private readonly EDGE_THRESHOLD = 10; // Pixels from edge to trigger transition
 
     /**
      * Reset exploration state for a new game
@@ -58,6 +57,6 @@ export class ExplorationScreenModel {
     }
 
     shouldTransitionToCombat(playerX: number): boolean {
-        return playerX >= STAGE_WIDTH - this.EDGE_THRESHOLD && this.allObjectsCollected();
+        return playerX >= STAGE_WIDTH - EDGE_THRESHOLD && this.allObjectsCollected();
     }
 }
