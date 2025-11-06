@@ -3,46 +3,47 @@ import { GameScreenModel } from "./GameScreenModel.ts";
 import { GameScreenView } from "./GameScreenView.ts";
 import { InputManager } from "../../input.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
-import { Player } from "../../entities/player.ts";
 import { Zombie } from "../../entities/zombie.ts";
-import { Combat } from "../../combat.ts";
 import { Robot } from "../../entities/robot.ts";
-import type { ScreenSwitcher } from "../../types.ts";
-
 
 export class GameScreenController extends ScreenController {
 	private model: GameScreenModel;
 	private view: GameScreenView;
-	private screenSwitcher: ScreenSwitcher;
-	private input!: InputManager;
-	private robot!: Robot;
-	private zombie!: Zombie;
-	private running: boolean;
-	private attack: boolean = false;
-	private combat: Combat = new Combat();
-	private attackingImage!: HTMLImageElement;
-	private idleImage!: HTMLImageElement;
-	private attackDuration: number = 500; // milliseconds
+	// private screenSwitcher: ScreenSwitcher;
+	private input?: InputManager;
 
 	/* Create model and view, instantiate reference to top-level App class */
-	constructor(screenSwitcher: ScreenSwitcher) {
+	constructor() {
 		super();
-		this.screenSwitcher = screenSwitcher;
-		this.model = new GameScreenModel();
-		this.view = new GameScreenView();
-		this.running = false;
+		// this.screenSwitcher = screenSwitcher;
+		this.model = new GameScreenModel(STAGE_WIDTH, STAGE_HEIGHT);
+		this.view = new GameScreenView(this.model);
+		this.model.setAttackDuration(500);
 	}
 
 	/* Loads Map and Player data (on boot) */
 	async init(): Promise<void> {
 		const mapData = await this.loadMap("/porj0.json");
+		this.model.setMapData(mapData);
+
 		const robotImage = await this.loadImage("/lemon.png");
 		const zombieImage = await this.loadImage("/imagesTemp.jpg");
-		this.attackingImage = await this.loadImage("/image.png");
-		this.idleImage = await this.loadImage("/lemon.png");
-		this.robot = new Robot("robot", null, 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
-		this.zombie = new Zombie("zombie", null, 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, zombieImage);
-		await this.view.build(mapData, this.robot, this.zombie, this.loadImage.bind(this));
+		const attackingImage = await this.loadImage("/image.png");
+		const idleImage = await this.loadImage("/lemon.png");
+
+		const robot = new Robot("robot", null, 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
+		const zombie = new Zombie("zombie", null, 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, zombieImage);
+
+		this.model.setEntities(robot, zombie);
+		this.model.setAttackingImage(attackingImage);
+		this.model.setIdleImage(idleImage);
+
+		await this.view.build(
+			this.model.getMapData(),
+			this.model.getRobot(),
+			this.model.getZombie(),
+			this.loadImage.bind(this),
+		);
 	}
 
 	/* Called by App class when switchToScreen("game") is executed */
@@ -50,7 +51,7 @@ export class GameScreenController extends ScreenController {
 	/* 	--> create InputManager object to process user input 	   */
 	/*  --> show GameScreenView (all three Konva.Groups) 		   */
 	startGame(): void {
-		this.running = true;
+		this.model.setRunning(true);
 		this.input = new InputManager();
 		this.view.show();
 		requestAnimationFrame(this.gameLoop);
@@ -58,47 +59,23 @@ export class GameScreenController extends ScreenController {
 
 	/* make all groups in GameScreenView invisible */
 	hide(): void {
-		this.running = false;
+		this.model.setRunning(false);
 		this.view.hide();
 	}
 
 	/* gameLoop runs 60 times/sec, updates position of Player sprite */
 	private gameLoop = (): void => {
-		if(!this.running) return;
+		if (!this.model.isRunning() || !this.input) {
+			return;
+		}
 
 		const { dx, dy } = this.input.getDirection();
-		const y = this.robot.getPosition().y;
-		const x = this.robot.getPosition().x;
-		this.robot.moveTo(dx, dy);
-		if (this.robot.getPosition().x != x) {
-			if (this.robot.getPosition().x > x) {
-				this.robot.faceDirection('right');
-			} 
-			else {
-				this.robot.faceDirection('left');
-			}
-		}
-		else if (this.robot.getPosition().y != y) {
-			if (this.robot.getPosition().y > y) {
-				this.robot.faceDirection('down');
-			} 
-			else {
-				this.robot.faceDirection('up');
-			}
-		}
-		console.log("direction: " + this.robot.getDirection());
-		this.attack = this.input.getAttack();
-		if (this.attack) {
-			console.log("Attack initiated!");
-			this.combat.performAttack({attacker: this.robot}, {attacked: this.zombie});
-			console.log('Zombie health after attack:', this.zombie.getHealth());
-			this.attack = false;
-			this.robot.loadImage(this.attackingImage);
-			setTimeout(() => {
-				this.robot.loadImage(this.idleImage);
-			}, this.attackDuration);
-		}
-		this.screenSwitcher.redrawEntities();
+		this.model.updateRobotPosition(dx, dy);
+
+		const attack = this.input.getAttack();
+		this.model.processAttackRequest(attack);
+
+		// this.screenSwitcher.redrawEntities();
 		
 		requestAnimationFrame(this.gameLoop);
 	};
