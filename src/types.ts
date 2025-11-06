@@ -40,6 +40,7 @@ export interface ScreenSwitcher {
 	/* the main layer from the GameScreenController 	*/
 	redraw(): void;
 	getLayer(): Konva.Layer;
-	redrawEntities(): void;
-	getEntityLayer(): Konva.Layer;
+	redrawCombatEntities(): void;
+	redrawExplorationEntities(): void;
+	getCombatLayer(): Konva.Layer;
 }

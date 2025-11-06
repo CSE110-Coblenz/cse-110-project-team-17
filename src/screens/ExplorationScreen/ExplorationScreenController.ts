@@ -2,7 +2,7 @@ import { ScreenController } from "../../types.ts";
 import { ExplorationScreenModel } from "./ExplorationScreenModel.ts";
 import { ExplorationScreenView } from "./ExplorationScreenView.ts";
 import { InputManager } from "../../input.ts";
-import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
+import { STAGE_WIDTH, STAGE_HEIGHT , EDGE_THRESHOLD } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
 import { GameObject } from "../../entities/object.ts";
 import type { ScreenSwitcher } from "../../types.ts";
@@ -15,7 +15,10 @@ export class ExplorationScreenController extends ScreenController {
     private player!: Player;
     private gameObjects: GameObject[] = [];
     private running: boolean;
-    private readonly EDGE_THRESHOLD = 10; // Pixels from edge to trigger transition
+
+    private logicTickInterval?: number;
+    private lastCollectionMsgTs = 0;
+    private COLLECTION_MSG_COOLDOWN_MS = 750;
 
     constructor(screenSwitcher: ScreenSwitcher) {
         super();
@@ -48,11 +51,77 @@ export class ExplorationScreenController extends ScreenController {
         await this.view.build(mapData, this.player, this.gameObjects, this.loadImage.bind(this));
     }
 
+    private logicTick = (): void => {
+        if (!this.running) return;
+
+        const { dx, dy } = this.input.getDirection();
+        const playerImg = this.player.getCurrentImage();
+        const newX = playerImg.x();
+
+        // Movement-related game logic
+        if (dx !== 0 || dy !== 0) {
+            this.checkEdges();
+        }
+
+        // Check if the player should transition to combat
+        if (this.model.shouldTransitionToCombat(newX)) {
+            this.running = false;
+            this.screenSwitcher.switchToScreen({ type: "combat" });
+            return;
+        }
+
+        // Check for interactions
+        if (this.input.getInteract()) {
+            this.checkObjectCollection();
+        }
+    };
+
+    private checkEdges(): void {
+        const playerImg = this.player.getCurrentImage();
+        const x = playerImg.x();
+        const y = playerImg.y();
+
+        // RIGHT EDGE: try to transition to combat only if all objects collected
+        if(x >= STAGE_WIDTH - EDGE_THRESHOLD){
+            if(this.model.allObjectsCollected()){
+            // transition (stop running first to avoid double loops)
+            this.running = false;
+            this.screenSwitcher.switchToScreen({ type: "combat" });
+            return;
+            } else {
+                // clamp to edge and show one message every cooldown period
+                playerImg.x(STAGE_WIDTH - EDGE_THRESHOLD);
+                const now = performance.now();
+                if (now - this.lastCollectionMsgTs > this.COLLECTION_MSG_COOLDOWN_MS) {
+                    this.view.showCollectionMessage("Collect all items first!");
+                    this.lastCollectionMsgTs = now;
+                }
+            }
+        }
+
+        // LEFT edge
+        if(x < 0){
+            playerImg.x(0);
+        }
+
+        // TOP edge
+        if(y < 0){
+            playerImg.y(0);
+        }
+
+        // BOTTOM edge (player sprite height hardcoded or pull from player)
+        const playerHeight = 32; // or this.player.getHeight()
+        if (y > STAGE_HEIGHT - playerHeight) {
+            playerImg.y(STAGE_HEIGHT - playerHeight);
+        }
+    }
+
     startExploration(): void {
         this.running = true;
         this.input = new InputManager();
-        this.view.show();
         requestAnimationFrame(this.explorationLoop);
+        this.view.show();
+        this.logicTickInterval = window.setInterval(() => this.logicTick(), 100);
     }
 
     hide(): void {
@@ -63,53 +132,9 @@ export class ExplorationScreenController extends ScreenController {
     /* Exploration game loop */
     private explorationLoop = (): void => {
         if (!this.running) return;
-
         const { dx, dy } = this.input.getDirection();
-        const playerImg = this.player.getCurrentImage();
-        const currentX = playerImg.x();
-        const currentY = playerImg.y();
-
-        // Move player
         this.player.move(dx, dy);
-
-        // Get new position after movement
-        const newX = playerImg.x();
-        const newY = playerImg.y();
-
-        // Check if player is trying to go past the right edge
-        if (newX >= STAGE_WIDTH - this.EDGE_THRESHOLD) {
-            // Check if all items have been collected
-            if (this.model.allObjectsCollected()) {
-                // Transition to combat
-                this.running = false;
-                this.screenSwitcher.switchToScreen({ type: "combat" });
-                return;
-            } else {
-                // Prevent movement past the edge
-                playerImg.x(STAGE_WIDTH - this.EDGE_THRESHOLD);
-                // Show message that items must be collected first
-                this.view.showCollectionMessage("Collect all items first!");
-            }
-        }
-
-        // Optional: Prevent movement past other edges
-        if (newX < 0) {
-            playerImg.x(0);
-        }
-        if (newY < 0) {
-            playerImg.y(0);
-        }
-        if (newY > STAGE_HEIGHT - 32) { // 32 is player sprite height
-            playerImg.y(STAGE_HEIGHT - 32);
-        }
-
-        // Check if 'P' key is pressed for object collection
-        const interact = this.input.getInteract();
-        if (interact) {
-            this.checkObjectCollection();
-        }
-
-        this.screenSwitcher.redrawEntities();
+        this.screenSwitcher.redrawExplorationEntities();
         requestAnimationFrame(this.explorationLoop);
     };
 

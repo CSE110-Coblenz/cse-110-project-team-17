@@ -98,7 +98,7 @@ export class CombatScreenController extends ScreenController {
 				this.robot.loadImage(this.idleImage);
 			}, this.attackDuration);
 		}
-		this.screenSwitcher.redrawEntities();
+		this.screenSwitcher.redrawCombatEntities();
 		
 		requestAnimationFrame(this.gameLoop);
 	};
