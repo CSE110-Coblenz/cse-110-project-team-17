@@ -2,7 +2,7 @@ import { ScreenController } from "../../types.ts";
 import { GameScreenModel } from "./GameScreenModel.ts";
 import { GameScreenView } from "./GameScreenView.ts";
 import { InputManager } from "../../input.ts";
-import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
+//import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
 import type { ScreenSwitcher } from "../../types.ts";
 
@@ -28,7 +28,7 @@ export class GameScreenController extends ScreenController {
 	async init(): Promise<void> {
 		const mapData = await this.loadMap("/porj0.json");
 		const playerImage = await this.loadImage("/lemon.png");
-		this.player = new Player("player", STAGE_WIDTH / 2, STAGE_HEIGHT / 2, playerImage);
+		this.player = new Player("player", 0, 0, playerImage);
 		await this.view.build(mapData, this.player, this.loadImage.bind(this));
 	}
 
