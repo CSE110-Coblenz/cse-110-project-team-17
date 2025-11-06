@@ -48,7 +48,7 @@ export class GameObject extends BaseEntity {
     async loadImage(imageSource: string | HTMLImageElement): Promise<void> {
         if (typeof imageSource === 'string') {
             // Load from URL
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 Konva.Image.fromURL(imageSource, (image) => {
                     if (this.sprite) {
                         this.sprite.destroy();

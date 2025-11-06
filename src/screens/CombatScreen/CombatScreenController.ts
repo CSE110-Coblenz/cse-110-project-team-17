@@ -6,7 +6,6 @@ import { InputManager } from "../../input.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { Robot } from "../../entities/robot.ts";
-import { Combat } from "../../combat.ts";
 
 
 
@@ -34,8 +33,8 @@ export class CombatScreenController extends ScreenController {
 		const attackingImage = await this.loadImage("/image.png");
 		const idleImage = await this.loadImage("/lemon.png");
 
-		const robot = new Robot("robot", null, 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
-		const zombie = new Zombie("zombie", null, 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, zombieImage);
+		const robot = new Robot("robot", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
+		const zombie = new Zombie("zombie", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, zombieImage);
 
 		this.model.setEntities(robot, zombie);
 		this.model.setAttackingImage(attackingImage);
