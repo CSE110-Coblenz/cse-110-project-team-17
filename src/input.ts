@@ -1,4 +1,4 @@
-/* Input Manager class is instantiated, the constructor creates two */
+
 /* event listeners that keep track of which button is pressed using */
 /* <key, value> pair ==> <String, boolean>                          */
 
@@ -8,6 +8,8 @@
 
 export class InputManager {
   private keys: Record<string, boolean> = {};
+  private attack: boolean = false;
+  private interact: boolean = false;  // Track 'P' key state
 
   constructor() {
     window.addEventListener("keydown", (e) => this.keys[e.key.toLowerCase()] = true);
@@ -21,5 +23,37 @@ export class InputManager {
     if (this.keys["a"]) dx -= 1;
     if (this.keys["d"]) dx += 1;
     return { dx, dy };
+  }
+  
+  getAttack(): boolean {
+    if (this.keys[" "] && !this.attack) {
+      this.attack = true;
+      return true;
+    }
+    else if (this.keys[" "] && this.attack) {
+      return false;
+    }
+    else {
+      this.attack = false;
+      return false;
+    }
+  }
+
+  /**
+   * Check if 'P' key is pressed for interaction
+   * Returns true only once per key press (prevents multiple collections)
+   */
+  getInteract(): boolean {
+    if (this.keys["p"] && !this.interact) {
+      this.interact = true;
+      return true;
+    }
+    else if (this.keys["p"] && this.interact) {
+      return false;
+    }
+    else {
+      this.interact = false;
+      return false;
+    }
   }
 }
