@@ -13,18 +13,17 @@ import Konva from 'konva';
 *       every frame. Will improve performance.
 */
 export class Player extends BaseEntity {
-    //private screen: Screen;
-    private group: Konva.Group;
+    // private group: Konva.Group;
     private inventory: string[] = [];
-    private imageFrames: CanvasImageSource[] = [];
+    // private imageFrames: CanvasImageSource[] = [];
     private currentImage: Konva.Image;
-    private currentFrameIndex: number = 0;
+    // private currentFrameIndex: number = 0;
     private speed = 5;
 
     constructor(name: string, x: number, y: number, playerImage: HTMLImageElement){
         super(name);
         //this.screen = screen;
-        this.group = new Konva.Group({ x, y });
+        // this.group = new Konva.Group({ x, y });
         this.currentImage = new Konva.Image({
             x,
             y,
@@ -32,7 +31,7 @@ export class Player extends BaseEntity {
             height: 32,
             image: playerImage,
         });
-        //this.screen.addEntity(this.group);
+        // this.screen.addEntity(this.group);
     }
 
     getCurrentImage(){

@@ -15,12 +15,6 @@ export class CombatScreenController extends ScreenController {
 	private view: CombatScreenView;
 	private screenSwitcher: ScreenSwitcher;
 	private input!: InputManager;
-	private running: boolean;
-	private attack: boolean = false;
-	private combat: Combat = new Combat();
-	private attackingImage!: any;
-	private idleImage!: any;
-	private attackDuration: number = 500; // milliseconds
 
 	/* Create model and view, instantiate reference to top-level App class */
 	constructor(screenSwitcher: ScreenSwitcher) {
@@ -28,7 +22,6 @@ export class CombatScreenController extends ScreenController {
 		this.screenSwitcher = screenSwitcher;
 		this.model = new CombatScreenModel(screenSwitcher.getStageWidth(), screenSwitcher.getStageHeight());
 		this.view = new CombatScreenView(this.model);
-		this.running = false;
 	}
 
 	/* Loads Map and Player data (on boot) */
@@ -61,7 +54,6 @@ export class CombatScreenController extends ScreenController {
 	/* 	--> create InputManager object to process user input 	   */
 	/*  --> show CombatScreenView (all three Konva.Groups) 		   */
 	startCombat(): void {
-		this.running = true;
 		this.input = new InputManager();
 		this.view.show();
 

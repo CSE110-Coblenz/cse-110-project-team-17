@@ -69,6 +69,8 @@ export class ExplorationScreenController extends ScreenController {
         const currentX = playerImg.x();
         const currentY = playerImg.y();
 
+        console.log("Player position: ", currentX, currentY);
+
         // Move player
         this.player.move(dx, dy);
 
