@@ -104,6 +104,14 @@ class App implements ScreenSwitcher {
     getEntityLayer(): Konva.Layer {
         return this.entityLayer;
     }
+
+    getStageWidth(): number {
+        return STAGE_WIDTH;
+    }
+
+    getStageHeight(): number {
+        return STAGE_HEIGHT;
+    }
 }
 
 // Initialize the application

@@ -1,29 +1,27 @@
 import { Group } from 'konva/lib/Group';
+import type { View } from '../../types';
+import type { MapModel } from './MapModel';
 
-export abstract class MapView {
-    private group: Group;
+export abstract class MapView implements View {
+    protected _model: MapModel
 
-    constructor(konvaGroup: Group) {
-        this.group = konvaGroup;
+    constructor(model: MapModel) {
+        this._model = model;
     }
 
     /**
      * Show the screen
      */
-    show(): void {
-        this.group.visible(true);
-        this.group.getLayer()?.draw();
-    }
+    abstract show(): void;
 
     /**
      * Hide the screen
      */
-    hide(): void {
-        this.group.visible(false);
-        this.group.getLayer()?.draw();
-    }
+    abstract hide(): void;
 
-    getGroup(): Group {
-        return this.group;
-    }
+    abstract getGroup(): Group;
+
+    abstract getMapGroup(): Group;
+
+    abstract getEntityGroup(): Group;
 }

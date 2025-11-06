@@ -42,4 +42,6 @@ export interface ScreenSwitcher {
 	getLayer(): Konva.Layer;
 	redrawEntities(): void;
 	getEntityLayer(): Konva.Layer;
+	getStageWidth(): number;
+	getStageHeight(): number;
 }
