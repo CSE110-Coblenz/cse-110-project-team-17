@@ -5,8 +5,8 @@ import { Combat } from './combat';
 // Test code to create a screen and add entities
 // const screen = new Screen('gameContainer', 800, 600);
 
-const robot = new Robot('Robo', null, 200, 200, 100, 20);
-const zombie = new Zombie('Zombie', null, 50, 15, 300, 300);
+const robot = new Robot('Robo', 200, 200, 100, 20);
+const zombie = new Zombie('Zombie', 50, 15, 300, 300);
 
 console.log("Health at beginning: " + robot.getHealth()); // Should print 200
 console.log("Health at beginning: " + zombie.getHealth()); // Should print 50
