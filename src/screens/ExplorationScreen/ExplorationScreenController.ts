@@ -85,11 +85,11 @@ export class ExplorationScreenController extends ScreenController {
         // RIGHT EDGE
         if(x >= STAGE_WIDTH - EDGE_THRESHOLD){
             if(this.model.allObjectsCollected()){
-            this.running = false;
-            this.screenSwitcher.switchToScreen({ type: "combat" });
-            return;
+                this.running = false;
+                this.screenSwitcher.switchToScreen({ type: "combat" });
+                return;
             } else {
-                // clamp to edge and show one message every cooldown period
+                // show one message every cooldown period
                 playerImg.x(STAGE_WIDTH - EDGE_THRESHOLD);
                 const now = performance.now();
                 if (now - this.lastCollectionMsgTs > this.COLLECTION_MSG_COOLDOWN_MS) {
@@ -100,18 +100,14 @@ export class ExplorationScreenController extends ScreenController {
         }
 
         // LEFT edge
-        if(x < 0){
-            playerImg.x(0);
-        }
+        if(x < 0) playerImg.x(0);
 
         // TOP edge
-        if(y < 0){
-            playerImg.y(0);
-        }
+        if(y < 0) playerImg.y(0);
 
         // BOTTOM edge
         const playerHeight = 32;
-        if (y > STAGE_HEIGHT - playerHeight) {
+        if(y > STAGE_HEIGHT - playerHeight){
             playerImg.y(STAGE_HEIGHT - playerHeight);
         }
     }
@@ -124,14 +120,9 @@ export class ExplorationScreenController extends ScreenController {
         this.logicTickInterval = window.setInterval(() => this.logicTick(), 100);
     }
 
-    hide(): void {
-        this.running = false;
-        this.view.hide();
-    }
-
     /* Exploration game loop */
     private explorationLoop = (): void => {
-        if (!this.running) return;
+        if(!this.running) return;
         const { dx, dy } = this.input.getDirection();
         this.player.move(dx, dy);
         this.screenSwitcher.redrawExplorationEntities();
@@ -147,8 +138,8 @@ export class ExplorationScreenController extends ScreenController {
         const playerX = playerImg.x();
         const playerY = playerImg.y();
 
-        for (const obj of this.gameObjects) {
-            if (obj.isCollected() || !obj.isInteractable()) continue;
+        for(const obj of this.gameObjects){
+            if(obj.isCollected() || !obj.isInteractable()) continue;
 
             const objPos = obj.getPosition();
             const objX = objPos.x;
@@ -198,5 +189,10 @@ export class ExplorationScreenController extends ScreenController {
      */
     getCollectedItems(): string[] {
         return this.model.getCollectedItems();
+    }
+
+    hide(): void {
+        this.running = false;
+        this.view.hide();
     }
 }

@@ -1,19 +1,20 @@
 import Konva from "konva";
-import { Player } from "../../entities/player.ts";
 import { Robot } from "../../entities/robot.ts";
 import { Zombie } from "../../entities/zombie.ts";
-import type { View } from "../../types.ts";
+import { MapView } from "../MapScreen/MapView.ts";
+import { CombatScreenModel } from "./CombatScreenModel.ts";
 
 /**
  * CombatScreenView - Renders the game UI using Konva
  */
-export class CombatScreenView implements View {
+export class CombatScreenView extends MapView {
 	private screenGroup: Konva.Group;
 	private mapGroup: Konva.Group;
 	private entityGroup: Konva.Group;
 	private playerSprite: Konva.Image | Konva.Circle | null = null;
 
-	constructor() {
+	constructor(model: CombatScreenModel) {
+		super(model);
 		this.screenGroup = new Konva.Group({ visible: false });
 		this.mapGroup = new Konva.Group({ visible: false });
 		this.entityGroup = new Konva.Group({ visible: false });

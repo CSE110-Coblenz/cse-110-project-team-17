@@ -1,6 +1,4 @@
 import { BaseEntity } from './base';
-import { Screen } from '../screen';
-import { Combat } from '../combat';
 import Konva from 'konva';
 
 export type position = {
@@ -21,7 +19,7 @@ export class Robot extends BaseEntity {
     private dir: Directions;
     private speed = 1;
 
-    constructor(name: string, screen: Screen | null, health: number, maxAttack: number, x: number = 0, y: number = 0, robotImage?: HTMLImageElement) {
+    constructor(name: string, health: number, maxAttack: number, x: number = 0, y: number = 0, robotImage?: HTMLImageElement) {
         super(name);
         // this.screen = screen;
         this.health = health;
