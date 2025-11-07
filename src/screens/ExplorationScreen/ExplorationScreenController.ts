@@ -16,7 +16,7 @@ export class ExplorationScreenController extends ScreenController {
     private gameObjects: GameObject[] = [];
     private running: boolean;
 
-    private logicTickInterval?: number;
+    //private logicTickInterval?: number;
     private lastCollectionMsgTs = 0;
     private COLLECTION_MSG_COOLDOWN_MS = 750;
 
@@ -65,14 +65,14 @@ export class ExplorationScreenController extends ScreenController {
         }
 
         // Check if the player should transition to combat
-        if (this.model.shouldTransitionToCombat(newX)) {
+        if(this.model.shouldTransitionToCombat(newX)){
             this.running = false;
             this.screenSwitcher.switchToScreen({ type: "combat" });
             return;
         }
 
         // Check for interactions
-        if (this.input.getInteract()) {
+        if(this.input.getInteract()){
             this.checkObjectCollection();
         }
     };
@@ -117,7 +117,7 @@ export class ExplorationScreenController extends ScreenController {
         this.input = new InputManager();
         requestAnimationFrame(this.explorationLoop);
         this.view.show();
-        this.logicTickInterval = window.setInterval(() => this.logicTick(), 100);
+        window.setInterval(() => this.logicTick(), 50);
     }
 
     /* Exploration game loop */

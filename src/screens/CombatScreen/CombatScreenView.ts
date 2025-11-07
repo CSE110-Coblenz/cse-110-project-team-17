@@ -11,7 +11,7 @@ export class CombatScreenView extends MapView {
 	private screenGroup: Konva.Group;
 	private mapGroup: Konva.Group;
 	private entityGroup: Konva.Group;
-	private playerSprite: Konva.Image | Konva.Circle | null = null;
+	//private playerSprite: Konva.Image | Konva.Circle | null = null;
 
 	constructor(model: CombatScreenModel) {
 		super(model);

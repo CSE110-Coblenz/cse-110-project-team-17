@@ -128,7 +128,7 @@ export class ExplorationScreenView implements View {
      */
     showCollectionMessage(message: string): void {
         // Clear any existing timer
-        if (this.messageTimer !== null) {
+        if(this.messageTimer !== null){
             clearTimeout(this.messageTimer);
         }
 

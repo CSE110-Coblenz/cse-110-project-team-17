@@ -9,22 +9,14 @@ import Konva from 'konva';
 /* 
 * Set the Player Sprite, and control how it moves across the map.
 *
-* TODO: change Group to Layer so that only this playerLayer is redrawn 
-*       every frame. Will improve performance.
 */
 export class Player extends BaseEntity {
-    //private screen: Screen;
-    private group: Konva.Group;
     private inventory: string[] = [];
-    private imageFrames: CanvasImageSource[] = [];
     private currentImage: Konva.Image;
-    private currentFrameIndex: number = 0;
     private speed = 3;
 
     constructor(name: string, x: number, y: number, playerImage: HTMLImageElement){
         super(name);
-        //this.screen = screen;
-        this.group = new Konva.Group({ x, y });
         this.currentImage = new Konva.Image({
             x,
             y,
@@ -32,7 +24,6 @@ export class Player extends BaseEntity {
             height: 32,
             image: playerImage,
         });
-        //this.screen.addEntity(this.group);
     }
 
     getCurrentImage(){
