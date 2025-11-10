@@ -11,10 +11,15 @@
   },
   "devDependencies": {
     "typescript": "~5.9.3",
-    "vite": "^7.1.7",
+    "vite": "^7.1.12",
     "vitest": "^4.0.1"
   },
   "dependencies": {
-    "konva": "^10.0.2"
-  }
+    "konva": "^10.0.8"
+  },
+  "description": "This repo contains code for running the final project for our game - 'Object Oriented Zombies '",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

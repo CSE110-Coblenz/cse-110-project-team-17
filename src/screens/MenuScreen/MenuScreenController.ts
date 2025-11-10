@@ -19,7 +19,7 @@ export class MenuScreenController extends ScreenController {
 	 * Handle start button click
 	 */
 	private handleStartClick(): void {
-		this.screenSwitcher.switchToScreen({type: "game"});
+		this.screenSwitcher.switchToScreen({type: "exploration"});
 	}
 
 	/**

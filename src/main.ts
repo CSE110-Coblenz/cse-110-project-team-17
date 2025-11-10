@@ -1,91 +1,117 @@
 import Konva from "konva";
 import type { ScreenSwitcher, Screen } from "./types.ts";
 import { MenuScreenController } from "./screens/MenuScreen/MenuScreenController.ts";
-import { GameScreenController } from "./screens/GameScreen/GameScreenController.ts";
+import { ExplorationScreenController } from "./screens/ExplorationScreen/ExplorationScreenController.ts";
+import { CombatScreenController } from "./screens/CombatScreen/CombatScreenController.ts";
 import { ResultsScreenController } from "./screens/ResultsScreen/ResultsScreenController.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "./constants.ts";
 
 /**
  * Main Application - Coordinates all screens
- *
- * This class demonstrates screen management using Konva Groups.
- * Each screen (Menu, Game, Results) has its own Konva.Group that can be
- * shown or hidden independently.
- *
- * Key concept: All screens are added to the same layer, but only one is
- * visible at a time. This is managed by the switchToScreen() method.
  */
 class App implements ScreenSwitcher {
-	private stage: Konva.Stage;
-	private layer: Konva.Layer;
+    private stage: Konva.Stage;
+    private layer: Konva.Layer;
+    private entityLayer: Konva.Layer;
 
-	private menuController: MenuScreenController;
-	private gameController: GameScreenController;
-	private resultsController: ResultsScreenController;
+    private menuController: MenuScreenController;
+    private explorationController: ExplorationScreenController;
+    private combatController: CombatScreenController;
+    private resultsController: ResultsScreenController;
 
-	constructor(container: string) {
-		// Initialize Konva stage (the main canvas)
-		this.stage = new Konva.Stage({
-			container,
-			width: STAGE_WIDTH,
-			height: STAGE_HEIGHT,
-		});
+    constructor(container: string) {
+        // Initialize Konva stage
+        this.stage = new Konva.Stage({
+            container,
+            width: STAGE_WIDTH,
+            height: STAGE_HEIGHT,
+        });
 
-		// Create a layer (screens will be added to this layer)
-		this.layer = new Konva.Layer();
-		this.stage.add(this.layer);
+        // Create layers
+        this.layer = new Konva.Layer();
+        this.stage.add(this.layer);
 
-		// Initialize all screen controllers
-		// Each controller manages a Model, View, and handles user interactions
-		this.menuController = new MenuScreenController(this);
-		this.gameController = new GameScreenController(this);
-		this.resultsController = new ResultsScreenController(this);
+        this.entityLayer = new Konva.Layer();
+        this.stage.add(this.entityLayer);
 
-		// Add all screen groups to the layer
-		// All screens exist simultaneously but only one is visible at a time
-		this.layer.add(this.menuController.getView().getGroup());
-		this.layer.add(this.gameController.getView().getGroup());
-		this.layer.add(this.resultsController.getView().getGroup());
+        // Initialize all screen controllers
+        this.menuController = new MenuScreenController(this);
+        this.explorationController = new ExplorationScreenController(this);
+        this.combatController = new CombatScreenController(this);
+        this.resultsController = new ResultsScreenController(this);
 
-		// Draw the layer (render everything to the canvas)
-		this.layer.draw();
+        // Load both screens
+        this.explorationController.init();
+        this.combatController.init();
 
-		// Start with menu screen visible
-		this.menuController.getView().show();
-	}
+        // Add all screen groups to layers
+        this.layer.add(this.menuController.getView().getGroup());
+        this.layer.add(this.explorationController.getView().getGroup());
+        this.layer.add(this.combatController.getView().getGroup());
+        this.layer.add(this.resultsController.getView().getGroup());
 
-	/**
-	 * Switch to a different screen
-	 *
-	 * This method implements screen management by:
-	 * 1. Hiding all screens (setting their Groups to invisible)
-	 * 2. Showing only the requested screen
-	 *
-	 * This pattern ensures only one screen is visible at a time.
-	 */
-	switchToScreen(screen: Screen): void {
-		// Hide all screens first by setting their Groups to invisible
-		this.menuController.hide();
-		this.gameController.hide();
-		this.resultsController.hide();
+        // Add entity groups
+        this.entityLayer.add(this.explorationController.getView().getEntityGroup());
+        this.entityLayer.add(this.combatController.getView().getEntityGroup());
 
-		// Show the requested screen based on the screen type
-		switch (screen.type) {
-			case "menu":
-				this.menuController.show();
-				break;
+        // Draw layers
+        this.layer.draw();
+        this.entityLayer.draw();
 
-			case "game":
-				// Start the game (which also shows the game screen)
-				this.gameController.startGame();
-				break;
+        // Start with menu screen
+        this.menuController.getView().show();
+    }
 
-			case "result":
-				// Show results with the final score
-				this.resultsController.showResults(screen.score);
-				break;
-		}
-	}
+    switchToScreen(screen: Screen): void {
+        // Hide all screens
+        this.menuController.hide();
+        this.explorationController.hide();
+        this.combatController.hide();
+        this.resultsController.hide();
+
+        // Show requested screen
+        switch (screen.type) {
+            case "menu":
+                this.menuController.show();
+                break;
+
+            case "exploration":
+                this.explorationController.startExploration();
+                break;
+
+            case "combat":
+                this.combatController.startCombat();
+                break;
+
+            case "result":
+                this.resultsController.showResults(screen.score);
+                break;
+        }
+    }
+
+    redraw(): void {
+        this.layer.batchDraw();
+    }
+
+    getLayer(): Konva.Layer {
+        return this.layer;
+    }
+
+    redrawEntities(): void {
+        this.entityLayer.batchDraw();
+    }
+
+    getEntityLayer(): Konva.Layer {
+        return this.entityLayer;
+    }
+
+    getStageWidth(): number {
+        return STAGE_WIDTH;
+    }
+
+    getStageHeight(): number {
+        return STAGE_HEIGHT;
+    }
 }
 
 // Initialize the application
