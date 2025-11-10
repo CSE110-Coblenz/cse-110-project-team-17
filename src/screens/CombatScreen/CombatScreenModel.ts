@@ -78,11 +78,6 @@ export class CombatScreenModel extends MapModel{
 		const robot = this.getRobot();
 		const robotImg = robot.getCurrentImage();
 
-		// Move main zombie first if exists
-		if (this.zombie) {
-			this.moveSingleZombieTowardRobot(this.zombie, robotImg);
-		}
-
 		// Move all other zombies
 		for (const z of this.zombies) {
 			this.moveSingleZombieTowardRobot(z, robotImg);

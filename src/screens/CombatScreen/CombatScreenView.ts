@@ -33,7 +33,6 @@ export class CombatScreenView extends MapView {
 	async build(
 		mapData: any,
 		robot: Robot,
-		zombie: Zombie,
 		loadImage: (src: string) => Promise<HTMLImageElement>
 	): Promise<void> {
 		const tilesetInfo = mapData.tilesets[0];
@@ -84,7 +83,6 @@ export class CombatScreenView extends MapView {
 		/* Add robot and zombie images (their Konva.Image instances)
            to the entity group so they are rendered above the map. */
 		this.entityGroup.add(robot.getCurrentImage());
-		this.addZombie(zombie);
 
 		/* add both groups to this.screenGroup */
 		this.screenGroup.add(this.mapGroup);

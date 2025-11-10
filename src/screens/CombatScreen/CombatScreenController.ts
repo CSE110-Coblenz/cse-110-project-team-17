@@ -22,7 +22,6 @@ export class CombatScreenController extends ScreenController {
 	private lastZombieMoveTime = 0;
 	private lastAttackTime = 0;
 	private lastSpawnTime = 0;
-	private zombieCounterText!: any;
 
 	private readonly ZOMBIE_SPAWN_INTERVAL = 10000;
 
@@ -50,6 +49,7 @@ export class CombatScreenController extends ScreenController {
 		const zombie = new Zombie("zombie", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, zombieImage);
 
 		this.model.addZombie(zombie);
+		this.view.addZombie(zombie);
 
 		// store entities and images in the model
 		this.model.setEntities(robot, zombie);
@@ -63,7 +63,6 @@ export class CombatScreenController extends ScreenController {
 		await this.view.build(
 			this.model.getMapData(),
 			this.model.getRobot(),
-			this.model.getZombie(),
 			this.loadImage.bind(this),
 		);
 	}
