@@ -4,16 +4,16 @@ import type { MapView } from './MapView';
 export abstract class MapController {
 	private mapModel: MapModel;
 	private mapView: MapView;
-	private screenSwitcher: Screen;
+	// private screenSwitcher: Screen;
 
 	constructor(
 		mapModel: MapModel,
 		mapView: MapView,
-		screenSwitcher: Screen
+		// screenSwitcher: Screen
 	) {
 		this.mapModel = mapModel;
 		this.mapView = mapView;
-		this.screenSwitcher = screenSwitcher;
+		// this.screenSwitcher = screenSwitcher;
 	}
 
     public getModel() : MapModel {

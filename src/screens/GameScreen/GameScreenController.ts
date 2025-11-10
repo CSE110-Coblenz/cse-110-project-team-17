@@ -1,99 +1,106 @@
 import { ScreenController } from "../../types.ts";
+import type { ScreenSwitcher } from "../../types.ts";
 import { GameScreenModel } from "./GameScreenModel.ts";
 import { GameScreenView } from "./GameScreenView.ts";
-import { InputManager } from "../../input.ts";
-import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
-import { Zombie } from "../../entities/zombie.ts";
-import { Robot } from "../../entities/robot.ts";
+import { GAME_DURATION } from "../../constants.ts";
 
+/**
+ * GameScreenController - Coordinates game logic between Model and View
+ */
 export class GameScreenController extends ScreenController {
 	private model: GameScreenModel;
 	private view: GameScreenView;
-	// private screenSwitcher: ScreenSwitcher;
-	private input?: InputManager;
+	private screenSwitcher: ScreenSwitcher;
+	private gameTimer: number | null = null;
 
-	/* Create model and view, instantiate reference to top-level App class */
-	constructor() {
+	private squeezeSound: HTMLAudioElement;
+
+	constructor(screenSwitcher: ScreenSwitcher) {
 		super();
-		// this.screenSwitcher = screenSwitcher;
-		this.model = new GameScreenModel(STAGE_WIDTH, STAGE_HEIGHT);
-		this.view = new GameScreenView(this.model);
-		this.model.setAttackDuration(500);
+		this.screenSwitcher = screenSwitcher;
+
+		this.model = new GameScreenModel();
+		this.view = new GameScreenView(() => this.handleLemonClick());
+
+		this.squeezeSound = new Audio("/squeeze.mp3"); // Placeholder
 	}
 
-	/* Loads Map and Player data (on boot) */
-	async init(): Promise<void> {
-		const mapData = await this.loadMap("/porj0.json");
-		this.model.setMapData(mapData);
-
-		const robotImage = await this.loadImage("/lemon.png");
-		const zombieImage = await this.loadImage("/imagesTemp.jpg");
-		const attackingImage = await this.loadImage("/image.png");
-		const idleImage = await this.loadImage("/lemon.png");
-
-		const robot = new Robot("robot", null, 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
-		const zombie = new Zombie("zombie", null, 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, zombieImage);
-
-		this.model.setEntities(robot, zombie);
-		this.model.setAttackingImage(attackingImage);
-		this.model.setIdleImage(idleImage);
-
-		await this.view.build(
-			this.model.getMapData(),
-			this.model.getRobot(),
-			this.model.getZombie(),
-			this.loadImage.bind(this),
-		);
-	}
-
-	/* Called by App class when switchToScreen("game") is executed */
-	/* 	--> start gameLoop function 							   */
-	/* 	--> create InputManager object to process user input 	   */
-	/*  --> show GameScreenView (all three Konva.Groups) 		   */
+	/**
+	 * Start the game
+	 */
 	startGame(): void {
-		this.model.setRunning(true);
-		this.input = new InputManager();
+		// Reset model state
+		this.model.reset();
+
+		// Update view
+		this.view.updateScore(this.model.getScore());
+		this.view.updateTimer(GAME_DURATION);
 		this.view.show();
-		requestAnimationFrame(this.gameLoop);
+
+		this.startTimer();
 	}
 
-	/* make all groups in GameScreenView invisible */
-	hide(): void {
-		this.model.setRunning(false);
-		this.view.hide();
+	/**
+	 * Start the countdown timer
+	 */
+	private startTimer(): void {
+		let timeRemaining = GAME_DURATION;
+		this.gameTimer = setInterval(() => {
+			timeRemaining--;
+			this.view.updateTimer(timeRemaining);
+			if (timeRemaining <= 0) {
+				this.endGame();
+			}
+		}, 1000);
 	}
 
-	/* gameLoop runs 60 times/sec, updates position of Player sprite */
-	private gameLoop = (): void => {
-		if (!this.model.isRunning() || !this.input) {
-			return;
+	/**
+	 * Stop the timer
+	 */
+	private stopTimer(): void {
+		if (this.gameTimer !== null) {
+			clearInterval(this.gameTimer);
 		}
-
-		const { dx, dy } = this.input.getDirection();
-		this.model.updateRobotPosition(dx, dy);
-
-		const attack = this.input.getAttack();
-		this.model.processAttackRequest(attack);
-
-		// this.screenSwitcher.redrawEntities();
-		
-		requestAnimationFrame(this.gameLoop);
-	};
-
-	private async loadMap(jsonPath: string): Promise<any> {
-		const res = await fetch(jsonPath);
-		return await res.json();
 	}
 
-	private loadImage(src: string): Promise<HTMLImageElement> {
-		return new Promise((resolve, reject) => {
-		const img = new Image();
-		img.src = src;
-		img.onload = () => resolve(img);
-		img.onerror = () => reject(`Failed to load image: ${src}`);
+	/**
+	 * Handle lemon click event
+	 */
+	private handleLemonClick(): void {
+		// Update model
+		this.model.incrementScore();
+
+		// Update view
+		this.view.updateScore(this.model.getScore());
+		this.view.randomizeLemonPosition();
+
+		this.squeezeSound.play();
+		this.squeezeSound.currentTime = 0;
+	}
+
+	/**
+	 * End the game
+	 */
+	private endGame(): void {
+		this.stopTimer();
+
+		// Switch to results screen with final score
+		this.screenSwitcher.switchToScreen({
+			type: "result",
+			score: this.model.getScore(),
 		});
 	}
-	
+
+	/**
+	 * Get final score
+	 */
+	getFinalScore(): number {
+		return this.model.getScore();
+	}
+
+	/**
+	 * Get the view group
+	 */
 	getView(): GameScreenView {
 		return this.view;
 	}

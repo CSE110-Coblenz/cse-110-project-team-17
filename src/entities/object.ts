@@ -1,5 +1,4 @@
 import { BaseEntity } from './base';
-import { Screen } from '../screen';
 import Konva from 'konva';
 
 /**
@@ -7,28 +6,23 @@ import Konva from 'konva';
  * Examples: doors, keys, chests, obstacles, collectibles, etc.
  */
 export class GameObject extends BaseEntity {
-    private screen: Screen;
     private group: Konva.Group;
     private sprite: Konva.Image | Konva.Rect | null = null;
     private interactable: boolean;
     private collected: boolean = false;
+    private currentImage: Konva.Image | null = null;
 
     constructor(
         name: string, 
-        screen: Screen, 
         x: number = 0, 
         y: number = 0,
         interactable: boolean = false
     ) {
         super(name);
-        this.screen = screen;
         this.interactable = interactable;
         
         this.group = new Konva.Group({ x, y });
         this.createSprite();
-        
-        // Spawn the object on the screen
-        this.screen.addEntity(this.group);
     }
 
     /**
@@ -49,24 +43,44 @@ export class GameObject extends BaseEntity {
     }
 
     /**
-     * Load object image from URL
+     * Load object image from URL or HTMLImageElement
      */
-    loadImage(imageUrl: string): void {
-        Konva.Image.fromURL(imageUrl, (image) => {
+    async loadImage(imageSource: string | HTMLImageElement): Promise<void> {
+        if (typeof imageSource === 'string') {
+            // Load from URL
+            return new Promise((resolve) => {
+                Konva.Image.fromURL(imageSource, (image) => {
+                    if (this.sprite) {
+                        this.sprite.destroy();
+                    }
+                    this.sprite = image;
+                    this.currentImage = image;
+                    this.group.add(image);
+                    resolve();
+                });
+            });
+        } else {
+            // Load from HTMLImageElement
             if (this.sprite) {
                 this.sprite.destroy();
             }
-            this.sprite = image;
-            this.group.add(image);
-            this.screen.render();
-        });
+            this.currentImage = new Konva.Image({
+                x: 0,
+                y: 0,
+                width: 40,
+                height: 40,
+                image: imageSource,
+            });
+            this.sprite = this.currentImage;
+            this.group.add(this.currentImage);
+        }
     }
 
     /**
-     * Render the GameObject (update the screen)
+     * Get the current image (for rendering)
      */
-    render(): void {
-        this.screen.render();
+    getCurrentImage(): Konva.Image | Konva.Rect | null {
+        return this.sprite;
     }
 
     /**
@@ -74,7 +88,6 @@ export class GameObject extends BaseEntity {
      */
     moveTo(x: number, y: number): void {
         this.group.position({ x, y });
-        this.screen.render();
     }
 
     /**
@@ -122,7 +135,6 @@ export class GameObject extends BaseEntity {
      */
     show(): void {
         this.group.visible(true);
-        this.screen.render();
     }
 
     /**
@@ -130,14 +142,13 @@ export class GameObject extends BaseEntity {
      */
     hide(): void {
         this.group.visible(false);
-        this.screen.render();
     }
 
     /**
      * Clean up resources
      */
     destroy(): void {
-        this.screen.removeEntity(this.group);
+        this.group.destroy();
     }
 
     /**
@@ -145,5 +156,12 @@ export class GameObject extends BaseEntity {
      */
     getGroup(): Konva.Group {
         return this.group;
+    }
+
+    /**
+     * Get position
+     */
+    getPosition(): { x: number; y: number } {
+        return this.group.position();
     }
 }
