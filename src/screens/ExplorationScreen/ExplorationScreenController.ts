@@ -14,7 +14,6 @@ export class ExplorationScreenController extends ScreenController {
     private input!: InputManager;
     private player!: Player;
     private gameObjects: GameObject[] = [];
-    private running: boolean;
     private readonly EDGE_THRESHOLD = 10; // Pixels from edge to trigger transition
 
     constructor(screenSwitcher: ScreenSwitcher) {
@@ -22,7 +21,6 @@ export class ExplorationScreenController extends ScreenController {
         this.screenSwitcher = screenSwitcher;
         this.model = new ExplorationScreenModel();
         this.view = new ExplorationScreenView();
-        this.running = false;
     }
 
     /* Load Map and spawn objects */
@@ -49,20 +47,20 @@ export class ExplorationScreenController extends ScreenController {
     }
 
     startExploration(): void {
-        this.running = true;
+        this.model.setRunning(true);
         this.input = new InputManager();
         this.view.show();
         requestAnimationFrame(this.explorationLoop);
     }
 
     hide(): void {
-        this.running = false;
+        this.model.setRunning(false);
         this.view.hide();
     }
 
     /* Exploration game loop */
     private explorationLoop = (): void => {
-        if (!this.running) return;
+        if (!this.model.isRunning()) return;
 
         const { dx, dy } = this.input.getDirection();
         const playerImg = this.player.getCurrentImage();
@@ -83,7 +81,7 @@ export class ExplorationScreenController extends ScreenController {
             // Check if all items have been collected
             if (this.model.allObjectsCollected()) {
                 // Transition to combat
-                this.running = false;
+                this.model.setRunning(false);
                 this.screenSwitcher.switchToScreen({ type: "combat" });
                 return;
             } else {

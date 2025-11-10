@@ -5,7 +5,11 @@ import { MapView } from "../MapScreen/MapView.ts";
 import { CombatScreenModel } from "./CombatScreenModel.ts";
 
 /**
- * CombatScreenView - Renders the Combat UI using Konva
+ * CombatScreenView
+ *
+ * Renders the combat screen: builds tiled map layers and maintains an entity
+ * group containing Robot and Zombie images. The view exposes groups so the
+ * top-level App can add them to the main entity layer.
  */
 export class CombatScreenView extends MapView {
 	private screenGroup: Konva.Group;
@@ -19,6 +23,12 @@ export class CombatScreenView extends MapView {
 		this.entityGroup = new Konva.Group({ visible: false });
 	}
 
+	/**
+     * build
+     *
+     * Creates Konva.Image tiles for each tile layer in the Tiled map JSON,
+     * then adds Robot and Zombie images to the entity group.
+     */
 	async build(
 		mapData: any,
 		robot: Robot,
@@ -40,7 +50,9 @@ export class CombatScreenView extends MapView {
 			const mapWidth = layer.width;
 			const mapHeight = layer.height;
 
-			/* Render the layers of the Tiled map */
+			/* Render the layers of the Tiled map.
+               Each tile is created as a Konva.Image that uses the tileset
+               as the source and `crop` to select the correct tile region. */
 			for(let y = 0; y < mapHeight; y++){
 				for(let x = 0; x < mapWidth; x++){
 					const tileId = tiles[y * mapWidth + x];
@@ -68,7 +80,8 @@ export class CombatScreenView extends MapView {
 			this.mapGroup.add(tiledLayerGroup);
 		}
 
-		/* add robot to entity layer */
+		/* Add robot and zombie images (their Konva.Image instances)
+           to the entity group so they are rendered above the map. */
 		this.entityGroup.add(robot.getCurrentImage());
 		this.entityGroup.add(zombie.getCurrentImage());
 
@@ -78,6 +91,7 @@ export class CombatScreenView extends MapView {
 
 	}
 
+	/* Expose the groups so the App can mix them into the stage layers. */
 	getGroup(): Konva.Group {
 		return this.screenGroup;
 	}
