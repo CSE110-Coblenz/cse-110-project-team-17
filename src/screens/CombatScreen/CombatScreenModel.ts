@@ -57,7 +57,7 @@ export class CombatScreenModel extends MapModel{
 		const robot = this.getRobot();
 		const previousY = robot.getPosition().y;
 		const previousX = robot.getPosition().x;
-		robot.moveTo(dx, dy);
+		robot.moveTo(previousX + dx * robot.getSpeed(), previousY + dy * robot.getSpeed());
 		const currentPosition = robot.getPosition();
 		if (currentPosition.x !== previousX) {
 			robot.faceDirection(currentPosition.x > previousX ? "right" : "left");

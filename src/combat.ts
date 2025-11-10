@@ -18,12 +18,12 @@ export class Combat {
 
         switch (player.attacker.getDirection()) {
             case 'up':
-                hit = enemyPos.y - (attackerPos.y) > 0 &&
+                hit = attackerPos.y - (enemyPos.y) > 0 &&
                       Math.abs(enemyPos.x - attackerPos.x) <= TOLERANCE;
                 console.log(hit);
                 break;
             case 'down':
-                hit = (attackerPos.y) - enemyPos.y > 0 &&
+                hit = (enemyPos.y) - attackerPos.y > 0 &&
                       Math.abs(enemyPos.x - attackerPos.x) <= TOLERANCE;
                 console.log(hit);
                 break;

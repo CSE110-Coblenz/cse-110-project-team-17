@@ -86,27 +86,8 @@ export class Robot extends BaseEntity {
      * Move the robot to a specific position
      */
     moveTo(dx: number, dy: number): void {
-        if (this.currentImage.x() + dx * this.speed >= STAGE_WIDTH - 32) {
-            this.currentImage.x(STAGE_WIDTH - 32);
-        }
-        else if (this.currentImage.x() + dx * this.speed <= 0) {
-            this.currentImage.x(0);
-        }
-        else {
-            this.currentImage.x(this.currentImage.x() + dx * this.speed);
-        }
-
-
-        if (this.currentImage.y() + dy * this.speed >= STAGE_HEIGHT - 32) {
-            this.currentImage.y(STAGE_HEIGHT - 32);
-        }
-        else if (this.currentImage.y() + dy * this.speed <= 0) {
-            this.currentImage.y(0);
-        }
-        else {
-            this.currentImage.y(this.currentImage.y() + dy * this.speed);
-        }
-
+        this.currentImage.x(dx);
+        this.currentImage.y(dy);
         this.position = { x: this.currentImage.x(), y: this.currentImage.y() };
         // this.screen.render();
     }
@@ -170,6 +151,10 @@ export class Robot extends BaseEntity {
     hide(): void {
         this.group.visible(false);
         // this.screen.render();
+    }
+
+    getSpeed(): number {
+        return this.speed;
     }
 
     /**
