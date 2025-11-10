@@ -11,7 +11,6 @@ export class CombatScreenView extends MapView {
 	private screenGroup: Konva.Group;
 	private mapGroup: Konva.Group;
 	private entityGroup: Konva.Group;
-	//private playerSprite: Konva.Image | Konva.Circle | null = null;
 
 	constructor(model: CombatScreenModel) {
 		super(model);
@@ -20,17 +19,13 @@ export class CombatScreenView extends MapView {
 		this.entityGroup = new Konva.Group({ visible: false });
 	}
 
-	async build(
-		robot: Robot,
-		zombie: Zombie,
-	): Promise<void> {
+	async build(robot: Robot, zombie: Zombie): Promise<void> {
 		/* add robot to entity layer */
 		this.entityGroup.add(robot.getCurrentImage());
 		this.entityGroup.add(zombie.getCurrentImage());
 
 		/* add both groups to this.screenGroup */
 		this.screenGroup.add(this.mapGroup);
-		this.screenGroup.add(this.entityGroup);
 	}
 
 	getGroup(): Konva.Group {

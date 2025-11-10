@@ -1,6 +1,11 @@
 import Konva from "konva";
 import type { Maps } from "../types.ts";
 
+/* The Map class makes JSON parsing and map building from a tileset         */
+/* completely transparent from the ScreenView classes. Now, individual      */
+/* maps can be built in the Controller. The purpose of this is to separate  */
+/* the Map layer, so it isn't accidentally drawn repeatedly in the gameLoop */
+/* it also makes the ScreenView class more readable/scalable.				*/
 export class Map implements Maps {
 	private tilePath: string;
 	private mapSize: number;
@@ -22,25 +27,29 @@ export class Map implements Maps {
 		return this.mapSize;
 	}
 
+	getMapData(): any {
+		return this.mapData;
+	}
+
 	/**
 	 * Builds a Konva.Group representing the map layers and tiles
 	 */
-	async buildMap(mapData: any): Promise<Konva.Group> {
+	async buildMap(): Promise<Konva.Group> {
 		const mapGroup = new Konva.Group();
 
-		if(!mapData?.tilesets?.length){
+		if(!this.mapData?.tilesets?.length){
 			console.warn("No tilesets found in map data");
 			return mapGroup;
 		}
 
-		const tilesetInfo = mapData.tilesets[0];
-		const tileWidth = mapData.tilewidth;
-		const tileHeight = mapData.tileheight;
+		const tilesetInfo = this.mapData.tilesets[0];
+		const tileWidth = this.mapData.tilewidth;
+		const tileHeight = this.mapData.tileheight;
 
 		const tileset = await this.loadImage(this.tilePath);
 		const tilesPerRow = Math.floor(tileset.width / tileWidth);
 
-		for(const layer of mapData.layers){
+		for(const layer of this.mapData.layers){
 			if(layer.type !== "tilelayer") continue;
 
 			const layerGroup = new Konva.Group({ name: layer.name });

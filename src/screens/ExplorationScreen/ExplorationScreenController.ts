@@ -34,7 +34,7 @@ export class ExplorationScreenController extends ScreenController {
         /* BUILD Map using Tileset and JSON data */
         const mapData = await this.loadMap("/porj0.json");
         const mapBuilder = new Map("/tiles/colony.png", 1000, mapData, this.loadImage.bind(this));
-        const mapGroup = await mapBuilder.buildMap(mapData);
+        const mapGroup = await mapBuilder.buildMap();
         this.view.getMapGroup().add(mapGroup);
 
         /* Create player instance */

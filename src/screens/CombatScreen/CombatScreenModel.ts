@@ -9,7 +9,6 @@ import { MapModel } from "../MapScreen/MapModel";
 export class CombatScreenModel extends MapModel{
 	private score = 0;
 	private combat: Combat;
-	private mapData: any;
 	private robot?: Robot;
 	private zombie?: Zombie;
 	private running: boolean = false;
@@ -23,23 +22,11 @@ export class CombatScreenModel extends MapModel{
 		this.combat = new Combat();
 	}
 
-	setMapData(data: any): void {
-		this.mapData = data;
-	}
-
-	getMapData(): any {
-		if (!this.mapData) {
-			throw new Error("Map data has not been initialized.");
-		}
-		return this.mapData;
-	}
-
 	setEntities(robot: Robot, zombie: Zombie): void {
 		this.robot = robot;
 		this.zombie = zombie;
 	}
 
-	/* 
 	updateRobotPosition(dx: number, dy: number): void {
 		const robot = this.getRobot();
 		const previousY = robot.getPosition().y;
@@ -53,29 +40,27 @@ export class CombatScreenModel extends MapModel{
 			robot.faceDirection(currentPosition.y > previousY ? "down" : "up");
 		}
 		console.log("direction: " + robot.getDirection());
-	} 
-		*/
+	}
 
 	processAttackRequest(attack: boolean): void {
-		if(!attack || this.attackRequested) return;
-		this.attackRequested = true;
+		this.attackRequested = attack;
+		if (!this.attackRequested) {
+			return;
+		}
 
 		const robot = this.getRobot();
 		const zombie = this.getZombie();
-
+		console.log("Attack initiated!");
 		this.combat.performAttack({ attacker: robot }, { attacked: zombie });
-
-		// Animate attack
+		console.log("Zombie health after attack:", zombie.getHealth());
+		this.attackRequested = false;
 		const attackingImage = this.getAttackingImage();
 		const idleImage = this.getIdleImage();
-
 		robot.loadImage(attackingImage);
 		setTimeout(() => {
 			robot.loadImage(idleImage);
-			this.attackRequested = false;
 		}, this.getAttackDuration());
 	}
-
 
 	getRobot(): Robot {
 		if (!this.robot) {
@@ -139,15 +124,20 @@ export class CombatScreenModel extends MapModel{
 		this.score = 0;
 		this.robot = undefined;
 		this.zombie = undefined;
-		this.mapData = undefined;
 		this.attackingImage = undefined;
 		this.idleImage = undefined;
 	}
 
+	/**
+	 * Increment score when lemon is clicked
+	 */
 	incrementScore(): void {
 		this.score++;
 	}
 
+	/**
+	 * Get current score
+	 */
 	getScore(): number {
 		return this.score;
 	}
