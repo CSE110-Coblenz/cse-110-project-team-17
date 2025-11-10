@@ -108,7 +108,7 @@ class App implements ScreenSwitcher {
         return this.layer;
     }
 
-    redrawExplorationEntities(): void {
+    redrawExplorationPlayer(): void {
         this.playerLayer.batchDraw();
     }
 

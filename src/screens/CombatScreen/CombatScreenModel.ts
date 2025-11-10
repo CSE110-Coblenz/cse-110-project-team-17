@@ -39,6 +39,7 @@ export class CombatScreenModel extends MapModel{
 		this.zombie = zombie;
 	}
 
+	/* 
 	updateRobotPosition(dx: number, dy: number): void {
 		const robot = this.getRobot();
 		const previousY = robot.getPosition().y;
@@ -52,27 +53,29 @@ export class CombatScreenModel extends MapModel{
 			robot.faceDirection(currentPosition.y > previousY ? "down" : "up");
 		}
 		console.log("direction: " + robot.getDirection());
-	}
+	} 
+		*/
 
 	processAttackRequest(attack: boolean): void {
-		this.attackRequested = attack;
-		if (!this.attackRequested) {
-			return;
-		}
+		if(!attack || this.attackRequested) return;
+		this.attackRequested = true;
 
 		const robot = this.getRobot();
 		const zombie = this.getZombie();
-		console.log("Attack initiated!");
+
 		this.combat.performAttack({ attacker: robot }, { attacked: zombie });
-		console.log("Zombie health after attack:", zombie.getHealth());
-		this.attackRequested = false;
+
+		// Animate attack
 		const attackingImage = this.getAttackingImage();
 		const idleImage = this.getIdleImage();
+
 		robot.loadImage(attackingImage);
 		setTimeout(() => {
 			robot.loadImage(idleImage);
+			this.attackRequested = false;
 		}, this.getAttackDuration());
 	}
+
 
 	getRobot(): Robot {
 		if (!this.robot) {
@@ -141,16 +144,10 @@ export class CombatScreenModel extends MapModel{
 		this.idleImage = undefined;
 	}
 
-	/**
-	 * Increment score when lemon is clicked
-	 */
 	incrementScore(): void {
 		this.score++;
 	}
 
-	/**
-	 * Get current score
-	 */
 	getScore(): number {
 		return this.score;
 	}

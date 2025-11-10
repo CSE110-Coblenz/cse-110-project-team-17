@@ -13,11 +13,11 @@ export class Robot extends BaseEntity {
     private group: Konva.Group;
     private health: number;
     private maxAttack: number;
-    private sprite: Konva.Image | Konva.Rect | null = null;
+    //private sprite: Konva.Image | Konva.Rect | null = null;
     private position: position;
     private currentImage: Konva.Image;
     private dir: Directions;
-    private speed = 1;
+    private speed = 5;
 
     constructor(name: string, health: number, maxAttack: number, x: number = 0, y: number = 0, robotImage?: HTMLImageElement) {
         super(name);
@@ -35,7 +35,7 @@ export class Robot extends BaseEntity {
         });
         
         this.group = new Konva.Group({ x, y });
-        this.createSprite();
+        //this.createSprite();
         
         // Spawn the robot on the screen
         // this.screen.addEntity(this.group);
@@ -43,7 +43,7 @@ export class Robot extends BaseEntity {
 
     /**
      * Create the visual representation of the robot
-     */
+     *
     private createSprite(): void {
         // Placeholder - replace with actual image loading
         this.sprite = new Konva.Rect({
@@ -72,6 +72,15 @@ export class Robot extends BaseEntity {
         return this.currentImage;
     }
 
+    /**
+     * Move the robot to a specific position
+     */
+    moveTo(dx: number, dy: number): void {
+        this.currentImage.x(this.currentImage.x() + dx * this.speed);
+        this.currentImage.y(this.currentImage.y() + dy * this.speed);
+        this.position = { x: this.currentImage.x(), y: this.currentImage.y() };
+        // this.screen.render();
+    }
     
 
     /**
@@ -84,7 +93,7 @@ export class Robot extends BaseEntity {
     /**
      * Move the robot to a specific position
      */
-    moveTo(dx: number, dy: number): void {
+    move(dx: number, dy: number): void {
         this.currentImage.x(this.currentImage.x() + dx * this.speed);
         this.currentImage.y(this.currentImage.y() + dy * this.speed);
         this.position = { x: this.currentImage.x(), y: this.currentImage.y() };
@@ -109,6 +118,7 @@ export class Robot extends BaseEntity {
         return this.position;
     }
 
+    
     getDirection(): Directions {
         return this.dir;
     }
@@ -138,7 +148,7 @@ export class Robot extends BaseEntity {
 
     /**
      * Show the robot
-     */
+     * */
     show(): void {
         this.group.visible(true);
         // this.screen.render();
@@ -146,7 +156,8 @@ export class Robot extends BaseEntity {
 
     /**
      * Hide the robot
-     */
+     *
+     * */
     hide(): void {
         this.group.visible(false);
         // this.screen.render();

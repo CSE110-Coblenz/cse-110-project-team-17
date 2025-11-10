@@ -36,11 +36,18 @@ export abstract class ScreenController {
 export interface ScreenSwitcher {
 	switchToScreen(screen: Screen): void;
 	
-	/* added this function so that gameloop can update  */
-	/* the main layer from the GameScreenController 	*/
+	/* added these functions so that gameloop can update  */
+	/* the main layer from the GameScreenController 	  */
 	redraw(): void;
 	getLayer(): Konva.Layer;
 	redrawCombatEntities(): void;
-	redrawExplorationEntities(): void;
+	redrawExplorationPlayer(): void;
 	getCombatLayer(): Konva.Layer;
+}
+
+/* Map interface, allows map to be built using mapData 	    */
+/* --> mapData is created in the ScreenController 	   	    */
+/* --> mapData holds parsed JSON data as JavaScript object  */
+export interface Maps {
+	buildMap(mapData: any): Promise<Konva.Group>;
 }

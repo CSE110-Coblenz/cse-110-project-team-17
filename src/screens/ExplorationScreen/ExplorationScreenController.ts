@@ -6,6 +6,7 @@ import { STAGE_WIDTH, STAGE_HEIGHT , EDGE_THRESHOLD } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
 import { GameObject } from "../../entities/object.ts";
 import type { ScreenSwitcher } from "../../types.ts";
+import { Map } from "../../entities/tempMap.ts";
 
 export class ExplorationScreenController extends ScreenController {
     private model: ExplorationScreenModel;
@@ -16,7 +17,7 @@ export class ExplorationScreenController extends ScreenController {
     private gameObjects: GameObject[] = [];
     private running: boolean;
 
-    //private logicTickInterval?: number;
+    private logicTickInterval?: number;
     private lastCollectionMsgTs = 0;
     private COLLECTION_MSG_COOLDOWN_MS = 750;
 
@@ -30,9 +31,14 @@ export class ExplorationScreenController extends ScreenController {
 
     /* Load Map and spawn objects */
     async init(): Promise<void> {
+        /* BUILD Map using Tileset and JSON data */
         const mapData = await this.loadMap("/porj0.json");
+        const mapBuilder = new Map("/tiles/colony.png", 1000, mapData, this.loadImage.bind(this));
+        const mapGroup = await mapBuilder.buildMap(mapData);
+        this.view.getMapGroup().add(mapGroup);
+
+        /* Create player instance */
         const playerImage = await this.loadImage("/imagesTemp.jpg");
-        
         this.player = new Player("player1", STAGE_WIDTH / 2, STAGE_HEIGHT / 2, playerImage);
 
         // Create GameObject instances without Screen dependency
@@ -48,7 +54,7 @@ export class ExplorationScreenController extends ScreenController {
         this.gameObjects.push(chest);
         this.model.addObject("chest");
 
-        await this.view.build(mapData, this.player, this.gameObjects, this.loadImage.bind(this));
+        await this.view.build(this.player, this.gameObjects);
     }
 
     /* check collisions 10 times a second */
@@ -56,26 +62,34 @@ export class ExplorationScreenController extends ScreenController {
         if (!this.running) return;
 
         const { dx, dy } = this.input.getDirection();
-        const playerImg = this.player.getCurrentImage();
-        const newX = playerImg.x();
+        //const playerImg = this.player.getCurrentImage();
+        //const newX = playerImg.x();
 
         // Movement-related game logic
         if (dx !== 0 || dy !== 0) {
             this.checkEdges();
         }
 
-        // Check if the player should transition to combat
+        /* Check if the player should transition to combat
         if(this.model.shouldTransitionToCombat(newX)){
             this.running = false;
+            this.stopLogicLoop();
             this.screenSwitcher.switchToScreen({ type: "combat" });
             return;
-        }
+        } */
 
         // Check for interactions
         if(this.input.getInteract()){
             this.checkObjectCollection();
         }
     };
+
+    private stopLogicLoop(): void {
+        if(this.logicTickInterval){
+            clearInterval(this.logicTickInterval);
+            this.logicTickInterval = undefined;
+        }
+    }
 
     private checkEdges(): void {
         const playerImg = this.player.getCurrentImage();
@@ -117,7 +131,7 @@ export class ExplorationScreenController extends ScreenController {
         this.input = new InputManager();
         requestAnimationFrame(this.explorationLoop);
         this.view.show();
-        window.setInterval(() => this.logicTick(), 50);
+        this.logicTickInterval = window.setInterval(() => this.logicTick(), 50);
     }
 
     /* Exploration game loop */
@@ -125,7 +139,7 @@ export class ExplorationScreenController extends ScreenController {
         if(!this.running) return;
         const { dx, dy } = this.input.getDirection();
         this.player.move(dx, dy);
-        this.screenSwitcher.redrawExplorationEntities();
+        this.screenSwitcher.redrawExplorationPlayer();
         requestAnimationFrame(this.explorationLoop);
     };
 
@@ -194,5 +208,6 @@ export class ExplorationScreenController extends ScreenController {
     hide(): void {
         this.running = false;
         this.view.hide();
+        this.stopLogicLoop();
     }
 }
