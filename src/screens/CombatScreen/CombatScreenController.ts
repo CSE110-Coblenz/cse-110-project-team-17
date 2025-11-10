@@ -120,12 +120,6 @@ export class CombatScreenController extends ScreenController {
 
 		// movement input (WASD)
 		let { dx, dy } = this.input.getDirection();
-		if (dx >= STAGE_WIDTH - 32) {
-			dx = STAGE_WIDTH - 32;
-		}
-		if (dy >= STAGE_HEIGHT - 32) {
-			dy = STAGE_HEIGHT - 32;
-		}
 		this.model.updateRobotPosition(dx, dy);
 
 		// zombie AI moves

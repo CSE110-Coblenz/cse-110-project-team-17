@@ -1,8 +1,7 @@
 import { Robot } from "./entities/robot";
 import { Zombie } from "./entities/zombie";
 
-const TILE_SIZE = 32;
-const TOLERANCE = 20; // allow small offset so attack feels natural
+const TOLERANCE = 40; // allow small offset so attack feels natural
 
 export class Combat {
     /**
@@ -12,26 +11,29 @@ export class Combat {
         const attackerPos = player.attacker.getPosition();
         const enemyPos = enemy.attacked.getPosition();
 
+        console.log('Attacker Position: ', attackerPos);
+        console.log('Enemy Position: ', enemyPos);
+
         let hit = false;
 
         switch (player.attacker.getDirection()) {
             case 'up':
-                hit = Math.abs(enemyPos.y - (attackerPos.y - TILE_SIZE)) <= TOLERANCE &&
+                hit = Math.abs(enemyPos.y - (attackerPos.y)) <= TOLERANCE &&
                       Math.abs(enemyPos.x - attackerPos.x) <= TOLERANCE;
                 console.log(hit);
                 break;
             case 'down':
-                hit = Math.abs(enemyPos.y - (attackerPos.y + TILE_SIZE)) <= TOLERANCE &&
+                hit = Math.abs((attackerPos.y) - enemyPos.y) <= TOLERANCE &&
                       Math.abs(enemyPos.x - attackerPos.x) <= TOLERANCE;
                 console.log(hit);
                 break;
             case 'left':
-                hit = Math.abs(enemyPos.x - (attackerPos.x - TILE_SIZE)) <= TOLERANCE &&
+                hit = Math.abs((attackerPos.x) - enemyPos.x) <= TOLERANCE &&
                       Math.abs(enemyPos.y - attackerPos.y) <= TOLERANCE;
                 console.log(hit);
                 break;
             case 'right':
-                hit = Math.abs(enemyPos.x - (attackerPos.x + TILE_SIZE)) <= TOLERANCE &&
+                hit = Math.abs(enemyPos.x - (attackerPos.x)) <= TOLERANCE &&
                       Math.abs(enemyPos.y - attackerPos.y) <= TOLERANCE;
                 console.log(hit);
                 break;
