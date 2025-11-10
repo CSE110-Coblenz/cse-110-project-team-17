@@ -1,4 +1,4 @@
-import { STAGE_WIDTH, STAGE_HEIGHT } from '../constants';
+// import { STAGE_WIDTH, STAGE_HEIGHT } from '../constants';
 import { BaseEntity } from './base';
 import Konva from 'konva';
 
