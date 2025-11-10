@@ -136,6 +136,10 @@ export class Zombie extends BaseEntity {
         return this.dir;
     }
 
+    faceDirection(direction: Directions): void {
+        this.dir = direction;
+    }
+
     /**
      * Take damage
      */

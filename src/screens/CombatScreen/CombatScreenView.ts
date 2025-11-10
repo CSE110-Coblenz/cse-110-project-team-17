@@ -15,6 +15,7 @@ export class CombatScreenView extends MapView {
 	private screenGroup: Konva.Group;
 	private mapGroup: Konva.Group;
 	private entityGroup: Konva.Group;
+	private zombies: Zombie[] = [];
 
 	constructor(model: CombatScreenModel) {
 		super(model);
@@ -83,13 +84,45 @@ export class CombatScreenView extends MapView {
 		/* Add robot and zombie images (their Konva.Image instances)
            to the entity group so they are rendered above the map. */
 		this.entityGroup.add(robot.getCurrentImage());
-		this.entityGroup.add(zombie.getCurrentImage());
+		this.addZombie(zombie);
 
 		/* add both groups to this.screenGroup */
 		this.screenGroup.add(this.mapGroup);
 		this.screenGroup.add(this.entityGroup);
 
 	}
+
+	/** Optionally: get all zombies for AI logic */
+	getZombies(): Zombie[] {
+		return this.zombies;
+	}
+
+	/** Add a new zombie to the view */
+	addZombie(zombie: Zombie): void {
+		this.zombies.push(zombie);
+		this.entityGroup.add(zombie.getCurrentImage());
+	}
+
+	private zombieCounterText!: Konva.Text;
+
+	addZombieCounter(x: number, y: number): void {
+		this.zombieCounterText = new Konva.Text({
+			x,
+			y,
+			text: "Score: 0",
+			fontSize: 20,
+			fontFamily: "Arial",
+			fill: "black",
+		});
+		this.entityGroup.add(this.zombieCounterText);
+	}
+
+	updateZombieCounter(count: number): void {
+		if (this.zombieCounterText) {
+			this.zombieCounterText.text(`Zombies defeated: ${count}`);
+		}
+	}
+
 
 	/* Expose the groups so the App can mix them into the stage layers. */
 	getGroup(): Konva.Group {

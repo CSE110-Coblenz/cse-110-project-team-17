@@ -21,6 +21,10 @@ export class CombatScreenController extends ScreenController {
 	private input!: InputManager;
 	private lastZombieMoveTime = 0;
 	private lastAttackTime = 0;
+	private lastSpawnTime = 0;
+	private zombieCounterText!: any;
+
+	private readonly ZOMBIE_SPAWN_INTERVAL = 10000;
 
 	/* Create model and view, instantiate reference to top-level App class */
 	constructor(screenSwitcher: ScreenSwitcher) {
@@ -45,10 +49,15 @@ export class CombatScreenController extends ScreenController {
 		const robot = new Robot("robot", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
 		const zombie = new Zombie("zombie", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, zombieImage);
 
+		this.model.addZombie(zombie);
+
 		// store entities and images in the model
 		this.model.setEntities(robot, zombie);
 		this.model.setAttackingImage(attackingImage);
 		this.model.setIdleImage(idleImage);
+
+		// after building the view
+		this.view.addZombieCounter(10, 10); // top-left corner
 
 		// build view (map + add entity images to the view's groups)
 		await this.view.build(
@@ -85,6 +94,16 @@ export class CombatScreenController extends ScreenController {
 		this.model.setRunning(false);
 		this.view.hide();
 	}
+	private async spawnZombie(): Promise<void> {
+		const zombieImage = await this.loadImage("/imagesTemp.jpg");
+		const x = Math.random() * (STAGE_WIDTH - 32);
+		const y = Math.random() * (STAGE_HEIGHT - 32);
+		const newZombie = new Zombie(`zombie-${Date.now()}`, 100, 50, x, y, zombieImage);
+
+		this.model.addZombie(newZombie); // You'll need to implement addZombie in your model
+		this.view.addZombie(newZombie); // Update view to show the new zombie
+		console.log(`Spawned new zombie at (${x.toFixed(0)}, ${y.toFixed(0)})`);
+	}
 
 	/**
      * gameLoop
@@ -100,9 +119,17 @@ export class CombatScreenController extends ScreenController {
 		}
 
 		// movement input (WASD)
-		const { dx, dy } = this.input.getDirection();
+		let { dx, dy } = this.input.getDirection();
+		if (dx >= STAGE_WIDTH - 32) {
+			dx = STAGE_WIDTH - 32;
+		}
+		if (dy >= STAGE_HEIGHT - 32) {
+			dy = STAGE_HEIGHT - 32;
+		}
 		this.model.updateRobotPosition(dx, dy);
-		if (timestamp - this.lastZombieMoveTime >= 250	) {
+
+		// zombie AI moves
+		if (timestamp - this.lastZombieMoveTime >= 250) {
 			this.model.updateZombieAI();
 			this.lastZombieMoveTime = timestamp;
 		}
@@ -114,10 +141,19 @@ export class CombatScreenController extends ScreenController {
 			this.lastAttackTime = timestamp;
 		}
 
-		// request the app to redraw all entities (entityLayer.batchDraw())
+		// spawn zombies periodically
+		if (timestamp - this.lastSpawnTime >= this.ZOMBIE_SPAWN_INTERVAL) {
+			this.spawnZombie();
+			this.lastSpawnTime = timestamp;
+		}
+		// update live counter
+		this.view.updateZombieCounter(this.model.getZombiesDefeated());
+
+
+		// redraw
 		this.screenSwitcher.redrawEntities();
-		
-		// schedule next frame
+
+		// next frame
 		requestAnimationFrame(this.gameLoop);
 	};
 
