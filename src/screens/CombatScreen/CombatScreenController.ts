@@ -19,6 +19,8 @@ export class CombatScreenController extends ScreenController {
 	private view: CombatScreenView;
 	private screenSwitcher: ScreenSwitcher;
 	private input!: InputManager;
+	private lastZombieMoveTime = 0;
+	private lastAttackTime = 0;
 
 	/* Create model and view, instantiate reference to top-level App class */
 	constructor(screenSwitcher: ScreenSwitcher) {
@@ -91,7 +93,7 @@ export class CombatScreenController extends ScreenController {
      * updates model (movement, attack), then asks the top-level app
      * to redraw the entity layer.
      */
-	private gameLoop = (): void => {
+	private gameLoop = (timestamp: number): void => {
 		// stop condition: model not running or input not initialized
 		if (!this.model.isRunning() || !this.input) {
 			return;
@@ -100,10 +102,17 @@ export class CombatScreenController extends ScreenController {
 		// movement input (WASD)
 		const { dx, dy } = this.input.getDirection();
 		this.model.updateRobotPosition(dx, dy);
+		if (timestamp - this.lastZombieMoveTime >= 250	) {
+			this.model.updateZombieAI();
+			this.lastZombieMoveTime = timestamp;
+		}
 
 		// attack input (space): model handles attack timing/animation
 		const attack = this.input.getAttack();
-		this.model.processAttackRequest(attack);
+		let returned = this.model.processAttackRequest(attack, timestamp, this.lastAttackTime);
+		if (attack && returned != -1) {
+			this.lastAttackTime = timestamp;
+		}
 
 		// request the app to redraw all entities (entityLayer.batchDraw())
 		this.screenSwitcher.redrawEntities();

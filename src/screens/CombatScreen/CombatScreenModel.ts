@@ -67,15 +67,50 @@ export class CombatScreenModel extends MapModel{
 	}
 
 	/**
+	 * updateZombieAI
+	 *
+	 * Moves the zombie toward the robot gradually.
+	 * Called by controller once per second.
+	 */
+	updateZombieAI(): void {
+		const zombie = this.getZombie();
+		const robot = this.getRobot();
+
+		const zombieImg = zombie.getCurrentImage();
+		const robotImg = robot.getCurrentImage();
+
+		const dx = robotImg.x() - zombieImg.x();
+		const dy = robotImg.y() - zombieImg.y();
+		const dist = Math.sqrt(dx * dx + dy * dy);
+
+		// If close enough, don't move (prevents jitter)
+		if (dist < 10) return;
+
+		// Normalize and step
+		const step = 5; // speed per zombie move (1 step per second)
+		const newX = zombieImg.x() + (dx / dist) * step;
+		const newY = zombieImg.y() + (dy / dist) * step;
+
+		// Move zombie
+		zombieImg.x(newX);
+		zombieImg.y(newY);
+	}
+
+
+	/**
      * processAttackRequest
      *
      * Triggers combat.performAttack when an attack is requested.
      * Also swaps robot images to show attack animation for a short duration.
      */
-	processAttackRequest(attack: boolean): void {
+	processAttackRequest(attack: boolean, timestamp: number, lastAttackTime: number): number {
 		this.attackRequested = attack;
 		if (!this.attackRequested) {
-			return;
+			return -1;
+		}
+		if (timestamp - lastAttackTime < this.getAttackDuration()) {
+			console.log("Attack on cooldown.");
+			return -1;
 		}
 
 		const robot = this.getRobot();
@@ -92,6 +127,7 @@ export class CombatScreenModel extends MapModel{
 		setTimeout(() => {
 			robot.loadImage(idleImage);
 		}, this.getAttackDuration());
+		return 0;
 	}
 
 	 /* Safe getters for robot/zombie with helpful errors. */
