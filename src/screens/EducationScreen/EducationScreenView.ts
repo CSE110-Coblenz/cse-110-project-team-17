@@ -13,6 +13,9 @@ export class EducationScreenView {
     private group: Konva.Group;
 	private lessonImage: Konva.Image | null = null;
 	private pageNum: Konva.Text;
+	private imageDisplayWidth = STAGE_WIDTH - 250;
+	private imageDisplayTopBuffer = 10;
+	private imageDisplayBottomBuffer = 50;
 
     constructor(onXClick: () => void, onLeftArrowClick: () => void, onRightArrowClick: () => void) {
 		this.group = new Konva.Group({ visible: false });
@@ -159,21 +162,38 @@ export class EducationScreenView {
 
     displayLesson(currLessonIdx: number, maxLessonNum: number, path: string): void {
 		// Display Lesson Image
-		if (this.lessonImage != null) {
-			this.lessonImage.destroy();
-		}
-		this.pageNum.text("Lesson " + (currLessonIdx + 1) + "/" + maxLessonNum);
+		this.lessonImage?.destroy();
+		this.changeText("Lesson " + (currLessonIdx + 1) + "/" + maxLessonNum);
         Konva.Image.fromURL(path, (image) => {
 			this.lessonImage = image;
 			this.lessonImage.offsetX(this.lessonImage.width() / 2)
-			.offsetY(this.lessonImage.height() / 2);
-			this.lessonImage.x(STAGE_WIDTH / 2).y(STAGE_HEIGHT / 2);
+			.offsetY(0);
+			this.lessonImage.x(STAGE_WIDTH / 2).y(this.imageDisplayTopBuffer);
+			let imageDisplayHeight = STAGE_HEIGHT - this.imageDisplayBottomBuffer - this.imageDisplayTopBuffer;
+			/**
+			 * Try scaling the image by matching the width to the max image display width. If the image is still
+			 * too tall, scale the image by matching the height to the max image display height. Otherwise,
+			 * scale the image by matching the width to the max image display width.
+			 */
+			if (this.lessonImage.height() * this.imageDisplayWidth / this.lessonImage.width() > imageDisplayHeight) {
+				this.lessonImage.scaleX(imageDisplayHeight / this.lessonImage.height());
+				this.lessonImage.scaleY(imageDisplayHeight / this.lessonImage.height());
+			} else {
+				this.lessonImage.scaleX(this.imageDisplayWidth / this.lessonImage.width());
+				this.lessonImage.scaleY(this.imageDisplayWidth / this.lessonImage.width());
+			}
 			this.group.add(this.lessonImage);
 			this.lessonImage.moveToBottom();
 			this.lessonImage.moveUp();
 		});
 		this.group.getLayer()?.draw();
     }
+
+	private changeText(input: string): void {
+		this.pageNum.text(input);
+		this.pageNum.offsetX(this.pageNum.width() / 2);
+		this.pageNum.offsetY(this.pageNum.height() / 2);
+	}
 
 	/**
 	 * Show the screen
