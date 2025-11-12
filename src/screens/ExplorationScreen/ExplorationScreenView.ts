@@ -46,47 +46,47 @@ export class ExplorationScreenView implements View {
             stroke: "black",
             strokeWidth: 2,
             visible: false,
-        });
-        this.uiGroup.add(this.collectionMessageText);
+         });
+         this.uiGroup.add(this.collectionMessageText);
 
-        // Create education book button in bottom left
-        const bookButtonGroup = new Konva.Group();
-        const bookButton = new Konva.Circle({
+         // Create education book button in bottom left
+         const bookButtonGroup = new Konva.Group();
+         const bookButton = new Konva.Circle({
             x: 80,
-			y: STAGE_HEIGHT - 80,   
-			radius: 50,
-			fill: "#edd737ff",
+            y: STAGE_HEIGHT - 80,   
+            radius: 50,
+            fill: "#edd737ff",
             stroke: "black",
             strokeWidth: 3
-		});
-        const bookLabel = new Konva.Text({
-			x: bookButton.x(),
-			y: bookButton.y(),
-			text: "Book",
-			fontSize: 24,
-			fontFamily: "Arial",
-			fill: "black",
-		});
-        bookLabel.offsetX(bookLabel.width() / 2);
-        bookLabel.offsetY(bookLabel.height() / 2);
-        bookButtonGroup.add(bookButton);
-        bookButtonGroup.add(bookLabel);
-        bookButtonGroup.on("click", onBookClick);
-		bookButtonGroup.on('mouseover', function (e) {
-			let x = e.target.getStage()
-			if (x != null) {
-				x.container().style.cursor = 'pointer';
-			}
-		});
-		bookButtonGroup.on('mouseout', function (e) {
-			let x = e.target.getStage()
-			if (x != null) {
-				x.container().style.cursor = 'default';
-			}
-		});
-        this.entityGroup.add(bookButtonGroup);
+         });
+         const bookLabel = new Konva.Text({
+            x: bookButton.x(),
+            y: bookButton.y(),
+            text: "Book",
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "black",
+         });
+         bookLabel.offsetX(bookLabel.width() / 2);
+         bookLabel.offsetY(bookLabel.height() / 2);
+         bookButtonGroup.add(bookButton);
+         bookButtonGroup.add(bookLabel);
+         bookButtonGroup.on("click", onBookClick);
+         bookButtonGroup.on('mouseover', function (e) {
+           let x = e.target.getStage()
+           if (x != null) {
+               x.container().style.cursor = 'pointer';
+           }
+         });
+         bookButtonGroup.on('mouseout', function (e) {
+           let x = e.target.getStage()
+           if (x != null) {
+             x.container().style.cursor = 'default';
+           }
+         });
+         this.entityGroup.add(bookButtonGroup);
 
-        this.screenGroup.add(this.uiGroup);
+         this.screenGroup.add(this.uiGroup);
     }
 
     async build(
