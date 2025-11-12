@@ -4,6 +4,7 @@ import { MenuScreenController } from "./screens/MenuScreen/MenuScreenController.
 import { ExplorationScreenController } from "./screens/ExplorationScreen/ExplorationScreenController.ts";
 import { CombatScreenController } from "./screens/CombatScreen/CombatScreenController.ts";
 import { ResultsScreenController } from "./screens/ResultsScreen/ResultsScreenController.ts";
+import { EducationScreenController } from "./screens/EducationScreen/EducationScreenController.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "./constants.ts";
 
 /**
@@ -18,6 +19,7 @@ class App implements ScreenSwitcher {
     private explorationController: ExplorationScreenController;
     private combatController: CombatScreenController;
     private resultsController: ResultsScreenController;
+	private educationController: EducationScreenController;
 
     constructor(container: string) {
         // Initialize Konva stage
@@ -36,9 +38,10 @@ class App implements ScreenSwitcher {
 
         // Initialize all screen controllers
         this.menuController = new MenuScreenController(this);
-        this.explorationController = new ExplorationScreenController(this);
         this.combatController = new CombatScreenController(this);
         this.resultsController = new ResultsScreenController(this);
+		this.educationController = new EducationScreenController(this);
+        this.explorationController = new ExplorationScreenController(this, this.educationController);
 
         // Load both screens
         this.explorationController.init();
@@ -49,6 +52,7 @@ class App implements ScreenSwitcher {
         this.layer.add(this.explorationController.getView().getGroup());
         this.layer.add(this.combatController.getView().getGroup());
         this.layer.add(this.resultsController.getView().getGroup());
+		this.layer.add(this.educationController.getView().getGroup());
 
         // Add entity groups
         this.entityLayer.add(this.explorationController.getView().getEntityGroup());
@@ -68,6 +72,7 @@ class App implements ScreenSwitcher {
         this.explorationController.hide();
         this.combatController.hide();
         this.resultsController.hide();
+		this.educationController.hide();
 
         // Show requested screen
         switch (screen.type) {
@@ -86,6 +91,9 @@ class App implements ScreenSwitcher {
             case "result":
                 this.resultsController.showResults(screen.score);
                 break;
+			case "education":
+				this.educationController.show();
+				break;
         }
     }
 
