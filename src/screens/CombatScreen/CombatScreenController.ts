@@ -34,6 +34,7 @@ export class CombatScreenController extends ScreenController {
 		const attackingImage = await this.loadImage("/image.png");
 		const idleImage = await this.loadImage("/lemon.png");
 
+		/* create characters */
 		const robot = new Robot("robot", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
 		const zombie = new Zombie("zombie", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, zombieImage);
 
@@ -41,10 +42,16 @@ export class CombatScreenController extends ScreenController {
 		this.model.setAttackingImage(attackingImage);
 		this.model.setIdleImage(idleImage);
 
+		/* create a Map object to build this screen's map */
 		const mapBuilder = new Map("/tiles/colony.png", 1000, mapData, this.loadImage.bind(this));
+
+		/* create Konva.Group to draw the tiled map */
 		const mapGroup = await mapBuilder.buildMap();
+
+		/* add map to this.view so it can be drawn in the browser */
 		this.view.getMapGroup().add(mapGroup);
 
+		/* initialize the separate Groups in this.view */
 		await this.view.build(this.model.getRobot(), this.model.getZombie());
 	}
 

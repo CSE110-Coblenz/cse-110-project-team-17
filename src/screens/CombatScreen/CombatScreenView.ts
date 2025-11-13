@@ -19,12 +19,11 @@ export class CombatScreenView extends MapView {
 		this.entityGroup = new Konva.Group({ visible: false });
 	}
 
+	/* add robot & zombie to entity Group, add map to screen Group */
+	/* entity Group is redrawn every iteration of the gameLoop     */
 	async build(robot: Robot, zombie: Zombie): Promise<void> {
-		/* add robot to entity layer */
 		this.entityGroup.add(robot.getCurrentImage());
 		this.entityGroup.add(zombie.getCurrentImage());
-
-		/* add both groups to this.screenGroup */
 		this.screenGroup.add(this.mapGroup);
 	}
 
