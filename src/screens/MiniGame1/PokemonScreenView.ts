@@ -29,8 +29,8 @@ export class PokemonScreenView extends MapView {
 		this.entityGroup = new Konva.Group({ visible: false });
 		this.screenGroup = new Konva.Group({ visible: false });
 		this.screenGroup.add(this.bgGroup);
-		this.screenGroup.add(this.textBoxGroup);
 		this.screenGroup.add(this.entityGroup);
+		this.screenGroup.add(this.textBoxGroup);
 
 		this.model = model;
 		
@@ -38,7 +38,7 @@ export class PokemonScreenView extends MapView {
 		this.entityGroup.add(this.model.getPlayer().getCurrentImage());
 		this.model.getBoss().getCurrentImage().scale({x:10, y:10});
 		this.entityGroup.add(this.model.getBoss().getCurrentImage());
-		this.model.getPlayer().moveTo(-500, 0);
+		this.model.getPlayer().moveTo(-500, -100);
 		this.model.getBoss().moveTo(800, 100);
 
 		// alternative API:
@@ -56,6 +56,18 @@ export class PokemonScreenView extends MapView {
 			this.bgGroup.add(konvaImage);
 		};
 		// Set the pokemon background with text
+		const textBox = new Rect({
+			x: 50,
+			y: screenSwitcher.getStageHeight() - 220,
+			width: screenSwitcher.getStageWidth() - 100,
+			height: 200,
+			fill: 'white',
+			stroke: 'black',
+			strokeWidth: 4,
+			radius: 30,
+			cornerRadius: 30,
+		});
+		this.textBoxGroup.add(textBox);
 	}
 
 	showAttackAnimation(): void {
