@@ -18,6 +18,7 @@ export class Zombie extends BaseEntity {
     private position: position;
     private currentImage: Konva.Image;
     private dir: Directions;
+    private zombie: boolean = true;
 
     constructor(name: string, health: number, maxAttack: number, x: number = 0, y: number = 0, robotImage?: HTMLImageElement) {
         super(name);
@@ -38,6 +39,10 @@ export class Zombie extends BaseEntity {
         
         // Spawn the zombie on the screen
         // this.screen.addEntity(this.group);
+    }
+
+    get isZombie(): boolean {
+        return this.zombie;
     }
 
     /**

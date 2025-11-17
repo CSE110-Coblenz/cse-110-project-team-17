@@ -146,4 +146,10 @@ export class CombatScreenView extends MapView {
 		this.mapGroup.visible(false);
 		this.entityGroup.visible(false);
 	}
+
+	destroy() {
+		this.screenGroup.destroy();
+		this.entityGroup.destroy();
+	}
+
 }

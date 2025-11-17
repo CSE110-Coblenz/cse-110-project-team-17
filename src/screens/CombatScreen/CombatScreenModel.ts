@@ -125,11 +125,12 @@ export class CombatScreenModel extends MapModel{
      * Triggers combat.performAttack when an attack is requested.
      * Also swaps robot images to show attack animation for a short duration.
      */
-	processAttackRequest(attack: boolean, timestamp: number, lastAttackTime: number): number {
+	processAttackRequest(attack: boolean, timestamp: number, lastAttackTime: number, isRobotAttack: boolean): number {
 		this.attackRequested = attack;
 		if (!this.attackRequested) return -1;
 
 		if (timestamp - lastAttackTime < this.getAttackDuration()) {
+			console.log(timestamp - lastAttackTime);
 			console.log("Attack on cooldown.");
 			return -1;
 		}
@@ -144,31 +145,32 @@ export class CombatScreenModel extends MapModel{
 			if (zombie.getHealth() <= 0) continue; // skip dead zombies
 			console.log('Zombie Position: ', zombie.getPosition());
 
-			this.combat.performAttack({ attacker: robot }, { attacked: zombie });
+			if (isRobotAttack) {
+				this.combat.performAttack({ attacker: robot }, { attacked: zombie });
+			} else {
+				this.combat.performAttack({ attacker: zombie }, { attacked: robot });
+			}
 
 			if (zombie.getHealth() <= 0) {
 				this.incrementZombiesDefeated();
 				console.log(`${zombie.getName()} defeated!`);
 				attackingZombies.push(zombie); // mark for optional removal
+				const idx = this.zombies.indexOf(zombie);
+				if (idx !== -1) this.zombies.splice(idx, 1);
 			}
-		}
-
-		// Optionally remove defeated zombies from array
-		for (const deadZombie of attackingZombies) {
-			const idx = this.zombies.indexOf(deadZombie);
-			if (idx !== -1) this.zombies.splice(idx, 1);
 		}
 
 		this.attackRequested = false;
 
 		// swap robot sprite to attacking image then back to idle
-		const attackingImage = this.getAttackingImage();
-		const idleImage = this.getIdleImage();
-		robot.loadImage(attackingImage);
-		setTimeout(() => {
-			robot.loadImage(idleImage);
-		}, this.getAttackDuration());
-
+		if (isRobotAttack) {
+			const attackingImage = this.getAttackingImage();
+			const idleImage = this.getIdleImage();
+			robot.loadImage(attackingImage);
+			setTimeout(() => {
+				robot.loadImage(idleImage);
+			}, this.getAttackDuration());
+		}
 		return 0;
 	}
 

@@ -22,6 +22,13 @@ export class CombatScreenController extends ScreenController {
 	private lastZombieMoveTime = 0;
 	private lastAttackTime = 0;
 	private lastSpawnTime = 0;
+	private zombiePendingAttack = false;
+	private zombieAttackStartTime = 0;
+	private ZOMBIE_WINDUP = 500; // ms
+	private zombieCombatDelay = 2000; // ms
+	private zombieLastAttackTime = 0;
+	private animationFrameId: number | null = null; // Track animation frame
+
 
 	private readonly ZOMBIE_SPAWN_INTERVAL = 10000;
 
@@ -46,7 +53,7 @@ export class CombatScreenController extends ScreenController {
 
 		// create entities centered on stage
 		const robot = new Robot("robot", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
-		const zombie = new Zombie("zombie", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, zombieImage);
+		const zombie = new Zombie("zombie", 100, 50, STAGE_WIDTH, STAGE_HEIGHT, zombieImage);
 
 		this.model.addZombie(zombie);
 		this.view.addZombie(zombie);
@@ -81,7 +88,7 @@ export class CombatScreenController extends ScreenController {
 		this.model.setRunning(true);
 
 		// start the frame loop
-		requestAnimationFrame(this.gameLoop);
+		this.animationFrameId = requestAnimationFrame(this.gameLoop);
 	}
 
 	/**  * hide
@@ -93,6 +100,7 @@ export class CombatScreenController extends ScreenController {
 		this.model.setRunning(false);
 		this.view.hide();
 	}
+	
 	private async spawnZombie(): Promise<void> {
 		const zombieImage = await this.loadImage("/imagesTemp.jpg");
 		const x = Math.random() * (STAGE_WIDTH - 32);
@@ -107,11 +115,21 @@ export class CombatScreenController extends ScreenController {
 	/**
      * gameLoop
      *
-     * Runs every frame while combat is active. Reads player input,
+     * Runs every frame while combat is active. Reads player input,th
      * updates model (movement, attack), then asks the top-level app
      * to redraw the entity layer.
      */
 	private gameLoop = (timestamp: number): void => {
+
+		if (this.model.getRobot().getHealth() <= 0) {
+			this.model.getRobot().setHealth(100);
+			console.log("Robot defeated! Game Over.");
+			this.model.setRunning(false);
+			this.model.reset();
+			this.screenSwitcher.switchToScreen({ type: "result", score: this.model.getZombiesDefeated() });
+			return;
+		}
+
 		// stop condition: model not running or input not initialized
 		if (!this.model.isRunning() || !this.input) {
 			return;
@@ -121,15 +139,34 @@ export class CombatScreenController extends ScreenController {
 		let { dx, dy } = this.input.getDirection();
 		this.model.updateRobotPosition(dx, dy);
 
-		// zombie AI moves
-		if (timestamp - this.lastZombieMoveTime >= 250) {
+		// Zombie AI movement
+		if (timestamp - this.lastZombieMoveTime >= 150) {
 			this.model.updateZombieAI();
 			this.lastZombieMoveTime = timestamp;
 		}
 
+		// Start wind-up
+		if (!this.zombiePendingAttack &&
+			timestamp - this.zombieLastAttackTime >= this.zombieCombatDelay) {
+
+			this.zombiePendingAttack = true;
+			this.zombieAttackStartTime = timestamp;
+		}
+
+		// Finish wind-up and perform attack
+		if (this.zombiePendingAttack &&
+			timestamp - this.zombieAttackStartTime >= this.ZOMBIE_WINDUP) {
+
+			this.model.processAttackRequest(true, timestamp, this.zombieLastAttackTime, false);
+
+			this.zombieLastAttackTime = timestamp;
+			this.zombiePendingAttack = false;
+		}
+
+
 		// attack input (space): model handles attack timing/animation
 		const attack = this.input.getAttack();
-		let returned = this.model.processAttackRequest(attack, timestamp, this.lastAttackTime);
+		let returned = this.model.processAttackRequest(attack, timestamp, this.lastAttackTime, true);
 		if (attack && returned != -1) {
 			this.lastAttackTime = timestamp;
 		}
@@ -147,7 +184,7 @@ export class CombatScreenController extends ScreenController {
 		this.screenSwitcher.redrawEntities();
 
 		// next frame
-		requestAnimationFrame(this.gameLoop);
+		this.animationFrameId = requestAnimationFrame(this.gameLoop);
 	};
 
 	/* Utility: load tiled map JSON */
@@ -168,5 +205,42 @@ export class CombatScreenController extends ScreenController {
 	
 	getView(): CombatScreenView {
 		return this.view;
+	}
+
+	/**
+	 * cleanup
+	 * 
+	 * Stops the game loop and cleans up resources.
+	 * Must be called before destroying the controller.
+	 */
+	cleanup(): void {
+		// Stop the game loop
+		this.model.setRunning(false);
+		
+		// Cancel any pending animation frame
+		if (this.animationFrameId !== null) {
+			cancelAnimationFrame(this.animationFrameId);
+			this.animationFrameId = null;
+		}
+		
+		// Clean up input manager
+		if (this.input) {
+			this.input = null!;
+		}
+		
+		// Reset timers
+		this.lastZombieMoveTime = 0;
+		this.lastAttackTime = 0;
+		this.lastSpawnTime = 0;
+		this.zombiePendingAttack = false;
+		this.zombieAttackStartTime = 0;
+		this.zombieLastAttackTime = 0;
+	}
+
+	/**
+	 * @deprecated Use cleanup() instead
+	 */
+	destroy() {
+		this.cleanup();
 	}
 }

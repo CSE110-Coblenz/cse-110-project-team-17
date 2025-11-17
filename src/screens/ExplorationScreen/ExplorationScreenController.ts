@@ -82,6 +82,8 @@ export class ExplorationScreenController extends ScreenController {
             if (this.model.allObjectsCollected()) {
                 // Transition to combat
                 this.model.setRunning(false);
+                this.player.getCurrentImage().x(STAGE_WIDTH / 2); // Reset player position
+                this.player.getCurrentImage().y(STAGE_HEIGHT / 2);
                 this.screenSwitcher.switchToScreen({ type: "combat" });
                 return;
             } else {

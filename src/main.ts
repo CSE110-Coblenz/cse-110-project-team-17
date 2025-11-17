@@ -16,7 +16,7 @@ class App implements ScreenSwitcher {
 
     private menuController: MenuScreenController;
     private explorationController: ExplorationScreenController;
-    private combatController: CombatScreenController;
+    private combatController: CombatScreenController | null = null;
     private resultsController: ResultsScreenController;
 
     constructor(container: string) {
@@ -37,22 +37,18 @@ class App implements ScreenSwitcher {
         // Initialize all screen controllers
         this.menuController = new MenuScreenController(this);
         this.explorationController = new ExplorationScreenController(this);
-        this.combatController = new CombatScreenController(this);
         this.resultsController = new ResultsScreenController(this);
 
-        // Load both screens
+        // Load exploration screen
         this.explorationController.init();
-        this.combatController.init();
 
-        // Add all screen groups to layers
+        // Add screen groups to layers
         this.layer.add(this.menuController.getView().getGroup());
         this.layer.add(this.explorationController.getView().getGroup());
-        this.layer.add(this.combatController.getView().getGroup());
         this.layer.add(this.resultsController.getView().getGroup());
 
         // Add entity groups
         this.entityLayer.add(this.explorationController.getView().getEntityGroup());
-        this.entityLayer.add(this.combatController.getView().getEntityGroup());
 
         // Draw layers
         this.layer.draw();
@@ -62,11 +58,13 @@ class App implements ScreenSwitcher {
         this.menuController.getView().show();
     }
 
-    switchToScreen(screen: Screen): void {
+    async switchToScreen(screen: Screen): Promise<void> {
         // Hide all screens
         this.menuController.hide();
         this.explorationController.hide();
-        this.combatController.hide();
+        if (this.combatController) {
+            this.combatController.hide();
+        }
         this.resultsController.hide();
 
         // Show requested screen
@@ -80,6 +78,27 @@ class App implements ScreenSwitcher {
                 break;
 
             case "combat":
+                console.log("Switching to combat screen");
+                // Clean up old combat controller if it exists
+                if (this.combatController) {
+                    // CRITICAL: Stop the game loop first
+                    this.combatController.cleanup();
+                    
+                    // Then destroy the visual elements
+                    this.combatController.getView().getGroup().destroy();
+                    this.combatController.getView().getEntityGroup().destroy();
+                }
+
+                // Create new combat controller
+                this.combatController = new CombatScreenController(this);
+                console.log("Initialized new CombatScreenController");
+                await this.combatController.init();
+
+                // Add to layers
+                this.layer.add(this.combatController.getView().getGroup());
+                this.entityLayer.add(this.combatController.getView().getEntityGroup());
+
+                // Start combat
                 this.combatController.startCombat();
                 break;
 

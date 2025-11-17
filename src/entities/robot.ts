@@ -19,6 +19,7 @@ export class Robot extends BaseEntity {
     private currentImage: Konva.Image;
     private dir: Directions;
     private speed = 3;
+    private zombie: boolean = false;
 
     constructor(name: string, health: number, maxAttack: number, x: number = 0, y: number = 0, robotImage?: HTMLImageElement) {
         super(name);
@@ -57,6 +58,10 @@ export class Robot extends BaseEntity {
             strokeWidth: 2,
         });
         this.group.add(this.sprite);
+    }
+
+    get isZombie(): boolean {
+        return this.zombie;
     }
 
     /**

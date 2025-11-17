@@ -79,7 +79,7 @@ export class ResultsScreenController extends ScreenController {
 	 * Handle play again button click
 	 */
 	private handlePlayAgainClick(): void {
-		this.screenSwitcher.switchToScreen({ type: "menu" });
+		this.screenSwitcher.switchToScreen({ type: "exploration" });
 	}
 
 	/**
