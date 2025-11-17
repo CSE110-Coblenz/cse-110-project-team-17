@@ -1,10 +1,7 @@
 import Konva from "konva";
-import { Robot } from "../../entities/robot.ts";
-import { Zombie } from "../../entities/zombie.ts";
 import { MapView } from "../MapScreen/MapView.ts";
 import  { PokemonScreenModel } from "./PokemonScreenModel.ts";
 import { Rect } from "konva/lib/shapes/Rect";
-import type { View } from "../../types.ts";
 import type { ScreenSwitcher } from "../../types.ts";
 import type { Group } from "konva/lib/Group";
 
@@ -22,9 +19,12 @@ export class PokemonScreenView extends MapView {
 	private entityGroup: Konva.Group;
 	private model: PokemonScreenModel;
 
+	private answerButton: Konva.Rect[];
+
 	constructor(screenSwitcher: ScreenSwitcher, model: PokemonScreenModel) {
 		super(model);
 		this.bgGroup = new Konva.Group({ visible: false });
+		this.bgGroup.moveToBottom();
 		this.textBoxGroup = new Konva.Group({ visible: false });
 		this.entityGroup = new Konva.Group({ visible: false });
 		this.screenGroup = new Konva.Group({ visible: false });
@@ -55,6 +55,7 @@ export class PokemonScreenView extends MapView {
 
 			this.bgGroup.add(konvaImage);
 		};
+
 		// Set the pokemon background with text
 		const textBox = new Rect({
 			x: 50,
@@ -68,10 +69,71 @@ export class PokemonScreenView extends MapView {
 			cornerRadius: 30,
 		});
 		this.textBoxGroup.add(textBox);
+
+		this.answerButton = [new Rect({
+			id: 'answer1',
+			x: 600,
+			y: screenSwitcher.getStageHeight() - 190,
+			width: 300,
+			height: 70,
+			fill: 'lightblue',
+			stroke: 'black',
+			strokeWidth: 2,
+			cornerRadius: 10,
+		}),
+		new Rect({
+			id: 'answer2',
+			x: 900,
+			y: screenSwitcher.getStageHeight() - 120,
+			width: 300,
+			height: 70,
+			fill: 'lightgreen',
+			stroke: 'black',
+			strokeWidth: 2,
+			cornerRadius: 10,
+		}),
+		new Rect({
+			id: 'answer3',
+			x: 900,
+			y: screenSwitcher.getStageHeight() - 190,
+			width: 300,
+			height: 70,
+			fill: 'lightcoral',
+			stroke: 'black',
+			strokeWidth: 2,
+			cornerRadius: 10,
+		}),
+		new Rect({
+			id: 'answer4',
+			x: 600,
+			y: screenSwitcher.getStageHeight() - 120,
+			width: 300,
+			height: 70,
+			fill: 'white',
+			stroke: 'black',
+			strokeWidth: 2,
+			cornerRadius: 10,
+		})];
+
+		this.answerButton.forEach((button) => {
+			button.on('click', () => {
+				console.log(`Button ${button.id()} clicked`);
+			})
+			this.textBoxGroup.add(button);
+		});
 	}
 
 	showAttackAnimation(): void {
 		// Implementation for showing attack animation
+		
+	}
+
+	handleEvent(evnt: any): void {
+		// Implementation for handling events
+	}
+
+	generateTextBox(): void {
+		// Implementation for generating text box
 	}
 
 	/* Expose the groups so the App can mix them into the stage layers. */
