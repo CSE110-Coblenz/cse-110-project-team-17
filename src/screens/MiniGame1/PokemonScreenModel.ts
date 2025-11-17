@@ -1,4 +1,5 @@
 import { Combat } from "../../combat.ts";
+import { Player } from "../../entities/player.ts";
 import { Robot } from "../../entities/robot.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { MapModel } from "../MapScreen/MapModel.ts";
@@ -19,10 +20,18 @@ export class PokemonScreenModel extends MapModel{
 	private attackingImage!: any;
 	private idleImage!: any;
 	private attackDuration: number = 500; // milliseconds
+	private player : Robot;
 
 	constructor(width: number, height: number) {
 		super(width, height);
 		this.choiceBox = new ChoiceDialogBox();
+		const pimg = new Image();
+		pimg.src = '/lemon.png';
+		this.player = new Robot("player", 100, 50, width / 2, height / 2, pimg);
+	}
+
+	getPlayer(): Robot {
+		return this.player;
 	}
 
 	isRunning(): boolean {

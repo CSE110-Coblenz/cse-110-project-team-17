@@ -31,9 +31,13 @@ export class PokemonScreenView extends MapView {
 		this.screenGroup.add(this.bgGroup);
 		this.screenGroup.add(this.textBoxGroup);
 		this.screenGroup.add(this.entityGroup);
-		
+
 		this.model = model;
 		
+		this.entityGroup.add(this.model.getPlayer().getCurrentImage());
+		this.model.getPlayer().moveTo(-500, 0);
+		this.model.getPlayer().setScale(10, 10);
+
 		// alternative API:
 		const img = new Image();
 		img.src = '/pokenotext.png';
@@ -45,9 +49,9 @@ export class PokemonScreenView extends MapView {
 				scaleX: screenSwitcher.getStageWidth() / img.width,
 				scaleY: screenSwitcher.getStageHeight() / img.height,
 			});
+
 			this.bgGroup.add(konvaImage);
-			this.bgGroup.getLayer()?.draw();
-	};
+		};
 		// Set the pokemon background with text
 	}
 
