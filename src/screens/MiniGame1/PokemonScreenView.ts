@@ -34,9 +34,12 @@ export class PokemonScreenView extends MapView {
 
 		this.model = model;
 		
+		this.model.getPlayer().getCurrentImage().scale({x:10, y:10});
 		this.entityGroup.add(this.model.getPlayer().getCurrentImage());
+		this.model.getBoss().getCurrentImage().scale({x:10, y:10});
+		this.entityGroup.add(this.model.getBoss().getCurrentImage());
 		this.model.getPlayer().moveTo(-500, 0);
-		this.model.getPlayer().setScale(10, 10);
+		this.model.getBoss().moveTo(800, 100);
 
 		// alternative API:
 		const img = new Image();

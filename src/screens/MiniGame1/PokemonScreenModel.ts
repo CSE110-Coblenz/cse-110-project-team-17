@@ -21,6 +21,7 @@ export class PokemonScreenModel extends MapModel{
 	private idleImage!: any;
 	private attackDuration: number = 500; // milliseconds
 	private player : Robot;
+	private boss: Zombie;
 
 	constructor(width: number, height: number) {
 		super(width, height);
@@ -28,10 +29,17 @@ export class PokemonScreenModel extends MapModel{
 		const pimg = new Image();
 		pimg.src = '/lemon.png';
 		this.player = new Robot("player", 100, 50, width / 2, height / 2, pimg);
+		const bimg = new Image();
+		bimg.src = '/boss.jpg';
+		this.boss = new Zombie("boss", 200, 75, width / 2 + 100, height / 2, bimg);
 	}
 
 	getPlayer(): Robot {
 		return this.player;
+	}
+
+	getBoss(): Zombie {
+		return this.boss;
 	}
 
 	isRunning(): boolean {
