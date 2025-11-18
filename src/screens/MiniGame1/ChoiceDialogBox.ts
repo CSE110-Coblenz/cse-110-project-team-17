@@ -28,29 +28,39 @@ export class ChoiceDialogBox {
   private initializeQuestions(): QuestionData[] {
     return [
       {
-        question: "What is the capital of France?",
-        answers: ["Paris", "London", "Berlin", "Madrid"],
+        question: "Public vs Private. Which of these keywords allows a variable to be used outside its class?",
+        answers: ["Public", "Private", "Void", "Static"],
         correctIndex: 0
       },
       {
-        question: "Which planet is known as the Red Planet?",
-        answers: ["Venus", "Mars", "Jupiter", "Saturn"],
+        question: "What is a constructor used for?",
+        answers: ["Naming Variables", "Initializing an Object", "Destroying Objects", "Creating Multiple Classes"],
         correctIndex: 1
       },
       {
-        question: "What is 2 + 2?",
-        answers: ["3", "4", "5", "6"],
+        question: "What is a function inside a class called?",
+        answers: ["Member", "Method", "Attribute", "Function"],
         correctIndex: 1
       },
       {
-        question: "Who wrote 'To Kill a Mockingbird'?",
-        answers: ["Harper Lee", "J.K. Rowling", "Ernest Hemingway", "Mark Twain"],
-        correctIndex: 0
-      },
-      {
-        question: "What is the largest ocean on Earth?",
-        answers: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
+        question: "What is true about constructors?",
+        answers: ["They will return something", "They can be called manually like normal methods", "They cannot have parameters", "They are called automatically when an object is created"],
         correctIndex: 3
+      },
+      {
+        question: "Inheritance allows a class to?",
+        answers: ["Hide its data", "Create multiple objects", "Acquire properties and methods from another class", "Convert data types"],
+        correctIndex: 2
+      },
+      {
+        question: "What is the difference between objects and classes?",
+        answers: ["Objects are static variables and classes are non static variables", "Objects are specific versions of classes", "Classes are specific version of objects", "Objects are functions inside of a class"],
+        correctIndex: 1
+      },
+      {
+        question: "What keyword is used to create a new object?",
+        answers: ["Object = Create object()", "Object = Make object()", "Object = New object()", "Object = Spawn object()"],
+        correctIndex: 2
       }
     ];
   }
