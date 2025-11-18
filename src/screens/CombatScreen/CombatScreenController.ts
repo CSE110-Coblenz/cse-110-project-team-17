@@ -25,9 +25,11 @@ export class CombatScreenController extends ScreenController {
 	private zombiePendingAttack = false;
 	private zombieAttackStartTime = 0;
 	private ZOMBIE_WINDUP = 500; // ms
-	private zombieCombatDelay = 2000; // ms
+	private zombieCombatDelay = 1000; // ms
 	private zombieLastAttackTime = 0;
 	private animationFrameId: number | null = null; // Track animation frame
+	private rateOfSpawn = 1;
+	private lastIncrementTimeForSpawning = 0;
 
 
 	private readonly ZOMBIE_SPAWN_INTERVAL = 10000;
@@ -172,13 +174,21 @@ export class CombatScreenController extends ScreenController {
 		}
 
 		// spawn zombies periodically
-		if (timestamp - this.lastSpawnTime >= this.ZOMBIE_SPAWN_INTERVAL) {
+		if (timestamp - this.lastSpawnTime >= (this.ZOMBIE_SPAWN_INTERVAL/this.rateOfSpawn)) {
 			this.spawnZombie();
 			this.lastSpawnTime = timestamp;
 		}
+
+		if (timestamp - this.lastIncrementTimeForSpawning >= 10000 && this.rateOfSpawn < 5) {
+			this.rateOfSpawn += 0.5;
+			console.log(`Increased zombie spawn rate to ${this.rateOfSpawn}x`);
+			this.lastIncrementTimeForSpawning = timestamp;
+		}
+
 		// update live counter
 		this.view.updateZombieCounter(this.model.getZombiesDefeated());
 
+		this.view.updateRobotHealth(this.model.getRobot().getHealth());
 
 		// redraw
 		this.screenSwitcher.redrawEntities();

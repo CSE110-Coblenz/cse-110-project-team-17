@@ -16,6 +16,7 @@ export class CombatScreenView extends MapView {
 	private mapGroup: Konva.Group;
 	private entityGroup: Konva.Group;
 	private zombies: Zombie[] = [];
+	private RobotHealthText!: Konva.Text;
 
 	constructor(model: CombatScreenModel) {
 		super(model);
@@ -87,7 +88,15 @@ export class CombatScreenView extends MapView {
 		/* add both groups to this.screenGroup */
 		this.screenGroup.add(this.mapGroup);
 		this.screenGroup.add(this.entityGroup);
-
+		this.RobotHealthText = new Konva.Text({
+			x: 1100,
+			y: 10,
+			text: "Robot Health: 100",
+			fontSize: 20,
+			fontFamily: "Arial",
+			fill: "Black",
+		});
+		this.entityGroup.add(this.RobotHealthText);
 	}
 
 	/** Optionally: get all zombies for AI logic */
@@ -118,6 +127,12 @@ export class CombatScreenView extends MapView {
 	updateZombieCounter(count: number): void {
 		if (this.zombieCounterText) {
 			this.zombieCounterText.text(`Zombies defeated: ${count}`);
+		}
+	}
+
+	updateRobotHealth(health: number): void {
+		if (this.RobotHealthText) {
+			this.RobotHealthText.text(`Robot Health: ${health}`);
 		}
 	}
 

@@ -1,4 +1,4 @@
-// import { STAGE_WIDTH, STAGE_HEIGHT } from '../constants';
+import { STAGE_WIDTH, STAGE_HEIGHT } from '../constants';
 import { BaseEntity } from './base';
 import Konva from 'konva';
 
@@ -91,8 +91,24 @@ export class Robot extends BaseEntity {
      * Move the robot to a specific position
      */
     moveTo(dx: number, dy: number): void {
-        this.currentImage.x(dx);
-        this.currentImage.y(dy);
+        if (dx < 0) {
+            this.currentImage.x(0);
+        }
+        else if (dx > STAGE_WIDTH - this.currentImage.width()) {
+            this.currentImage.x(STAGE_WIDTH - this.currentImage.width());
+        }
+        else {
+            this.currentImage.x(dx);
+        }
+        if (dy < 0) {
+            this.currentImage.y(0);
+        }
+        else if (dy > STAGE_HEIGHT - this.currentImage.height()) {
+            this.currentImage.y(STAGE_HEIGHT - this.currentImage.height());
+        }
+        else {
+            this.currentImage.y(dy);
+        }
         this.position = { x: this.currentImage.x(), y: this.currentImage.y() };
         // this.screen.render();
     }

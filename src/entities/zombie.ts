@@ -162,6 +162,10 @@ export class Zombie extends BaseEntity {
         return this.health;
     }
 
+    setHealth(val : number) :void {
+        this.health = val;
+    }
+
     /**
      * Get max attack
      */

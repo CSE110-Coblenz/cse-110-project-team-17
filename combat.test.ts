@@ -3,6 +3,9 @@ import { describe, it, expect } from "vitest";
 import { Robot } from "./src/entities/robot";
 import { Zombie } from "./src/entities/zombie";
 import { Combat } from "./src/combat";
+import { CombatScreenModel } from "./src/screens/CombatScreen/CombatScreenModel";
+import { CombatScreenController } from "./src/screens/CombatScreen/CombatScreenController";
+import { CombatScreenView } from "./src/screens/CombatScreen/CombatScreenView";
 
 describe("Combat Attack Logic", () => {
 
