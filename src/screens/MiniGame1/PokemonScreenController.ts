@@ -83,8 +83,25 @@ export class PokemonScreenController extends ScreenController {
 			? "Correct!"
 			: `Incorrect! Correct answer: ${this.model.getCorrectAnswerText()}`;
 		this.view.showFeedbackMessage(message, isCorrect);
+		// Update boss health if correct (takes damage)
+		if (isCorrect) {
+			const damage = this.model.getPlayer().getMaxAttack();
+			this.model.dealDamageToBoss(damage);
+			this.view.updateBossHealthText(this.model.getBossHealth());
+			if (this.model.isBossDefeated()) {
+				this.view.showVictoryMessage();
+				setTimeout(() => {
+					this.model.resetBoss();
+					this.presentNextQuestion();
+					this.view.updateBossHealthText(this.model.getBossHealth());
+				}, 2000);
+			}
+		}
+		// Tweak to set delay between questions
 		setTimeout(() => {
-			this.presentNextQuestion();
+			if (!this.model.isBossDefeated()) {
+				this.presentNextQuestion();
+			}
 		}, 1200);
 	}
 

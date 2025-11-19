@@ -23,6 +23,8 @@ export class PokemonScreenView extends MapView {
 	private answerLabels: Konva.Text[];
 	private questionText: Konva.Text;
 	private feedbackText: Konva.Text;
+	private bossHealthText: Konva.Text;
+	private victoryText: Konva.Text;
 	private onAnswerSelected?: (index: number) => void;
 
 	constructor(screenSwitcher: ScreenSwitcher, model: PokemonScreenModel) {
@@ -104,6 +106,38 @@ export class PokemonScreenView extends MapView {
 		});
 		this.textBoxGroup.add(this.questionText);
 		this.textBoxGroup.add(this.feedbackText);
+
+		// Boss health text in top left
+		this.bossHealthText = new Konva.Text({
+			x: 250,
+			y: 70,
+			fontSize: 25,
+			fontFamily: 'Arial',
+			fill: 'red',
+			text: `${this.model.getBossHealth()}/200`
+		});
+		this.bossName = new Konva.Text({
+			x: 80,
+			y: 60,
+			fontSize: 40,
+			fontFamily: 'Arial',
+			fill: 'black',
+			text: 'Coblenz:'
+		});
+		this.screenGroup.add(this.bossHealthText);
+		this.screenGroup.add(this.bossName);
+
+		// Victory message
+		this.victoryText = new Konva.Text({
+			x: screenSwitcher.getStageWidth() / 2 - 100,
+			y: screenSwitcher.getStageHeight() / 2 - 50,
+			fontSize: 48,
+			fontFamily: 'Arial',
+			fill: 'gold',
+			text: 'Victory! Boss Defeated!',
+			visible: false
+		});
+		this.screenGroup.add(this.victoryText);
 
 		// Create the answer buttons
 		this.answerButton = [new Rect({
@@ -249,6 +283,7 @@ export class PokemonScreenView extends MapView {
 			this.positionAnswerLabel(index);
 		});
 		this.clearFeedbackMessage();
+		this.hideVictoryMessage();
 		this.textBoxGroup.getLayer()?.batchDraw();
 	}
 
@@ -264,6 +299,21 @@ export class PokemonScreenView extends MapView {
 		this.feedbackText.text('');
 		this.feedbackText.visible(false);
 		this.textBoxGroup.getLayer()?.batchDraw();
+	}
+
+	updateBossHealthText(health: number): void {
+		this.bossHealthText.text(`${health}/200`);
+		this.screenGroup.getLayer()?.batchDraw();
+	}
+
+	showVictoryMessage(): void {
+		this.victoryText.visible(true);
+		this.screenGroup.getLayer()?.batchDraw();
+	}
+
+	hideVictoryMessage(): void {
+		this.victoryText.visible(false);
+		this.screenGroup.getLayer()?.batchDraw();
 	}
 
 	// Animate button click

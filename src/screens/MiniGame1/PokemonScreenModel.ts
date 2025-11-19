@@ -65,4 +65,20 @@ export class PokemonScreenModel extends MapModel{
 	getCorrectAnswerText(): string {
 		return this.choiceBox.getCorrectAnswer() ?? "";
 	}
+
+	getBossHealth(): number {
+		return this.boss.getHealth();
+	}
+
+	dealDamageToBoss(damage: number): void {
+		this.boss.takeDamage(damage);
+	}
+
+	isBossDefeated(): boolean {
+		return this.boss.getHealth() <= 0;
+	}
+
+	resetBoss(): void {
+		this.boss.setHealth(200);
+	}
 }
