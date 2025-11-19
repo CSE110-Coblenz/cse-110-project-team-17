@@ -16,7 +16,8 @@ export class PokemonScreenView extends MapView {
 	private bgGroup: Konva.Group;
 	private textBoxGroup: Konva.Group;
 	private screenGroup: Konva.Group;
-	private entityGroup: Konva.Group;
+	private playerGroup: Konva.Group;
+	private bossGroup: Konva.Group;
 	private model: PokemonScreenModel;
 
 	private answerButton: Konva.Rect[];
@@ -25,6 +26,7 @@ export class PokemonScreenView extends MapView {
 	private feedbackText: Konva.Text;
 	private bossHealthText: Konva.Text;
 	private victoryText: Konva.Text;
+	private bossName: Konva.Text;
 	private onAnswerSelected?: (index: number) => void;
 
 	constructor(screenSwitcher: ScreenSwitcher, model: PokemonScreenModel) {
@@ -32,18 +34,20 @@ export class PokemonScreenView extends MapView {
 		this.bgGroup = new Konva.Group({ visible: false });
 		this.bgGroup.moveToBottom();
 		this.textBoxGroup = new Konva.Group({ visible: false });
-		this.entityGroup = new Konva.Group({ visible: false });
+		this.playerGroup = new Konva.Group({ visible: false });
+		this.bossGroup = new Konva.Group({ visible: false });
 		this.screenGroup = new Konva.Group({ visible: false });
 		this.screenGroup.add(this.bgGroup);
-		this.screenGroup.add(this.entityGroup);
+		this.screenGroup.add(this.playerGroup);
+		this.screenGroup.add(this.bossGroup);
 		this.screenGroup.add(this.textBoxGroup);
 
 		this.model = model;
 		
 		this.model.getPlayer().getCurrentImage().scale({x:10, y:10});
-		this.entityGroup.add(this.model.getPlayer().getCurrentImage());
+		this.playerGroup.add(this.model.getPlayer().getCurrentImage());
 		this.model.getBoss().getCurrentImage().scale({x:10, y:10});
-		this.entityGroup.add(this.model.getBoss().getCurrentImage());
+		this.bossGroup.add(this.model.getBoss().getCurrentImage());
 		this.model.getPlayer().moveTo(-500, -100);
 		this.model.getBoss().moveTo(800, 100);
 
@@ -254,7 +258,8 @@ export class PokemonScreenView extends MapView {
 	show(): void {
 		this.screenGroup.visible(true);
 		this.textBoxGroup.visible(true);
-		this.entityGroup.visible(true);
+		this.playerGroup.visible(true);
+		this.bossGroup.visible(true);
 		this.bgGroup.visible(true);
 		// this.bgGroup.getLayer()?.draw();
 	}
@@ -262,7 +267,8 @@ export class PokemonScreenView extends MapView {
 	hide(): void {
 		this.screenGroup.visible(false);
 		this.textBoxGroup.visible(false);
-		this.entityGroup.visible(false);
+		this.playerGroup.visible(false);
+		this.bossGroup.visible(false);
 		this.bgGroup.visible(false);
 		// this.bgGroup.getLayer()?.draw();
 	}
@@ -327,6 +333,39 @@ export class PokemonScreenView extends MapView {
 			button.fill(originalFill);
 			button.getLayer()?.batchDraw();
 		}, 150);
+	}
+
+	playBossDamageAnimation(): void {
+		const bossImage = this.model.getBoss().getCurrentImage();
+		const originalX = bossImage.x();
+		const overlay = new Konva.Rect({
+			x: bossImage.x(),
+			y: bossImage.y(),
+			width: bossImage.width() * bossImage.scaleX(),
+			height: bossImage.height() * bossImage.scaleY(),
+			fill: 'red',
+			opacity: 0.5
+		});
+		this.bossGroup.add(overlay);
+		// this.bossGroup.getLayer()?.batchDraw();
+
+		// Shake animation: move left and right 5 times, doesnt work
+		// const shakeTween = new Konva.Tween({
+		// 	node: this.bossGroup,
+		// 	x: originalX - 90,
+		// 	duration: .1,
+		// 	yoyo: true,
+		// 	repeat: 2,
+		// 	onFinish: () => {
+		// 		overlay.destroy();
+		// 		shakeTween.destroy();
+		// 		// this.bossGroup.setX(originalX);
+		// 	}
+		// });
+		setTimeout(() => {
+			overlay.destroy();
+			// shakeTween.finish();
+		}, 1000);
 	}
 
 	private positionAnswerLabel(index: number): void {
