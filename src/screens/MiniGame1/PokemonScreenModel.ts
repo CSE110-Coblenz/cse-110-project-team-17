@@ -1,5 +1,3 @@
-import { Combat } from "../../combat.ts";
-import { Player } from "../../entities/player.ts";
 import { Robot } from "../../entities/robot.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { MapModel } from "../MapScreen/MapModel.ts";
@@ -14,14 +12,10 @@ import { ChoiceDialogBox } from "./ChoiceDialogBox.ts";
  */
 export class PokemonScreenModel extends MapModel{
 	private choiceBox: ChoiceDialogBox;
-	private mapData: any;
 	private running: boolean = false;
-	private attackRequested: boolean = false;
-	private attackingImage!: any;
-	private idleImage!: any;
-	private attackDuration: number = 500; // milliseconds
 	private player : Robot;
 	private boss: Zombie;
+	private currentQuestion: { question: string; answers: string[] } | null = null;
 
 	constructor(width: number, height: number) {
 		super(width, height);
@@ -48,5 +42,27 @@ export class PokemonScreenModel extends MapModel{
 
 	setRunning(running: boolean): void {
 		this.running = running;
+	}
+
+	generateNextQuestion(): { question: string; answers: string[] } {
+		this.choiceBox.selectNewQuestion();
+		const qa = this.choiceBox.getQuestionAndAnswers();
+		if (!qa) {
+			throw new Error("Failed to load question data");
+		}
+		this.currentQuestion = qa;
+		return qa;
+	}
+
+	getCurrentQuestion(): { question: string; answers: string[] } | null {
+		return this.currentQuestion;
+	}
+
+	checkAnswer(index: number): boolean {
+		return this.choiceBox.isAnswerCorrect(index);
+	}
+
+	getCorrectAnswerText(): string {
+		return this.choiceBox.getCorrectAnswer() ?? "";
 	}
 }

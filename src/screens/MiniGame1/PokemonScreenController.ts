@@ -1,12 +1,8 @@
 import { ScreenController } from "../../types.ts";
 import type { ScreenSwitcher } from "../../types.ts";
 import { InputManager } from "../../input.ts";
-import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
-import { Zombie } from "../../entities/zombie.ts";
-import { Robot } from "../../entities/robot.ts";
 import { PokemonScreenModel } from "./PokemonScreenModel.ts";
 import { PokemonScreenView } from "./PokemonScreenView.ts";
-import type { Player } from "../../entities/player.ts";
 
 
 /**
@@ -27,6 +23,7 @@ export class PokemonScreenController extends ScreenController {
 		this.screenSwitcher = screenSwitcher;
 		this.model = new PokemonScreenModel(screenSwitcher.getStageWidth(), screenSwitcher.getStageHeight());
 		this.view = new PokemonScreenView(this.screenSwitcher, this.model);
+		this.view.setAnswerHandler(this.handleAnswerSelection);
 	}
 
 	/**
@@ -37,6 +34,7 @@ export class PokemonScreenController extends ScreenController {
      */
 	startCombat(): void {
 		this.input = new InputManager();
+		this.presentNextQuestion();
 		this.view.show();
 
 		// set running variable to active
@@ -73,22 +71,23 @@ export class PokemonScreenController extends ScreenController {
 		requestAnimationFrame(this.gameLoop);
 	};
 
-	/* Utility: load tiled map JSON */
-	private async loadMap(jsonPath: string): Promise<any> {
-		const res = await fetch(jsonPath);
-		return await res.json();
+	private presentNextQuestion(): void {
+		const qa = this.model.generateNextQuestion();
+		this.view.updateQuestion(qa.question, qa.answers);
 	}
 
-	/* Utility: load image into HTMLImageElement */
-	private loadImage(src: string): Promise<HTMLImageElement> {
-		return new Promise((resolve, reject) => {
-		const img = new Image();
-		img.src = src;
-		img.onload = () => resolve(img);
-		img.onerror = () => reject(`Failed to load image: ${src}`);
-		});
+	private handleAnswerSelection = (index: number): void => {
+		this.view.playButtonClickAnimation(index);
+		const isCorrect = this.model.checkAnswer(index);
+		const message = isCorrect
+			? "Correct!"
+			: `Incorrect! Correct answer: ${this.model.getCorrectAnswerText()}`;
+		this.view.showFeedbackMessage(message, isCorrect);
+		setTimeout(() => {
+			this.presentNextQuestion();
+		}, 1200);
 	}
-	
+
 	getView(): PokemonScreenView {
 		return this.view;
 	}

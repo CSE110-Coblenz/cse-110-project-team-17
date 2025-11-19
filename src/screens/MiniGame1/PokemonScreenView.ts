@@ -20,6 +20,10 @@ export class PokemonScreenView extends MapView {
 	private model: PokemonScreenModel;
 
 	private answerButton: Konva.Rect[];
+	private answerLabels: Konva.Text[];
+	private questionText: Konva.Text;
+	private feedbackText: Konva.Text;
+	private onAnswerSelected?: (index: number) => void;
 
 	constructor(screenSwitcher: ScreenSwitcher, model: PokemonScreenModel) {
 		super(model);
@@ -41,7 +45,7 @@ export class PokemonScreenView extends MapView {
 		this.model.getPlayer().moveTo(-500, -100);
 		this.model.getBoss().moveTo(800, 100);
 
-		// alternative API:
+		// Load the background
 		const img = new Image();
 		img.src = '/pokenotext.png';
 		img.onload = () => {
@@ -57,6 +61,7 @@ export class PokemonScreenView extends MapView {
 		};
 
 		// Set the pokemon background with text
+		// This is what the user will interact with
 		const textBox = new Rect({
 			x: 50,
 			y: screenSwitcher.getStageHeight() - 220,
@@ -70,6 +75,37 @@ export class PokemonScreenView extends MapView {
 		});
 		this.textBoxGroup.add(textBox);
 
+		// Create question and feedback text elements
+		this.questionText = new Konva.Text({
+			x: textBox.x(),
+			y: textBox.y(),
+			width: textBox.width() / 2 - 40,
+			height: textBox.height(),
+			fontSize: 24,
+			lineHeight: 1.3,
+			fontFamily: 'Arial',
+			fill: '#1b1b1b',
+			align: 'center',
+			verticalAlign: 'middle',
+			wrap: 'word',
+			listening: false,
+		});
+		// Feedback text for correct/incorrect answers
+		// TODO: replace with attack animation
+		this.feedbackText = new Konva.Text({
+			x: textBox.x() + 20,
+			y: textBox.y() + textBox.height() - 50,
+			width: textBox.width() - 40,
+			fontSize: 20,
+			fontFamily: 'Arial',
+			fill: '#1b1b1b',
+			text: '',
+			visible: false
+		});
+		this.textBoxGroup.add(this.questionText);
+		this.textBoxGroup.add(this.feedbackText);
+
+		// Create the answer buttons
 		this.answerButton = [new Rect({
 			id: 'answer1',
 			x: 600,
@@ -115,11 +151,39 @@ export class PokemonScreenView extends MapView {
 			cornerRadius: 10,
 		})];
 
-		this.answerButton.forEach((button) => {
+		// Labels for answer buttons
+		this.answerLabels = this.answerButton.map((button) => {
+			const label = new Konva.Text({
+				text: '',
+				fontSize: 20,
+				fontFamily: 'Arial',
+				fill: '#111',
+				width: button.width(),
+				listening: false,
+				align: 'center',
+				verticalAlign: 'middle',
+				wrap: 'word'
+			});
+			return label;
+		});
+		// Load the first question
+		const qa = this.model.generateNextQuestion();
+		this.updateQuestion(qa.question, qa.answers);
+
+		this.answerButton.forEach((button, index) => {
 			button.on('click', () => {
-				console.log(`Button ${button.id()} clicked`);
-			})
+				if (this.onAnswerSelected) {
+					this.onAnswerSelected(index);
+				}
+			});
 			this.textBoxGroup.add(button);
+			const label = this.answerLabels[index];
+			label.position({
+				x: button.x(),
+				y: button.y()
+			});
+			label.height(button.height());
+			this.textBoxGroup.add(label);
 		});
 	}
 
@@ -128,7 +192,7 @@ export class PokemonScreenView extends MapView {
 		
 	}
 
-	handleEvent(evnt: any): void {
+	handleEvent(_event: any): void {
 		// Implementation for handling events
 	}
 
@@ -167,5 +231,64 @@ export class PokemonScreenView extends MapView {
 		this.entityGroup.visible(false);
 		this.bgGroup.visible(false);
 		// this.bgGroup.getLayer()?.draw();
+	}
+
+	// Used in the screen controller to set answer handler
+	setAnswerHandler(handler: (index: number) => void): void {
+		this.onAnswerSelected = handler;
+	}
+
+	// Update question and answers
+	updateQuestion(question: string, answers: string[]): void {
+		this.questionText.text(question);
+		answers.forEach((answer, index) => {
+			if (!this.answerLabels[index] || !this.answerButton[index]) {
+				return;
+			}
+			this.answerLabels[index].text(answer);
+			this.positionAnswerLabel(index);
+		});
+		this.clearFeedbackMessage();
+		this.textBoxGroup.getLayer()?.batchDraw();
+	}
+
+	showFeedbackMessage(message: string, isCorrect: boolean): void {
+		this.feedbackText.text(message);
+		this.feedbackText.fill(isCorrect ? '#1b5e20' : '#b71c1c');
+		this.feedbackText.visible(true);
+		this.textBoxGroup.getLayer()?.batchDraw();
+	}
+
+	// Clear feedback message
+	clearFeedbackMessage(): void {
+		this.feedbackText.text('');
+		this.feedbackText.visible(false);
+		this.textBoxGroup.getLayer()?.batchDraw();
+	}
+
+	// Animate button click
+	playButtonClickAnimation(index: number): void {
+		const button = this.answerButton[index];
+		if (!button) return;
+		const originalFill = button.fill();
+		button.fill('#79b986ff');
+		button.getLayer()?.batchDraw();
+		setTimeout(() => {
+			button.fill(originalFill);
+			button.getLayer()?.batchDraw();
+		}, 150);
+	}
+
+	private positionAnswerLabel(index: number): void {
+		const button = this.answerButton[index];
+		const label = this.answerLabels[index];
+		if (!button || !label) {
+			return;
+		}
+		label.width(button.width());
+		label.height(button.height());
+		label.x(button.x());
+		const textRect = label.getSelfRect();
+		label.y(button.y() + button.height() / 2 - textRect.height / 2);
 	}
 }
