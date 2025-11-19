@@ -11,12 +11,20 @@ export class Map implements Maps {
 	private mapSize: number;
     private mapData: any;
 	private loadImage: (src: string) => Promise<HTMLImageElement>;
+    private collisionData: number[];     // <--- ADD THIS
+    private width: number;
+    private height: number;
 
 	constructor(tilePath: string, size: number, mapData: any, loadImage: (src: string) => Promise<HTMLImageElement>) {
 		this.tilePath = tilePath;
 		this.mapSize = size;
         this.mapData = mapData;
 		this.loadImage = loadImage;
+		this.height = mapData.height;
+		this.width = mapData.width;
+
+		const objectLayer = mapData.layers[1];
+		this.collisionData = objectLayer.data;
 	}
 
 	getTilesetPath(): string {
@@ -29,6 +37,14 @@ export class Map implements Maps {
 
 	getMapData(): any {
 		return this.mapData;
+	}
+
+	getWidth(){
+		return this.width;
+	}
+
+	getHeight(){
+		return this.height;
 	}
 
 	/**
@@ -85,5 +101,31 @@ export class Map implements Maps {
 		}
 
 		return mapGroup;
+	}
+
+	getTileAtPixel(x: number, y: number) {
+		const tileX = Math.floor(x / this.mapSize);
+		const tileY = Math.floor(y / this.mapSize);
+
+		return { tileX, tileY };
+	}
+
+	isBlocked(tileX: number, tileY: number): boolean {
+		const index = tileY * this.width + tileX;
+		return this.collisionData[index] !== 0;
+	}
+
+	canMoveToPixel(x: number, y: number): boolean {
+		const { tileX, tileY } = this.getTileAtPixel(x, y);
+		return !this.isBlocked(tileX, tileY);
+	}
+
+	canMoveToArea(x: number, y: number, w: number, h: number): boolean {
+		return (
+			this.canMoveToPixel(x, y) &&
+			this.canMoveToPixel(x + w, y) &&
+			this.canMoveToPixel(x, y + h) &&
+			this.canMoveToPixel(x + w, y + h)
+		);
 	}
 }
