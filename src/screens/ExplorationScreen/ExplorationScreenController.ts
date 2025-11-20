@@ -99,8 +99,11 @@ export class ExplorationScreenController extends ScreenController {
         if (newY < 0) {
             playerImg.y(0);
         }
-        if (newY > STAGE_HEIGHT - 32) { // 32 is player sprite height
-            playerImg.y(STAGE_HEIGHT - 32);
+        if (newY >= STAGE_HEIGHT - 32) {
+            // Traveling off the bottom of the map transitions to the minigame
+            this.model.setRunning(false);
+            this.screenSwitcher.switchToScreen({ type: "minigame2" });
+            return;
         }
 
         // Check if 'P' key is pressed for object collection

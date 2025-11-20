@@ -104,7 +104,7 @@ export class MiniGame2ScreenController extends ScreenController {
     private readonly PICKUP_COLUMN_X = 140;
     private readonly SLOT_COLUMN_X = STAGE_WIDTH - 520;
     private readonly PICKUP_START_Y = 160;
-    private readonly SLOT_START_Y = 90;
+    private readonly SLOT_START_Y = 60;
     private readonly TEXT_WIDTH = 440;
     private readonly TEXT_FONT_SIZE = 16;
     private readonly CUBE_SIZE = 42;

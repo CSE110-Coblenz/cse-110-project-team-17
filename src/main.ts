@@ -64,8 +64,8 @@ class App implements ScreenSwitcher {
         this.layer.draw();
         this.entityLayer.draw();
 
-        // Start with menu screen
-        this.menuController.getView().show();
+        // Start directly in exploration screen
+        this.switchToScreen({ type: "exploration" });
     }
 
     switchToScreen(screen: Screen): void {
