@@ -24,6 +24,15 @@ describe("PokemonScreenModel", () => {
     expect(model.getBossHealth()).toBe(200);
   });
 
+it("attacks the boss until its health is zero", () => {
+    const model = new PokemonScreenModel(800, 600);
+    expect(model.getBossHealth()).toBe(200);
+    model.dealDamageToBoss(200);
+    expect(model.getBossHealth()).toBe(0);
+    model.resetBoss();
+    expect(model.getBossHealth()).toBe(200);
+  });
+
   it("provides a question with answers", () => {
     const model = new PokemonScreenModel(800, 600);
     const qa = model.generateNextQuestion();
