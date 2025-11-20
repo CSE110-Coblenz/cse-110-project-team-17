@@ -251,8 +251,12 @@ export class PokemonScreenView extends MapView {
 		return this.textBoxGroup;
 	}
 
+	/**
+	 * Gets all the entities
+	 * @returns Group of entities in game
+	 */
 	getEntityGroup(): Konva.Group {
-		return this.entityGroup;
+		return this.playerGroup;
 	}
 
 	show(): void {
@@ -337,7 +341,7 @@ export class PokemonScreenView extends MapView {
 
 	playBossDamageAnimation(): void {
 		const bossImage = this.model.getBoss().getCurrentImage();
-		const originalX = bossImage.x();
+		// const originalX = bossImage.x();
 		const overlay = new Konva.Rect({
 			x: bossImage.x(),
 			y: bossImage.y(),
