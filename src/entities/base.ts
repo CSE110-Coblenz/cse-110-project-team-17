@@ -87,4 +87,8 @@ export abstract class MovableEntity {
         this.position = { x: this.currentImage.x(), y: this.currentImage.y() };
         // this.screen.render();
     }
+
+    faceDirection(direction: Directions): void {
+        this.dir = direction;
+    }
 }

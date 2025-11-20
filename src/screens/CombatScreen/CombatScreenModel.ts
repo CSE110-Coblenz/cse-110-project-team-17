@@ -2,6 +2,7 @@ import { Combat } from "../../combat.ts";
 import { Robot } from "../../entities/robot.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { MapModel } from "../MapScreen/MapModel";
+import Konva from "konva";
 
 /**
  * CombatScreenModel
@@ -21,6 +22,7 @@ export class CombatScreenModel extends MapModel{
 	private attackingImage!: any;
 	private idleImage!: any;
 	private attackDuration: number = 500; // milliseconds
+	private zombies: Zombie[] = [];
 
 	constructor(width: number, height: number) {
 		super(width, height);
@@ -55,7 +57,7 @@ export class CombatScreenModel extends MapModel{
 		const robot = this.getRobot();
 		const previousY = robot.getPosition().y;
 		const previousX = robot.getPosition().x;
-		robot.moveTo(dx, dy);
+		robot.moveTo(previousX + dx * robot.getSpeed(), previousY + dy * robot.getSpeed());
 		const currentPosition = robot.getPosition();
 		if (currentPosition.x !== previousX) {
 			robot.faceDirection(currentPosition.x > previousX ? "right" : "left");
@@ -67,32 +69,123 @@ export class CombatScreenModel extends MapModel{
 	}
 
 	/**
+	 * updateZombieAI
+	 *
+	 * Moves all zombies toward the robot gradually.
+	 * Called by controller every frame or on a fixed interval.
+	 */
+	updateZombieAI(): void {
+		const robot = this.getRobot();
+		const robotImg = robot.getCurrentImage();
+
+		// Move all other zombies
+		for (const z of this.zombies) {
+			this.moveSingleZombieTowardRobot(z, robotImg);
+		}
+	}
+
+	/**
+	 * moveSingleZombieTowardRobot
+	 *
+	 * Helper function to move one zombie toward robot smoothly.
+	 */
+	private moveSingleZombieTowardRobot(zombie: Zombie, robotImg: Konva.Image) {
+		const zImg = zombie.getCurrentImage();
+		const dx = robotImg.x() - zImg.x();
+		const dy = robotImg.y() - zImg.y();
+		const dist = Math.sqrt(dx * dx + dy * dy);
+
+		if (dist < 10) return; // close enough, don't move
+
+		const step = 5; // pixels per update
+		const newX = zImg.x() + (dx / dist) * step;
+		const newY = zImg.y() + (dy / dist) * step;
+
+		zombie.moveTo(newX, newY);
+
+		// update facing direction
+		if (Math.abs(dx) > Math.abs(dy)) {
+			zombie.faceDirection(dx > 0 ? "right" : "left");
+		} else if (dy !== 0) {
+			zombie.faceDirection(dy > 0 ? "down" : "up");
+		}
+	}
+
+
+	addZombie(z: Zombie) {
+    	this.zombies.push(z);
+	}
+	getZombies(): Zombie[] {
+		return this.zombies;
+	}
+
+	/**
      * processAttackRequest
      *
      * Triggers combat.performAttack when an attack is requested.
      * Also swaps robot images to show attack animation for a short duration.
      */
-	processAttackRequest(attack: boolean): void {
+	processAttackRequest(attack: boolean, timestamp: number, lastAttackTime: number, isRobotAttack: boolean): number {
 		this.attackRequested = attack;
-		if (!this.attackRequested) {
-			return;
+		if (!this.attackRequested) return -1;
+
+		if (timestamp - lastAttackTime < this.getAttackDuration()) {
+			console.log(timestamp - lastAttackTime);
+			console.log("Attack on cooldown.");
+			return -1;
 		}
 
 		const robot = this.getRobot();
-		const zombie = this.getZombie();
-		console.log("Attack initiated!");
-		this.combat.performAttack({ attacker: robot }, { attacked: zombie });
-		console.log("Zombie health after attack:", zombie.getHealth());
+		const attackingZombies: Zombie[] = [];
+		console.log('Robot Position: ', robot.getPosition());
+		console.log('Total Zombies: ', this.zombies.length);
+		// Loop through all zombies to see which ones are in front
+		for (let i = 0; i < this.zombies.length; i++) {
+			const zombie = this.zombies[i];
+			if (zombie.getHealth() <= 0) continue; // skip dead zombies
+			console.log('Zombie Position: ', zombie.getPosition());
+
+			if (isRobotAttack) {
+				this.combat.performAttack({ attacker: robot }, { attacked: zombie });
+			} else {
+				this.combat.performAttack({ attacker: zombie }, { attacked: robot });
+			}
+
+			if (zombie.getHealth() <= 0) {
+				this.incrementZombiesDefeated();
+				console.log(`${zombie.getName()} defeated!`);
+				attackingZombies.push(zombie); // mark for optional removal
+				const idx = this.zombies.indexOf(zombie);
+				if (idx !== -1) this.zombies.splice(idx, 1);
+			}
+		}
+
 		this.attackRequested = false;
 
 		// swap robot sprite to attacking image then back to idle
-		const attackingImage = this.getAttackingImage();
-		const idleImage = this.getIdleImage();
-		robot.loadImage(attackingImage);
-		setTimeout(() => {
-			robot.loadImage(idleImage);
-		}, this.getAttackDuration());
+		if (isRobotAttack) {
+			const attackingImage = this.getAttackingImage();
+			const idleImage = this.getIdleImage();
+			robot.loadImage(attackingImage);
+			setTimeout(() => {
+				robot.loadImage(idleImage);
+			}, this.getAttackDuration());
+		}
+		return 0;
 	}
+
+
+	// inside CombatScreenModel
+	private zombiesDefeated: number = 0;
+
+	incrementZombiesDefeated(): void {
+		this.zombiesDefeated++;
+	}
+
+	getZombiesDefeated(): number {
+		return this.zombiesDefeated;
+	}
+
 
 	 /* Safe getters for robot/zombie with helpful errors. */
 	getRobot(): Robot {
