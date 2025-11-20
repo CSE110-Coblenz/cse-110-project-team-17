@@ -1,6 +1,7 @@
 import { ScreenController } from "../../types.ts";
 import { ExplorationScreenModel } from "./ExplorationScreenModel.ts";
 import { ExplorationScreenView } from "./ExplorationScreenView.ts";
+import { EducationScreenController } from "../EducationScreen/EducationScreenController.ts";
 import { InputManager } from "../../input.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
@@ -11,16 +12,18 @@ export class ExplorationScreenController extends ScreenController {
     private model: ExplorationScreenModel;
     private view: ExplorationScreenView;
     private screenSwitcher: ScreenSwitcher;
+    private eduControl: EducationScreenController;
     private input!: InputManager;
     private player!: Player;
     private gameObjects: GameObject[] = [];
     private readonly EDGE_THRESHOLD = 10; // Pixels from edge to trigger transition
 
-    constructor(screenSwitcher: ScreenSwitcher) {
+    constructor(screenSwitcher: ScreenSwitcher, eduControl: EducationScreenController) {
         super();
         this.screenSwitcher = screenSwitcher;
         this.model = new ExplorationScreenModel();
-        this.view = new ExplorationScreenView();
+        this.view = new ExplorationScreenView(() => this.handleBookClick());
+        this.eduControl = eduControl;
     }
 
     /* Load Map and spawn objects */
@@ -162,6 +165,10 @@ export class ExplorationScreenController extends ScreenController {
             img.onload = () => resolve(img);
             img.onerror = () => reject(`Failed to load image: ${src}`);
         });
+    }
+
+    private handleBookClick(): void {
+        this.eduControl.unlockLesson();
     }
 
     getView(): ExplorationScreenView {
