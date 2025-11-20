@@ -2,7 +2,7 @@ import Konva from "konva";
 import { Player } from "../../entities/player.ts";
 import { GameObject } from "../../entities/object.ts";
 import type { View } from "../../types.ts";
-import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
+import { STAGE_HEIGHT } from "../../constants.ts";
 
 /**
  * ExplorationScreenView - Renders the exploration/object collection screen
