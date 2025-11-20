@@ -17,16 +17,12 @@ export class ResultsScreenController extends ScreenController {
 	private view: ResultsScreenView;
 	private screenSwitcher: ScreenSwitcher;
 
-	private gameOverSound: HTMLAudioElement;
 
 	constructor(screenSwitcher: ScreenSwitcher) {
 		super();
 		this.screenSwitcher = screenSwitcher;
 		this.model = new ResultsScreenModel();
 		this.view = new ResultsScreenView(() => this.handlePlayAgainClick());
-
-		this.gameOverSound = new Audio("/gameover.mp3");
-		this.gameOverSound.volume = 0.5;
 	}
 
 	/**
@@ -50,8 +46,6 @@ export class ResultsScreenController extends ScreenController {
 
 		this.view.show();
 
-		this.gameOverSound.currentTime = 0;
-		this.gameOverSound.play();
 	}
 
 	/**
