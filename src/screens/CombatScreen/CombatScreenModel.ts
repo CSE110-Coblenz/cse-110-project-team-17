@@ -4,11 +4,16 @@ import { Zombie } from "../../entities/zombie.ts";
 import { MapModel } from "../MapScreen/MapModel";
 
 /**
- * CombatScreenModel - Manages game state
+ * CombatScreenModel
+ *
+ * Holds combat-specific state: references to Robot and Zombie entities,
+ * map data, running flag for the game loop, and attack animation images.
+ * Extends MapModel so it can validate positions against map bounds.
  */
 export class CombatScreenModel extends MapModel{
 	private score = 0;
 	private combat: Combat;
+	private mapData: any;
 	private robot?: Robot;
 	private zombie?: Zombie;
 	private running: boolean = false;
@@ -22,11 +27,30 @@ export class CombatScreenModel extends MapModel{
 		this.combat = new Combat();
 	}
 
+	 /* Map data setter/getter. view needs map data to render tiles. */
+	setMapData(data: any): void {
+		this.mapData = data;
+	}
+
+	getMapData(): any {
+		if (!this.mapData) {
+			throw new Error("Map data has not been initialized.");
+		}
+		return this.mapData;
+	}
+
+	 /* Store entity instances so controller and view can access them. */
 	setEntities(robot: Robot, zombie: Zombie): void {
 		this.robot = robot;
 		this.zombie = zombie;
 	}
 
+	/**
+     * updateRobotPosition
+     *
+     * Applies delta movement to the robot, updates facing direction,
+     * and logs movement for debugging.
+     */
 	updateRobotPosition(dx: number, dy: number): void {
 		const robot = this.getRobot();
 		const previousY = robot.getPosition().y;
@@ -42,6 +66,12 @@ export class CombatScreenModel extends MapModel{
 		console.log("direction: " + robot.getDirection());
 	}
 
+	/**
+     * processAttackRequest
+     *
+     * Triggers combat.performAttack when an attack is requested.
+     * Also swaps robot images to show attack animation for a short duration.
+     */
 	processAttackRequest(attack: boolean): void {
 		this.attackRequested = attack;
 		if (!this.attackRequested) {
@@ -54,6 +84,8 @@ export class CombatScreenModel extends MapModel{
 		this.combat.performAttack({ attacker: robot }, { attacked: zombie });
 		console.log("Zombie health after attack:", zombie.getHealth());
 		this.attackRequested = false;
+
+		// swap robot sprite to attacking image then back to idle
 		const attackingImage = this.getAttackingImage();
 		const idleImage = this.getIdleImage();
 		robot.loadImage(attackingImage);
@@ -62,6 +94,7 @@ export class CombatScreenModel extends MapModel{
 		}, this.getAttackDuration());
 	}
 
+	 /* Safe getters for robot/zombie with helpful errors. */
 	getRobot(): Robot {
 		if (!this.robot) {
 			throw new Error("Robot has not been initialized.");
@@ -76,6 +109,7 @@ export class CombatScreenModel extends MapModel{
 		return this.zombie;
 	}
 
+	/* Control whether combat loop should run. */
 	setRunning(isRunning: boolean): void {
 		this.running = isRunning;
 	}
@@ -88,6 +122,7 @@ export class CombatScreenModel extends MapModel{
 		return this.combat;
 	}
 
+	/* Attack / idle image setters/getters used by controller to animate sprite. */
 	setAttackingImage(image: HTMLImageElement): void {
 		this.attackingImage = image;
 	}
@@ -118,19 +153,23 @@ export class CombatScreenModel extends MapModel{
 		return this.attackDuration;
 	}
 
+	/* Reset model to initial state (used when leaving/restarting combat). */
 	reset(): void {
 		this.running = false;
 		this.attackRequested = false;
 		this.score = 0;
 		this.robot = undefined;
 		this.zombie = undefined;
+		this.mapData = undefined;
 		this.attackingImage = undefined;
 		this.idleImage = undefined;
 	}
 
 	/**
-	 * Increment score when lemon is clicked
-	 */
+     * incrementScore / getScore
+     *
+     * Placeholder scoring helpers (kept for compatibility with other screens).
+     */
 	incrementScore(): void {
 		this.score++;
 	}

@@ -1,4 +1,4 @@
-import { MovableEntity } from './base';
+import { BaseEntity } from './base';
 import Konva from 'konva';
 import type { Directions, position } from './base'
 
@@ -9,10 +9,20 @@ export class Robot extends MovableEntity {
     private group: Konva.Group;
     private health: number;
     private maxAttack: number;
+    private sprite: Konva.Image | Konva.Rect | null = null;
+    private position: position;
+    private currentImage: Konva.Image;
+    private dir: Directions;
+    private speed = 1;
 
     constructor(name: string, health: number, maxAttack: number, x: number = 0, y: number = 0, robotImage?: HTMLImageElement) {
-        const speed = 5;
-        const currentImage = new Konva.Image({
+        super(name);
+        // this.screen = screen;
+        this.health = health;
+        this.maxAttack = maxAttack;
+        this.position = { x, y };
+        this.dir = 'right';
+        this.currentImage = new Konva.Image({
             x,
             y,
             width: 32,

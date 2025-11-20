@@ -15,18 +15,13 @@ export class ExplorationScreenController extends ScreenController {
     private input!: InputManager;
     private player!: Player;
     private gameObjects: GameObject[] = [];
-    private running: boolean;
-    private logicTickInterval?: number;
-    private lastCollectionMsgTs = 0;
-    private COLLECTION_MSG_COOLDOWN_MS = 750;
-    private mapBuilder!: Map;
+    private readonly EDGE_THRESHOLD = 10; // Pixels from edge to trigger transition
 
     constructor(screenSwitcher: ScreenSwitcher) {
         super();
         this.screenSwitcher = screenSwitcher;
         this.model = new ExplorationScreenModel();
         this.view = new ExplorationScreenView();
-        this.running = false;
     }
 
     /**
@@ -60,36 +55,36 @@ export class ExplorationScreenController extends ScreenController {
         await this.view.build(this.player, this.gameObjects);
     }
 
+    startExploration(): void {
+        this.model.setRunning(true);
+        this.input = new InputManager();
+        this.view.show();
+        requestAnimationFrame(this.explorationLoop);
+    }
 
-    /**
-     * check Map Border Collisions 10 times a second  
-     * check Object Collection 10 times a second
-     */ 
-    private logicTick = (): void => {
-        if (!this.running) return;
+    hide(): void {
+        this.model.setRunning(false);
+        this.view.hide();
+    }
+
+    /* Exploration game loop */
+    private explorationLoop = (): void => {
+        if (!this.model.isRunning()) return;
+
         const { dx, dy } = this.input.getDirection();
 
-        if(dx !== 0 || dy !== 0){
-            this.checkEdges();
-        }
+        console.log("Player position: ", currentX, currentY);
 
-        if(this.input.getInteract()){
-            this.checkObjectCollection();
-        }
-    };
+        // Move player
+        this.player.move(dx, dy);
 
 
-    /**
-     * Helper method to check Map Border Collisions
-     */
-    private checkEdges(): void {
-        const playerImg = this.player.getCurrentImage();
-        const x = playerImg.x();
-        const y = playerImg.y();
-        // RIGHT EDGE
-        if(x >= STAGE_WIDTH - EDGE_THRESHOLD){
-            if(this.model.allObjectsCollected()){
-                this.running = false;
+        // Check if player is trying to go past the right edge
+        if (newX >= STAGE_WIDTH - this.EDGE_THRESHOLD) {
+            // Check if all items have been collected
+            if (this.model.allObjectsCollected()) {
+                // Transition to combat
+                this.model.setRunning(false);
                 this.screenSwitcher.switchToScreen({ type: "combat" });
                 return;
             } else { // show one message every cooldown period

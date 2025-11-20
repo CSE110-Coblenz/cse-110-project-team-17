@@ -6,6 +6,7 @@ import { STAGE_WIDTH, EDGE_THRESHOLD } from "../../constants.ts";
 export class ExplorationScreenModel {
     private collectedItems: string[] = [];
     private objectsOnMap: Map<string, boolean> = new Map(); // objectName -> isCollected
+    private running: boolean = false;
 
     private collectedCount = 0;
 
@@ -15,8 +16,23 @@ export class ExplorationScreenModel {
     reset(): void {
         this.collectedItems = [];
         this.objectsOnMap.clear();
+        this.running = false;
     }
 
+    /**
+     * Check if exploration is running
+     */
+    isRunning(): boolean {
+        return this.running;
+    }
+
+    /**
+     * Set exploration running state
+     */
+    setRunning(running: boolean): void {
+        this.running = running;
+    }
+    
     /**
      * Add an object to the map
      */

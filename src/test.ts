@@ -4,8 +4,8 @@ import { Combat } from './combat';
 import { STAGE_WIDTH, STAGE_HEIGHT } from "./constants.ts";
 
 
-const robot = new Robot("robot", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2);
-const zombie = new Zombie("zombie", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2);
+const robot = new Robot('Robo', 200, 200, 100, 20);
+const zombie = new Zombie('Zombie', 50, 15, 300, 300);
 
 console.log("Health at beginning: " + robot.getHealth()); // Should print 200
 console.log("Health at beginning: " + zombie.getHealth()); // Should print 50

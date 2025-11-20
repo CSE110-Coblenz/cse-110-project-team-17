@@ -5,7 +5,11 @@ import { MapView } from "../MapScreen/MapView.ts";
 import { CombatScreenModel } from "./CombatScreenModel.ts";
 
 /**
- * CombatScreenView - Renders the game UI using Konva
+ * CombatScreenView
+ *
+ * Renders the combat screen: builds tiled map layers and maintains an entity
+ * group containing Robot and Zombie images. The view exposes groups so the
+ * top-level App can add them to the main entity layer.
  */
 export class CombatScreenView extends MapView {
 	private screenGroup: Konva.Group;
@@ -19,14 +23,73 @@ export class CombatScreenView extends MapView {
 		this.entityGroup = new Konva.Group({ visible: false });
 	}
 
-	/* add robot & zombie to entity Group, add map to screen Group */
-	/* entity Group is redrawn every iteration of the gameLoop     */
-	async build(robot: Robot, zombie: Zombie): Promise<void> {
+	/**
+     * build
+     *
+     * Creates Konva.Image tiles for each tile layer in the Tiled map JSON,
+     * then adds Robot and Zombie images to the entity group.
+     */
+	async build(
+		mapData: any,
+		robot: Robot,
+		zombie: Zombie,
+		loadImage: (src: string) => Promise<HTMLImageElement>
+	): Promise<void> {
+		const tilesetInfo = mapData.tilesets[0];
+		const tileWidth = mapData.tilewidth;
+		const tileHeight = mapData.tileheight;
+		const tileset = await loadImage("/tiles/colony.png");
+		const tilesPerRow = Math.floor(tileset.width / tileWidth);
+
+		/* Build map and add it to the a Konva.Group */
+		for(const layer of mapData.layers){
+			if(layer.type !== "tilelayer") continue;
+
+			const tiledLayerGroup = new Konva.Group();
+			const tiles = layer.data;
+			const mapWidth = layer.width;
+			const mapHeight = layer.height;
+
+			/* Render the layers of the Tiled map.
+               Each tile is created as a Konva.Image that uses the tileset
+               as the source and `crop` to select the correct tile region. */
+			for(let y = 0; y < mapHeight; y++){
+				for(let x = 0; x < mapWidth; x++){
+					const tileId = tiles[y * mapWidth + x];
+					if (tileId === 0) continue; // empty tile
+
+					const gid = tileId - tilesetInfo.firstgid;
+
+					const tile = new Konva.Image({
+					x: x * tileWidth,
+					y: y * tileHeight,
+					width: tileWidth,
+					height: tileHeight,
+					image: tileset,
+					crop: {
+						x: (gid % tilesPerRow) * tileWidth,
+						y: Math.floor(gid / tilesPerRow) * tileHeight,
+						width: tileWidth,
+						height: tileHeight,
+						},
+					});
+					tiledLayerGroup.add(tile);
+				}
+			}
+			/* add the built map to this.mapLayer */
+			this.mapGroup.add(tiledLayerGroup);
+		}
+
+		/* Add robot and zombie images (their Konva.Image instances)
+           to the entity group so they are rendered above the map. */
 		this.entityGroup.add(robot.getCurrentImage());
 		this.entityGroup.add(zombie.getCurrentImage());
 		this.screenGroup.add(this.mapGroup);
+		this.screenGroup.add(this.entityGroup);
+
 	}
 
+	/* Expose the groups so the App can mix them into the stage layers. */
 	getGroup(): Konva.Group {
 		return this.screenGroup;
 	}

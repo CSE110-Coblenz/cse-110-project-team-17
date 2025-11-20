@@ -123,6 +123,14 @@ class App implements ScreenSwitcher {
     getCombatLayer(): Konva.Layer {
         return this.combatLayer;
     }
+
+    getStageWidth(): number {
+        return STAGE_WIDTH;
+    }
+
+    getStageHeight(): number {
+        return STAGE_HEIGHT;
+    }
 }
 
 // Initialize the application
