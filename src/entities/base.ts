@@ -5,6 +5,10 @@ export type position = {
 };
 export type Directions = 'up' | 'down' | 'right' | 'left';
 
+/** 
+ * This class helps to implement object collision 
+ * features across all movable entities 
+ **/
 export abstract class MovableEntity {
     protected name: string;
     protected speed: number;
@@ -74,6 +78,7 @@ export abstract class MovableEntity {
     applyPosition(x: number, y: number) {
         this.currentImage.x(x);
         this.currentImage.y(y);
+        this.position = { x, y };
     }
 
     moveTo(dx: number, dy: number): void {
