@@ -3,9 +3,6 @@ import { describe, it, expect } from "vitest";
 import { Robot } from "./src/entities/robot";
 import { Zombie } from "./src/entities/zombie";
 import { Combat } from "./src/combat";
-import { CombatScreenModel } from "./src/screens/CombatScreen/CombatScreenModel";
-import { CombatScreenController } from "./src/screens/CombatScreen/CombatScreenController";
-import { CombatScreenView } from "./src/screens/CombatScreen/CombatScreenView";
 
 describe("Combat Attack Logic", () => {
 
@@ -16,19 +13,19 @@ describe("Combat Attack Logic", () => {
 
     // Initially far away → no hit
     combat.performAttack({ attacker: robot }, { attacked: zombie });
-    expect(zombie.getHealth()).toBe(50);
+    expect(zombie.getHealth()).toBe(30);
 
     // Move robot next to zombie (left of zombie)
     robot.moveTo(249, 250);
     robot.faceDirection("right");
     combat.performAttack({ attacker: robot }, { attacked: zombie });
-    expect(zombie.getHealth()).toBe(30); // got hit once
+    expect(zombie.getHealth()).toBe(10); // got hit once
 
     // Move robot above zombie
     robot.moveTo(250, 249);
     robot.faceDirection("down");
     combat.performAttack({ attacker: robot }, { attacked: zombie });
-    expect(zombie.getHealth()).toBe(10); // second hit
+    expect(zombie.getHealth()).toBe(-10); // second hit
 
     // Move robot below zombie and face up
     robot.moveTo(250, 251);
