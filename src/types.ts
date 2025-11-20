@@ -36,8 +36,8 @@ export abstract class ScreenController {
 export interface ScreenSwitcher {
 	switchToScreen(screen: Screen): void;
 	
-	/* added this function so that gameloop can update  */
-	/* the main layer from the GameScreenController 	*/
+	/* added these functions so that gameloop can update  */
+	/* the main layer from the GameScreenController 	  */
 	redraw(): void;
 	getLayer(): Konva.Layer;
 	redrawEntities(): void;

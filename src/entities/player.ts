@@ -1,16 +1,8 @@
-/* (in my opinion) the Player class shouldn't worry about adding itself */
-/*                 to a screen. Instead the class should just worry abt */
-/*                 the details of the Players while being oblivious abt */
-/*                 the screen. Let ScreenControllers worry about adding */
-
-import { BaseEntity } from './base';
+import { MovableEntity } from './base';
 import Konva from 'konva';
 
 /* 
 * Set the Player Sprite, and control how it moves across the map.
-*
-* TODO: change Group to Layer so that only this playerLayer is redrawn 
-*       every frame. Will improve performance.
 */
 export class Player extends BaseEntity {
     // private group: Konva.Group;
@@ -72,46 +64,7 @@ export class Player extends BaseEntity {
         this.screen.render();
     }
 
-    /**
-     * Switch to a specific frame
-     *
-    setFrame(frameIndex: number): void {
-        if (frameIndex >= 0 && frameIndex < this.imageFrames.length) {
-            this.currentFrameIndex = frameIndex;
-            this.loadImage(this.imageFrames[frameIndex]);
-        }
-    }
-
-    /**
-     * Switch to the next frame (useful for animation)
-     *
-    nextFrame(): void {
-        if (this.imageFrames.length > 0) {
-            this.currentFrameIndex = (this.currentFrameIndex + 1) % this.imageFrames.length;
-            this.loadImage(this.imageFrames[this.currentFrameIndex]);
-        }
-    }
-
-    /**
-     * Get total number of frames
-     *
-    getFrameCount(): number {
-        return this.imageFrames.length;
-    }
-
-    /**
-     * Render the Player (update the screen)
-     *
-    render(): void {
-        this.screen.render();
-    }
-
-    /**
-     * Move the player to a specific position
-     *
-    moveTo(x: number, y: number): void {
-        this.group.position({ x, y });
-        this.screen.render();
+        super(name, speed, currentImage, x, y);
     }
 
     /**
@@ -127,27 +80,4 @@ export class Player extends BaseEntity {
     getInventory(): string[] {
         return [...this.inventory];
     }
-
-    /**
-     * Show the player
-     
-    show(): void {
-        this.group.visible(true);
-        this.screen.render();
-    }
-
-    /**
-     * Hide the player
-     
-    hide(): void {
-        this.group.visible(false);
-        this.screen.render();
-    }
-
-    /**
-     * Clean up resources
-     
-    destroy(): void {
-        this.screen.removeEntity(this.group);
-    } */
 }

@@ -1,23 +1,15 @@
 import { BaseEntity } from './base';
 import Konva from 'konva';
 
-export type position = {
-    x : number;
-    y : number;
-};
 
-export type Directions = 'up' | 'down' | 'right' | 'left';
 
-export class Zombie extends BaseEntity {
+export class Zombie extends MovableEntity {
     // private screen: Screen;
     private group: Konva.Group;
     private health: number;
     private maxAttack: number;
     private terminated: boolean = false;
     private sprite: Konva.Image | Konva.Rect | null = null;
-    private position: position;
-    private currentImage: Konva.Image;
-    private dir: Directions;
 
     constructor(name: string, health: number, maxAttack: number, x: number = 0, y: number = 0, robotImage?: HTMLImageElement) {
         super(name);
@@ -35,9 +27,14 @@ export class Zombie extends BaseEntity {
             height: 32,
             image: robotImage,
         });
+        super(name, speed, currentImage, x, y);
+        this.health = health;
+        this.maxAttack = maxAttack;
+        this.position = { x, y };
+        this.setDir('left');
         
-        // Spawn the zombie on the screen
-        // this.screen.addEntity(this.group);
+        this.group = new Konva.Group({ x, y });
+        this.createSprite();
     }
 
     /**

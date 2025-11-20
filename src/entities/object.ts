@@ -1,16 +1,16 @@
-import { BaseEntity } from './base';
 import Konva from 'konva';
 
 /**
  * GameObject - Represents static or interactive objects in the game
  * Examples: doors, keys, chests, obstacles, collectibles, etc.
  */
-export class GameObject extends BaseEntity {
+export class GameObject{
     private group: Konva.Group;
     private sprite: Konva.Image | Konva.Rect | null = null;
     private interactable: boolean;
     private collected: boolean = false;
     private currentImage: Konva.Image | null = null;
+    protected name: string = '';
 
     constructor(
         name: string, 
@@ -18,7 +18,7 @@ export class GameObject extends BaseEntity {
         y: number = 0,
         interactable: boolean = false
     ) {
-        super(name);
+        this.name = name;
         this.interactable = interactable;
         
         this.group = new Konva.Group({ x, y });
@@ -50,7 +50,7 @@ export class GameObject extends BaseEntity {
             // Load from URL
             return new Promise((resolve) => {
                 Konva.Image.fromURL(imageSource, (image) => {
-                    if (this.sprite) {
+                    if(this.sprite){
                         this.sprite.destroy();
                     }
                     this.sprite = image;
@@ -61,7 +61,7 @@ export class GameObject extends BaseEntity {
             });
         } else {
             // Load from HTMLImageElement
-            if (this.sprite) {
+            if(this.sprite){
                 this.sprite.destroy();
             }
             this.currentImage = new Konva.Image({
@@ -126,7 +126,7 @@ export class GameObject extends BaseEntity {
     interact(): void {
         if (this.interactable && !this.collected) {
             // Default interaction behavior
-            console.log(`Interacting with ${this.getName()}`);
+            console.log(`Interacting with ${this.name}`);
         }
     }
 
@@ -163,5 +163,12 @@ export class GameObject extends BaseEntity {
      */
     getPosition(): { x: number; y: number } {
         return this.group.position();
+    }
+
+    /**
+     * Get the name of the entity
+     */
+    getName(): string {
+        return this.name;
     }
 }

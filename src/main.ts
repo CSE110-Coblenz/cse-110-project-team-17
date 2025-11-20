@@ -12,7 +12,9 @@ import { STAGE_WIDTH, STAGE_HEIGHT } from "./constants.ts";
 class App implements ScreenSwitcher {
     private stage: Konva.Stage;
     private layer: Konva.Layer;
-    private entityLayer: Konva.Layer;
+    private explorationLayer: Konva.Layer;
+    private combatLayer: Konva.Layer;
+    private playerLayer: Konva.Layer;
 
     private menuController: MenuScreenController;
     private explorationController: ExplorationScreenController;
@@ -31,8 +33,14 @@ class App implements ScreenSwitcher {
         this.layer = new Konva.Layer();
         this.stage.add(this.layer);
 
-        this.entityLayer = new Konva.Layer();
-        this.stage.add(this.entityLayer);
+        this.explorationLayer = new Konva.Layer();
+        this.stage.add(this.explorationLayer);
+
+        this.combatLayer = new Konva.Layer();
+        this.stage.add(this.combatLayer);
+
+        this.playerLayer = new Konva.Layer();
+        this.stage.add(this.playerLayer);
 
         // Initialize all screen controllers
         this.menuController = new MenuScreenController(this);
@@ -51,12 +59,15 @@ class App implements ScreenSwitcher {
         this.layer.add(this.resultsController.getView().getGroup());
 
         // Add entity groups
-        this.entityLayer.add(this.explorationController.getView().getEntityGroup());
-        this.entityLayer.add(this.combatController.getView().getEntityGroup());
+        this.explorationLayer.add(this.explorationController.getView().getEntityGroup());
+        this.playerLayer.add(this.explorationController.getView().getPlayerGroup());
+        this.combatLayer.add(this.combatController.getView().getEntityGroup());
 
         // Draw layers
         this.layer.draw();
-        this.entityLayer.draw();
+        this.explorationLayer.draw();
+        this.playerLayer.draw();
+        this.combatLayer.draw();
 
         // Start with menu screen
         this.menuController.getView().show();
@@ -97,12 +108,20 @@ class App implements ScreenSwitcher {
         return this.layer;
     }
 
-    redrawEntities(): void {
-        this.entityLayer.batchDraw();
+    redrawExplorationPlayer(): void {
+        this.playerLayer.batchDraw();
     }
 
-    getEntityLayer(): Konva.Layer {
-        return this.entityLayer;
+    redrawCombatEntities(): void {
+        this.combatLayer.batchDraw();
+    }
+
+    getExplorationLayer(): Konva.Layer {
+        return this.explorationLayer;
+    }
+
+    getCombatLayer(): Konva.Layer {
+        return this.combatLayer;
     }
 
     getStageWidth(): number {

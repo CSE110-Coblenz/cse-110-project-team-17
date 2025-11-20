@@ -2,10 +2,11 @@ import { ScreenController } from "../../types.ts";
 import { ExplorationScreenModel } from "./ExplorationScreenModel.ts";
 import { ExplorationScreenView } from "./ExplorationScreenView.ts";
 import { InputManager } from "../../input.ts";
-import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
+import { STAGE_WIDTH, STAGE_HEIGHT , EDGE_THRESHOLD } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
 import { GameObject } from "../../entities/object.ts";
 import type { ScreenSwitcher } from "../../types.ts";
+import { Map } from "../../entities/tempMap.ts";
 
 export class ExplorationScreenController extends ScreenController {
     private model: ExplorationScreenModel;
@@ -23,12 +24,20 @@ export class ExplorationScreenController extends ScreenController {
         this.view = new ExplorationScreenView();
     }
 
-    /* Load Map and spawn objects */
+    /**
+     * Called by top-level App class BEFORE the game starts
+     *  --> builds map, initializes entities
+     */
     async init(): Promise<void> {
+        /* BUILD Map using Tileset and JSON data */
         const mapData = await this.loadMap("/porj0.json");
+        this.mapBuilder = new Map("/tiles/colony.png", 16, mapData, this.loadImage.bind(this));
+        const mapGroup = await this.mapBuilder.buildMap();
+        this.view.getMapGroup().add(mapGroup);
+
+        /* Create player instance */
         const playerImage = await this.loadImage("/imagesTemp.jpg");
-        
-        this.player = new Player("player1", STAGE_WIDTH / 2, STAGE_HEIGHT / 2, playerImage);
+        this.player = new Player("player1", 0, 0, playerImage);
 
         // Create GameObject instances without Screen dependency
         const key = new GameObject("key", 200, 300, true);
@@ -37,13 +46,13 @@ export class ExplorationScreenController extends ScreenController {
         this.gameObjects.push(key);
         this.model.addObject("key");
 
-        const chest = new GameObject("chest", 500, 400, true);
+        const chest = new GameObject("chest", 50, 40, true);
         const chestImage = await this.loadImage("/chest.png");
         await chest.loadImage(chestImage);
         this.gameObjects.push(chest);
         this.model.addObject("chest");
 
-        await this.view.build(mapData, this.player, this.gameObjects, this.loadImage.bind(this));
+        await this.view.build(this.player, this.gameObjects);
     }
 
     startExploration(): void {
@@ -63,18 +72,12 @@ export class ExplorationScreenController extends ScreenController {
         if (!this.model.isRunning()) return;
 
         const { dx, dy } = this.input.getDirection();
-        const playerImg = this.player.getCurrentImage();
-        const currentX = playerImg.x();
-        const currentY = playerImg.y();
 
         console.log("Player position: ", currentX, currentY);
 
         // Move player
         this.player.move(dx, dy);
 
-        // Get new position after movement
-        const newX = playerImg.x();
-        const newY = playerImg.y();
 
         // Check if player is trying to go past the right edge
         if (newX >= STAGE_WIDTH - this.EDGE_THRESHOLD) {
@@ -84,34 +87,55 @@ export class ExplorationScreenController extends ScreenController {
                 this.model.setRunning(false);
                 this.screenSwitcher.switchToScreen({ type: "combat" });
                 return;
-            } else {
-                // Prevent movement past the edge
-                playerImg.x(STAGE_WIDTH - this.EDGE_THRESHOLD);
-                // Show message that items must be collected first
-                this.view.showCollectionMessage("Collect all items first!");
+            } else { // show one message every cooldown period
+                playerImg.x(STAGE_WIDTH - EDGE_THRESHOLD);
+                const now = performance.now();
+                if (now - this.lastCollectionMsgTs > this.COLLECTION_MSG_COOLDOWN_MS) {
+                    this.view.showCollectionMessage("Collect all items first!");
+                    this.lastCollectionMsgTs = now;
+                }
             }
         }
+        // LEFT edge && TOP edge
+        if(x < 0) playerImg.x(0);
+        if(y < 0) playerImg.y(0);
+        // BOTTOM edge
+        const playerHeight = 32;
+        if(y > STAGE_HEIGHT - playerHeight){
+            playerImg.y(STAGE_HEIGHT - playerHeight);
+        }
+    }
 
-        // Optional: Prevent movement past other edges
-        if (newX < 0) {
-            playerImg.x(0);
-        }
-        if (newY < 0) {
-            playerImg.y(0);
-        }
-        if (newY > STAGE_HEIGHT - 32) { // 32 is player sprite height
-            playerImg.y(STAGE_HEIGHT - 32);
+
+    /* Initializes ExplorationScreen gameplay:
+    *   --> called by top-level App class when screen switches to ExplorationScreen
+    */
+    startExploration(): void {
+        this.running = true;
+        this.input = new InputManager();
+        requestAnimationFrame(this.explorationLoop);
+        this.view.show();
+        this.logicTickInterval = window.setInterval(() => this.logicTick(), 50);
+    }
+
+
+    /* GAME LOOP: 
+    *    --> runs 60 times/sec, only responsible for playerSprite movement
+    */
+    private explorationLoop = (): void => {
+        if(!this.running) return;
+        const { dx, dy } = this.input.getDirection();
+        
+        /* added functionality for object collision */
+        const next = this.player.getNextPosition(dx, dy);
+        if(this.mapBuilder.canMoveToArea(next.x, next.y, 32, 32)){
+            this.player.applyPosition(next.x, next.y);
         }
 
-        // Check if 'P' key is pressed for object collection
-        const interact = this.input.getInteract();
-        if (interact) {
-            this.checkObjectCollection();
-        }
-
-        this.screenSwitcher.redrawEntities();
+        this.screenSwitcher.redrawExplorationPlayer();
         requestAnimationFrame(this.explorationLoop);
     };
+
 
     /**
      * Check if player is near any collectible objects
@@ -122,8 +146,8 @@ export class ExplorationScreenController extends ScreenController {
         const playerX = playerImg.x();
         const playerY = playerImg.y();
 
-        for (const obj of this.gameObjects) {
-            if (obj.isCollected() || !obj.isInteractable()) continue;
+        for(const obj of this.gameObjects){
+            if(obj.isCollected() || !obj.isInteractable()) continue;
 
             const objPos = obj.getPosition();
             const objX = objPos.x;
@@ -150,11 +174,19 @@ export class ExplorationScreenController extends ScreenController {
         }
     }
 
+
+    /**
+     * Convert a .json to a Konva struct that we can reference
+     */
     private async loadMap(jsonPath: string): Promise<any> {
         const res = await fetch(jsonPath);
         return await res.json();
     }
 
+
+    /**
+     * Convert a .png --> HTMLImageElement (Konva Object)
+     */
     private loadImage(src: string): Promise<HTMLImageElement> {
         return new Promise((resolve, reject) => {
             const img = new Image();
@@ -164,14 +196,36 @@ export class ExplorationScreenController extends ScreenController {
         });
     }
 
+    /**
+     * Return this view
+     */
     getView(): ExplorationScreenView {
         return this.view;
     }
+
 
     /**
      * Get collected items to pass to combat screen
      */
     getCollectedItems(): string[] {
         return this.model.getCollectedItems();
+    }
+
+
+    /**
+     * Hide the Exploration Screen
+     */
+    hide(): void {
+        this.running = false;
+        this.view.hide();
+        this.stopLogicLoop();
+    }
+
+    /* just in case */
+    private stopLogicLoop(): void {
+        if(this.logicTickInterval){
+            clearInterval(this.logicTickInterval);
+            this.logicTickInterval = undefined;
+        }
     }
 }

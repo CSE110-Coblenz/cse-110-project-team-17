@@ -84,8 +84,6 @@ export class CombatScreenView extends MapView {
            to the entity group so they are rendered above the map. */
 		this.entityGroup.add(robot.getCurrentImage());
 		this.entityGroup.add(zombie.getCurrentImage());
-
-		/* add both groups to this.screenGroup */
 		this.screenGroup.add(this.mapGroup);
 		this.screenGroup.add(this.entityGroup);
 
