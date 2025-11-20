@@ -1,4 +1,4 @@
-import { BaseEntity } from './base';
+import { MovableEntity, type Directions, type position } from './base';
 import Konva from 'konva';
 
 
@@ -12,15 +12,8 @@ export class Zombie extends MovableEntity {
     private sprite: Konva.Image | Konva.Rect | null = null;
 
     constructor(name: string, health: number, maxAttack: number, x: number = 0, y: number = 0, robotImage?: HTMLImageElement) {
-        super(name);
-        this.health = health;
-        this.maxAttack = maxAttack;
-        this.position = { x, y };
-        this.dir = 'left';
-        
-        this.group = new Konva.Group({ x, y });
-        this.createSprite();
-        this.currentImage = new Konva.Image({
+        const speed = 3;
+        const currentImage = new Konva.Image({
             x,
             y,
             width: 32,
