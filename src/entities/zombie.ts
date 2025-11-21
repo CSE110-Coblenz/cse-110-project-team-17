@@ -1,33 +1,37 @@
-import { MovableEntity, type Directions, type position } from './base';
+import { MovableEntity } from './base';
 import Konva from 'konva';
 
 
-
 export class Zombie extends MovableEntity {
-    // private screen: Screen;
     private group: Konva.Group;
     private health: number;
     private maxAttack: number;
     private terminated: boolean = false;
     private sprite: Konva.Image | Konva.Rect | null = null;
+    private isZombie: boolean = true;
 
-    constructor(name: string, health: number, maxAttack: number, x: number = 0, y: number = 0, robotImage?: HTMLImageElement) {
-        const speed = 3;
-        const currentImage = new Konva.Image({
+    constructor(name: string, health: number, maxAttack: number, x: number, y: number, robotImage?: HTMLImageElement) {
+        let currentImage = new Konva.Image({
             x,
             y,
             width: 32,
             height: 32,
             image: robotImage,
         });
-        super(name, speed, currentImage, x, y);
+        super(name, 1, currentImage, x, y);
         this.health = health;
         this.maxAttack = maxAttack;
-        this.position = { x, y };
-        this.setDir('left');
         
         this.group = new Konva.Group({ x, y });
         this.createSprite();
+
+        
+        // Spawn the zombie on the screen
+        // this.screen.addEntity(this.group);
+    }
+
+    getIsZombie(): boolean {
+        return this.isZombie;
     }
 
     /**
@@ -61,9 +65,9 @@ export class Zombie extends MovableEntity {
         });
     }
 
-    getCurrentImage(){
-        return this.currentImage;
-    }
+    //getCurrentImage(){
+    //    return this.currentImage;
+    //}
 
     /**
      * Render the Zombie (update the screen)
@@ -74,7 +78,7 @@ export class Zombie extends MovableEntity {
 
     /**
      * Move the zombie to a specific position
-     */
+     *
     moveTo(x: number, y: number): void {
         this.currentImage.x(x);
         this.currentImage.y(y);
@@ -118,12 +122,17 @@ export class Zombie extends MovableEntity {
         this.terminated = true;
     }
 
+    /* 
     getPosition(): position {
         return this.position;
     }
 
     getDirection(): Directions {
         return this.dir;
+    }
+
+    faceDirection(direction: Directions): void {
+        this.dir = direction;
     }
 
     /**
@@ -141,6 +150,10 @@ export class Zombie extends MovableEntity {
      */
     getHealth(): number {
         return this.health;
+    }
+
+    setHealth(val : number) :void {
+        this.health = val;
     }
 
     /**

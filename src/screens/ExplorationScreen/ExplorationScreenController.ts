@@ -34,9 +34,13 @@ export class ExplorationScreenController extends ScreenController {
      *  --> builds map, initializes entities
      */
     async init(): Promise<void> {
-        /* BUILD Map using Tileset and JSON data */
+        /* mapData represents the map's .json file */
         const mapData = await this.loadMap("/porj0.json");
+
+        /* mapBuilder uses the Map class to build the map using the tileSheet, tile size, and mapData(.json) */
         this.mapBuilder = new Map("/tiles/colony.png", 16, mapData, this.loadImage.bind(this));
+
+        /* Assemble the mapGroup in the Map class and give it to the ScreenView */
         const mapGroup = await this.mapBuilder.buildMap();
         this.view.getMapGroup().add(mapGroup);
 
@@ -57,6 +61,7 @@ export class ExplorationScreenController extends ScreenController {
         this.gameObjects.push(chest);
         this.model.addObject("chest");
 
+        /* */
         await this.view.build(this.player, this.gameObjects);
     }
 

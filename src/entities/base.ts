@@ -1,14 +1,14 @@
 import Konva from "konva";
+
+
 export type position = {
     x : number;
     y : number;
 };
 export type Directions = 'up' | 'down' | 'right' | 'left';
 
-/** 
- * This class helps to implement object collision 
- * features across all movable entities 
- **/
+/* Holds all of the classes that Robot and Zombie share */
+/* Also hold functions to implement object collision to Player, Zombie, and Robot */
 export abstract class MovableEntity {
     protected name: string;
     protected speed: number;
@@ -30,26 +30,16 @@ export abstract class MovableEntity {
         this.dir = 'right';
     }
 
-    /** Get the entity's name */
-    getName(): string {
-        return this.name;
+    getPosition(): position {
+        return this.position;
     }
 
-    /** Get the movement speed */
-    getSpeed(): number {
-        return this.speed;
-    }
-
-    setSpeed(speed: number): void {
-        this.speed = speed;
-    }
-
-    getDir(): Directions {
+    getDirection(): Directions {
         return this.dir;
     }
 
-    setDir(dir: Directions): void {
-        this.dir = dir;
+    faceDirection(direction: Directions): void {
+        this.dir = direction;
     }
 
     /** Get Konva image */
@@ -81,10 +71,23 @@ export abstract class MovableEntity {
         this.position = { x, y };
     }
 
-    moveTo(dx: number, dy: number): void {
-        this.currentImage.x(this.currentImage.x() + dx * this.speed);
-        this.currentImage.y(this.currentImage.y() + dy * this.speed);
-        this.position = { x: this.currentImage.x(), y: this.currentImage.y() };
-        // this.screen.render();
+    moveTo(x: number, y: number): void {
+        this.currentImage.x(x);
+        this.currentImage.y(y);
+        this.position = { x, y };
+    }
+
+    /** Get the entity's name */
+    getName(): string {
+        return this.name;
+    }
+
+    /** Get the movement speed */
+    getSpeed(): any {
+        return this.speed;
+    }
+
+    setSpeed(speed: number): void {
+        this.speed = speed;
     }
 }
