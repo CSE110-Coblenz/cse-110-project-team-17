@@ -50,7 +50,7 @@ export class CombatScreenController extends ScreenController {
 		this.model.setMapData(mapData);
 
 		/* create a new Map class object */
-		this.mapBuilder = new Map("/tiles/colony.png", 16, mapData, this.loadImage.bind(this));
+		this.mapBuilder = new Map(mapData, this.loadImage.bind(this));
 
 		/* retrieve Konva.Group representhing this screen's map */
 		const mapGroup = await this.mapBuilder.buildMap();

@@ -37,8 +37,8 @@ export class ExplorationScreenController extends ScreenController {
         /* mapData represents the map's .json file */
         const mapData = await this.loadMap("/porj0.json");
 
-        /* mapBuilder uses the Map class to build the map using the tileSheet, tile size, and mapData(.json) */
-        this.mapBuilder = new Map("/tiles/colony.png", 16, mapData, this.loadImage.bind(this));
+        /* mapBuilder uses the Map class to build the map using the mapData(.json)*/
+        this.mapBuilder = new Map(mapData, this.loadImage.bind(this));
 
         /* Assemble the mapGroup in the Map class and give it to the ScreenView */
         const mapGroup = await this.mapBuilder.buildMap();
