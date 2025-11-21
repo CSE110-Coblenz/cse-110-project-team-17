@@ -45,10 +45,17 @@ export class CombatScreenController extends ScreenController {
 
 	/* Loads Map and Player data (on boot) */
 	async init(): Promise<void> {
+		/* mapData represents .json data of this screen's map */
 		const mapData = await this.loadMap("/porj0.json");
 		this.model.setMapData(mapData);
+
+		/* create a new Map class object */
 		this.mapBuilder = new Map("/tiles/colony.png", 16, mapData, this.loadImage.bind(this));
+
+		/* retrieve Konva.Group representhing this screen's map */
 		const mapGroup = await this.mapBuilder.buildMap();
+
+		/* add the Konva.Group to the mapGroup in this.view */
 		this.view.getMapGroup().add(mapGroup);
 
 		// load images used by robot/zombie and attack animations
@@ -73,11 +80,7 @@ export class CombatScreenController extends ScreenController {
 		this.view.addZombieCounter(10, 10); // top-left corner
 
 		// build view (map + add entity images to the view's groups)
-		await this.view.build(
-			this.model.getMapData(),
-			this.model.getRobot(),
-			this.loadImage.bind(this),
-		);
+		await this.view.build(robot);
 	}
 
 	/**

@@ -8,7 +8,7 @@ export class Combat {
      * Perform an attack from the player to the enemy
      */
     performAttack(player: { attacker: Zombie | Robot }, enemy: { attacked: Zombie | Robot }): void {
-        if (player.attacker.isZombie == true) {
+        if (player.attacker.getIsZombie() == true) {
             TOLERANCE = 50; // zombies have shorter reach
         }
         else {

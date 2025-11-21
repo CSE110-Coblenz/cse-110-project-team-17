@@ -1,6 +1,5 @@
 import { MovableEntity } from './base';
 import Konva from 'konva';
-import type { Directions, position } from './base'
 
 
 
@@ -9,10 +8,11 @@ export class Robot extends MovableEntity {
     private group: Konva.Group;
     private health: number;
     private maxAttack: number;
+    private isZombie: boolean = false;
 
-    constructor(name: string, health: number, maxAttack: number, x: number = 0, y: number = 0, robotImage?: HTMLImageElement) {
+    constructor(name: string, health: number, maxAttack: number, x: number, y: number, robotImage?: HTMLImageElement) {
         const speed = 5;
-        const currentImage = new Konva.Image({
+        let currentImage = new Konva.Image({
             x,
             y,
             width: 32,
@@ -20,6 +20,7 @@ export class Robot extends MovableEntity {
             image: robotImage,
         });
         super(name, speed, currentImage, x, y);
+
         this.health = health;
         this.maxAttack = maxAttack;
         this.group = new Konva.Group({ x, y });
@@ -39,17 +40,10 @@ export class Robot extends MovableEntity {
         return this.maxAttack;
     }
 
-    getPosition(): position {
-        return this.position;
-    }
-    
-    getDirection(): Directions {
-        return this.dir;
+    getIsZombie(): boolean {
+        return this.isZombie;
     }
 
-    faceDirection(direction: Directions): void {
-        this.dir = direction;
-    }
 
     /**
      * Take damage
@@ -120,10 +114,10 @@ export class Robot extends MovableEntity {
         this.getCurrentImage().image(image);
     }
 
-    /* 
+    /*
     getCurrentImage(){
         return this.currentImage;
-    }
+    } 
 
     /**
      * Move the robot to a specific position
