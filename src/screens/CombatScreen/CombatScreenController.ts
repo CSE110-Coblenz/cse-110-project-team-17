@@ -55,7 +55,7 @@ export class CombatScreenController extends ScreenController {
 		/* retrieve Konva.Group representhing this screen's map */
 		const mapGroup = await this.mapBuilder.buildMap();
 
-		/* add the Konva.Group to the mapGroup in this.view */
+		/* add mapGroup to this.view */
 		this.view.getMapGroup().add(mapGroup);
 
 		// load images used by robot/zombie and attack animations
