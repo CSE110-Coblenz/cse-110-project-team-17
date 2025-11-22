@@ -23,9 +23,9 @@ export class Map implements Maps {
         name: string
     }[] = [];
 
-	constructor(mapData: any, loadImage: (src: string) => Promise<HTMLImageElement>) {
+	constructor(tileSize: number, mapData: any, loadImage: (src: string) => Promise<HTMLImageElement>) {
         this.mapData = mapData;
-        this.tileSize = mapData.tileHeight;
+        this.tileSize = tileSize;
 		this.loadImage = loadImage;
 		this.height = mapData.height;
 		this.width = mapData.width;
@@ -50,31 +50,32 @@ export class Map implements Maps {
 		return this.height;
 	}
 
-async loadTilesets() {
-    this.tilesets = [];
+    /* Store each tilesheet's data so it can be used to render map */
+    /*  --> data stored in this.tilesets[j]                        */
+    async loadTilesets() {
+        this.tilesets = [];
 
-    for (const ts of this.mapData.tilesets) {
-        // ts.source now points to a JSON file, e.g. "Dark-Green_TileSet.json"
-        const response = await fetch(ts.source);
-        const tsJson = await response.json();
+        /* iterate through tilesets given in map's json file */
+        for(const ts of this.mapData.tilesets){
+            const response = await fetch(ts.source);
+            const tsJson = await response.json();
 
-        // Load the PNG referenced inside the tileset JSON
-        const image = await this.loadImage(tsJson.source);
+            /* use the path hardcoded in the json to load image from /public/tiles/* */
+            const image = await this.loadImage(tsJson.source);
 
-        this.tilesets.push({
-            firstgid: ts.firstgid,
-            image,
-            tileWidth: tsJson.tileWidth,
-            tileHeight: tsJson.tileHeight,
-            tilesPerRow: tsJson.columns,
-            name: tsJson.name
-        });
+            /* store tileset data in this.tilesets struct */
+            this.tilesets.push({
+                firstgid: ts.firstgid,
+                image,
+                tileWidth: tsJson.tileWidth,
+                tileHeight: tsJson.tileHeight,
+                tilesPerRow: tsJson.columns,
+                name: tsJson.name
+            });
+        }
     }
 
-    // Sort tilesets by firstgid (important for gid lookup)
-    this.tilesets.sort((a, b) => a.firstgid - b.firstgid);
-}
-
+    /* identify which spriteSheet to use given gid */
     private getTilesetForGid(gid: number) {
         let found = null;
         for (const ts of this.tilesets) {
@@ -85,63 +86,63 @@ async loadTilesets() {
         return found;
     }
 
-async buildMap(): Promise<Konva.Group> {
-    const mapGroup = new Konva.Group();
+    async buildMap(): Promise<Konva.Group> {
+        const mapGroup = new Konva.Group();
 
-    if (!this.tilesets.length) {
-        console.warn("Tilesets not loaded — call loadTilesets() first");
-        return mapGroup;
-    }
-
-    for (const layer of this.mapData.layers) {
-        if (layer.type !== "tilelayer") continue;
-
-        const layerGroup = new Konva.Group({ name: layer.name });
-
-        const tiles = layer.data;
-        const mapWidth = layer.width;
-        const mapHeight = layer.height;
-
-        for (let y = 0; y < mapHeight; y++) {
-            for (let x = 0; x < mapWidth; x++) {
-
-                const tileId = tiles[y * mapWidth + x];
-                if (tileId === 0) continue;
-
-                const ts = this.getTilesetForGid(tileId);
-                if (!ts) continue;
-
-                const tileWidth = ts.tileWidth;
-                const tileHeight = ts.tileHeight;
-
-                const localId = tileId - ts.firstgid;
-
-                const cropX = (localId % ts.tilesPerRow) * tileWidth;
-                const cropY = Math.floor(localId / ts.tilesPerRow) * tileHeight;
-
-                const tile = new Konva.Image({
-                    x: x * tileWidth,
-                    y: y * tileHeight,
-                    width: tileWidth,
-                    height: tileHeight,
-                    image: ts.image,
-                    crop: {
-                        x: cropX,
-                        y: cropY,
-                        width: tileWidth,
-                        height: tileHeight
-                    }
-                });
-
-                layerGroup.add(tile);
-            }
+        if (!this.tilesets.length) {
+            console.warn("Tilesets not loaded — call loadTilesets() first");
+            return mapGroup;
         }
 
-        mapGroup.add(layerGroup);
-    }
+        for (const layer of this.mapData.layers) {
+            if (layer.type !== "tilelayer") continue;
 
-    return mapGroup;
-}
+            const layerGroup = new Konva.Group({ name: layer.name });
+
+            const tiles = layer.data;
+            const mapWidth = layer.width;
+            const mapHeight = layer.height;
+
+            for (let y = 0; y < mapHeight; y++) {
+                for (let x = 0; x < mapWidth; x++) {
+
+                    const tileId = tiles[y * mapWidth + x];
+                    if (tileId === 0) continue;
+
+                    const ts = this.getTilesetForGid(tileId);
+                    if (!ts) continue;
+
+                    const tileWidth = ts.tileWidth;
+                    const tileHeight = ts.tileHeight;
+
+                    const localId = tileId - ts.firstgid;
+
+                    const cropX = (localId % ts.tilesPerRow) * tileWidth;
+                    const cropY = Math.floor(localId / ts.tilesPerRow) * tileHeight;
+
+                    const tile = new Konva.Image({
+                        x: x * tileWidth,
+                        y: y * tileHeight,
+                        width: tileWidth,
+                        height: tileHeight,
+                        image: ts.image,
+                        crop: {
+                            x: cropX,
+                            y: cropY,
+                            width: tileWidth,
+                            height: tileHeight
+                        }
+                    });
+
+                    layerGroup.add(tile);
+                }
+            }
+
+            mapGroup.add(layerGroup);
+        }
+
+        return mapGroup;
+    }
 
 	getTileAtPixel(x: number, y: number) {
 		const tileX = Math.floor(x / this.tileSize);
@@ -160,12 +161,14 @@ async buildMap(): Promise<Konva.Group> {
 		return !this.isBlocked(tileX, tileY);
 	}
 
-	canMoveToArea(x: number, y: number, w: number, h: number): boolean {
-		return (
-			this.canMoveToPixel(x, y) &&
-			this.canMoveToPixel(x + w, y) &&
-			this.canMoveToPixel(x, y + h) &&
-			this.canMoveToPixel(x + w, y + h)
-		);
-	}
+    canMoveToArea(x: number, y: number, w: number, h: number): boolean {
+        const tl = this.canMoveToPixel(x, y);
+        const tr = this.canMoveToPixel(x + w, y);
+        const bl = this.canMoveToPixel(x, y + h);
+        const br = this.canMoveToPixel(x + w, y + h);
+
+        const ok = tl && tr && bl && br;
+
+        return ok;
+    }
 }

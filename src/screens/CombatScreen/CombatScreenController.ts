@@ -46,11 +46,12 @@ export class CombatScreenController extends ScreenController {
 	/* Loads Map and Player data (on boot) */
 	async init(): Promise<void> {
 		/* mapData represents .json data of this screen's map */
-		const mapData = await this.loadMap("/porj0.json");
+		const mapData = await this.loadMap("/Exploration_Map_ZA.json");
 		this.model.setMapData(mapData);
 
 		/* create a new Map class object */
-		this.mapBuilder = new Map(mapData, this.loadImage.bind(this));
+		this.mapBuilder = new Map(16, mapData, this.loadImage.bind(this));
+		await this.mapBuilder.loadTilesets();
 
 		/* retrieve Konva.Group representhing this screen's map */
 		const mapGroup = await this.mapBuilder.buildMap();

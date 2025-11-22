@@ -38,7 +38,7 @@ export class ExplorationScreenController extends ScreenController {
         const mapData = await this.loadMap("/Exploration_Map_ZA.json");
 
         /* mapBuilder uses the Map class to build the map using the mapData(.json)*/
-        this.mapBuilder = new Map(mapData, this.loadImage.bind(this));
+        this.mapBuilder = new Map(16, mapData, this.loadImage.bind(this));
         await this.mapBuilder.loadTilesets();
 
         /* Assemble the mapGroup in the Map class and give it to the ScreenView */
@@ -46,7 +46,7 @@ export class ExplorationScreenController extends ScreenController {
         this.view.getMapGroup().add(mapGroup);
 
         /* Create player instance */
-        const playerImage = await this.loadImage("/imagesTemp.jpg");
+        const playerImage = await this.loadImage("/idle-frame1.png");
         this.player = new Player("player1", STAGE_WIDTH/2, STAGE_HEIGHT/2, playerImage);
 
         // Create GameObject instances without Screen dependency
@@ -110,8 +110,8 @@ export class ExplorationScreenController extends ScreenController {
         // LEFT edge && TOP edge
         if(x < 0) playerImg.x(0);
         if(y < 0) playerImg.y(0);
-        // BOTTOM edge
-        const playerHeight = 32;
+        // BOTTOM edge (CHANGE DEPENDING ON SPRITE)
+        const playerHeight = 16;
         if(y > STAGE_HEIGHT - playerHeight){
             playerImg.y(STAGE_HEIGHT - playerHeight);
         }
@@ -139,9 +139,23 @@ export class ExplorationScreenController extends ScreenController {
         
         /* added functionality for OBJECT COLLISION */
         const next = this.player.getNextPosition(dx, dy);
-        if(this.mapBuilder.canMoveToArea(next.x, next.y, 32, 32)){
+        if(this.mapBuilder.canMoveToArea(next.x, next.y, 16, 16)){
             this.player.applyPosition(next.x, next.y);
         }
+
+        /* console.log(
+            "corner ->",
+            next.x, next.y,
+            "tile:",
+            Math.floor(next.x / this.mapBuilder.getTileSize()),
+            Math.floor(next.y / this.mapBuilder.getTileSize()),
+            "blocked:", this.mapBuilder.isBlocked(Math.floor(next.x / this.mapBuilder.getTileSize()), Math.floor(next.y / this.mapBuilder.getTileSize()))
+        ); */
+
+        console.log("mapBuilder =", this.mapBuilder);
+        console.log("next.x =", next.x);
+        console.log("next.y =", next.y);
+        console.log("tileSize =", this.mapBuilder.getTileSize());
 
         this.screenSwitcher.redrawExplorationPlayer();
         requestAnimationFrame(this.explorationLoop);
