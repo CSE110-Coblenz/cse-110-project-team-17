@@ -79,6 +79,7 @@ export class PokemonScreenController extends ScreenController {
 	private handleAnswerSelection = (index: number): void => {
 		this.view.playButtonClickAnimation(index);
 		const isCorrect = this.model.checkAnswer(index);
+		this.model.updateCurrentQuestionStatus(isCorrect);
 		const message = isCorrect
 			? "Correct!"
 			: `Incorrect! Correct answer: ${this.model.getCorrectAnswerText()}`;

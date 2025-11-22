@@ -16,9 +16,14 @@ export class ChoiceDialogBox {
   private currentQuestion: QuestionData | null = null;
   private shuffledAnswers: string[] = [];
   private correctAnswerIndex: number = -1;
+  private correctQuestions: Set<QuestionData> = new Set();
+  private incorrectQuestions: Set<QuestionData> = new Set();
+  private currentQuestionCorrect: boolean = false;
 
   constructor() {
     this.questions = this.initializeQuestions();
+    // Initially, all questions are incorrect
+    this.questions.forEach(q => this.incorrectQuestions.add(q));
   }
 
   /**
@@ -66,15 +71,29 @@ export class ChoiceDialogBox {
   }
 
   /**
-   * Selects a new random question from the list, shuffles the answers, and updates the current state.
+   * Selects a new question, prioritizing incorrect questions over correct ones, and avoids repeating the previous question.
    */
   selectNewQuestion(): void {
-    if (this.questions.length === 0) {
+    let selectedQuestion: QuestionData | null = null;
+
+    if (this.incorrectQuestions.size > 0) {
+      // Pick random from incorrect, excluding the current (previous) question
+      const incorrectArray = Array.from(this.incorrectQuestions);
+      do {
+        selectedQuestion = incorrectArray[Math.floor(Math.random() * incorrectArray.length)];
+      } while (selectedQuestion === this.currentQuestion && incorrectArray.length > 1);
+    } else if (this.correctQuestions.size > 0) {
+      // Pick random from correct, excluding the current (previous) question
+      const correctArray = Array.from(this.correctQuestions);
+      do {
+        selectedQuestion = correctArray[Math.floor(Math.random() * correctArray.length)];
+      } while (selectedQuestion === this.currentQuestion && correctArray.length > 1);
+    } else {
       throw new Error("No questions available.");
     }
 
-    const randomIndex = Math.floor(Math.random() * this.questions.length);
-    this.currentQuestion = this.questions[randomIndex];
+    this.currentQuestion = selectedQuestion;
+    this.currentQuestionCorrect = false; // Reset for new question
 
     // Shuffle the answers and track the new correct index
     const shuffled = [...this.currentQuestion.answers];
@@ -118,6 +137,25 @@ export class ChoiceDialogBox {
     }
 
     return this.currentQuestion.answers[this.currentQuestion.correctIndex];
+  }
+
+  /**
+   * Updates the status of the current question based on whether it was answered correctly.
+   * @param isCorrect True if the answer was correct, false otherwise.
+   */
+  updateCurrentQuestionStatus(isCorrect: boolean): void {
+    if (!this.currentQuestion) {
+      return;
+    }
+
+    this.currentQuestionCorrect = isCorrect;
+
+    if (isCorrect) {
+      // Move from incorrect to correct
+      this.incorrectQuestions.delete(this.currentQuestion);
+      this.correctQuestions.add(this.currentQuestion);
+    }
+    // If incorrect, it stays in incorrectQuestions
   }
 
   /**

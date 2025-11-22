@@ -81,4 +81,8 @@ export class PokemonScreenModel extends MapModel{
 	resetBoss(): void {
 		this.boss.setHealth(200);
 	}
+
+	updateCurrentQuestionStatus(isCorrect: boolean): void {
+		this.choiceBox.updateCurrentQuestionStatus(isCorrect);
+	}
 }
