@@ -63,8 +63,7 @@ export class App implements ScreenSwitcher {
         this.entityLayer.draw();
 
         // Start with menu screen
-        // this.menuController.getView().show();
-        this.pokemonController.getView().show();
+        this.menuController.getView().show();
     }
 
     switchToScreen(screen: Screen): void {
@@ -125,4 +124,4 @@ export class App implements ScreenSwitcher {
 }
 
 // Initialize the application
-new App("container").switchToScreen({ type: "pokemon" });
+new App("container");

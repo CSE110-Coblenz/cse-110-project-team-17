@@ -133,6 +133,17 @@ export class ExplorationScreenController extends ScreenController {
                 this.npc.showUrgentDialog("Maybe you should finish completing your robot before exiting the junkyard. I heard it's real dangerous out there.");
             }
         }
+        // Check if player is trying to go past the top edge
+        else if (newY <= 0) {
+            // Check if all items have been collected
+            if (this.model.allObjectsCollected()) {
+                this.view.hide();
+                // Start the pokemon minigame
+                this.model.setRunning(false);
+                this.screenSwitcher.switchToScreen({ type: "pokemon" });
+                return;
+            }
+        }        
 
         // Optional: Prevent movement past other edges
         if (newX < 0) {
@@ -144,7 +155,7 @@ export class ExplorationScreenController extends ScreenController {
                 // Robot not completed
                 playerImg.y(0);
                 this.view.showCollectionMessage("Collect all items first!");
-                this.npc.showUrgentDialog("Maybe you should finish completing your robot before exiting the junkyard. I heard it's real dangerous out there.");
+                this.npc.showUrgentDialog("Maybe you should finish completing your robot before starting the pokemon boss battles. I heard they are real dangerous.");
             }
         }
         if (newY > STAGE_HEIGHT - 32) { 
