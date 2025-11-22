@@ -140,7 +140,7 @@ export class ExplorationScreenController extends ScreenController {
         /* added functionality for OBJECT COLLISION */
         const next = this.player.getNextPosition(dx, dy);
         if(this.mapBuilder.canMoveToArea(next.x, next.y, 16, 16)){
-            this.player.applyPosition(next.x, next.y);
+            this.player.moveTo(next.x, next.y);
         }
 
         /* console.log(

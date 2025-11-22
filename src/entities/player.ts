@@ -15,7 +15,7 @@ export class Player extends MovableEntity {
             height: 16,
             image: playerImage,
         });
-        const speed = 3;
+        const speed = 2;
 
         super(name, speed, currentImage, x, y);
     }

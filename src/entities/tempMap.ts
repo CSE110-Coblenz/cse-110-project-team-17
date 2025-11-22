@@ -144,6 +144,7 @@ export class Map implements Maps {
         return mapGroup;
     }
 
+    /* given pixel coordinates, compute the corresponding tile */
 	getTileAtPixel(x: number, y: number) {
 		const tileX = Math.floor(x / this.tileSize);
 		const tileY = Math.floor(y / this.tileSize);
@@ -151,17 +152,19 @@ export class Map implements Maps {
 		return { tileX, tileY };
 	}
 
+    /* verify that the tile has no obstacle on it */
 	isBlocked(tileX: number, tileY: number): boolean {
 		const index = tileY * this.width + tileX;
 		return this.collisionData[index] !== 0;
 	}
 
+    /* returns true if the player/robot is allowed to move to the pixel coordinates given */
 	canMoveToPixel(x: number, y: number): boolean {
 		const { tileX, tileY } = this.getTileAtPixel(x, y);
 		return !this.isBlocked(tileX, tileY);
 	}
 
-    canMoveToArea(x: number, y: number, w: number, h: number): boolean {
+    /*canMoveToArea(x: number, y: number, w: number, h: number): boolean {
         const tl = this.canMoveToPixel(x, y);
         const tr = this.canMoveToPixel(x + w, y);
         const bl = this.canMoveToPixel(x, y + h);
@@ -170,5 +173,23 @@ export class Map implements Maps {
         const ok = tl && tr && bl && br;
 
         return ok;
+    }*/
+
+    canMoveToArea(x: number, y: number, w: number, h: number): boolean {
+        const tileSize = this.tileSize;
+
+        const leftTile   = Math.floor(x / tileSize);
+        const rightTile  = Math.floor((x + w) / tileSize);
+        const topTile    = Math.floor(y / tileSize);
+        const bottomTile = Math.floor((y + h) / tileSize);
+
+        for (let ty = topTile; ty <= bottomTile; ty++) {
+            for (let tx = leftTile; tx <= rightTile; tx++) {
+                if (this.isBlocked(tx, ty)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }

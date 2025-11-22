@@ -39,31 +39,33 @@ export class CombatScreenController extends ScreenController {
 	constructor(screenSwitcher: ScreenSwitcher) {
 		super();
 		this.screenSwitcher = screenSwitcher;
+
 		this.model = new CombatScreenModel(STAGE_WIDTH, STAGE_HEIGHT);
 		this.view = new CombatScreenView(this.model);
 	}
 
-	/* Loads Map and Player data (on boot) */
+	/* Loads Map and Player data */
 	async init(): Promise<void> {
 		/* mapData represents .json data of this screen's map */
-		const mapData = await this.loadMap("/Exploration_Map_ZA.json");
+		const mapData = await this.loadMap("/SECOND_MAP_ZA.json");
 		this.model.setMapData(mapData);
 
 		/* create a new Map class object */
 		this.mapBuilder = new Map(16, mapData, this.loadImage.bind(this));
+		this.model.setMapBuilder(this.mapBuilder);
 		await this.mapBuilder.loadTilesets();
 
 		/* retrieve Konva.Group representhing this screen's map */
 		const mapGroup = await this.mapBuilder.buildMap();
 
-		/* add the Konva.Group to the mapGroup in this.view */
+		/* add mapGroup to the mapGroup in this.view */
 		this.view.getMapGroup().add(mapGroup);
 
 		// load images used by robot/zombie and attack animations
-		const robotImage = await this.loadImage("/lemon.png");
+		const robotImage = await this.loadImage("/fish.png");
 		const zombieImage = await this.loadImage("/imagesTemp.jpg");
 		const attackingImage = await this.loadImage("/image.png");
-		const idleImage = await this.loadImage("/lemon.png");
+		const idleImage = await this.loadImage("/fish.png");
 
 		// create entities centered on stage
 		const robot = new Robot("robot", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);

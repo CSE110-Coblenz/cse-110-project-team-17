@@ -11,12 +11,12 @@ export class Robot extends MovableEntity {
     private isZombie: boolean = false;
 
     constructor(name: string, health: number, maxAttack: number, x: number, y: number, robotImage?: HTMLImageElement) {
-        const speed = 5;
+        const speed = 3;
         let currentImage = new Konva.Image({
             x,
             y,
-            width: 32,
-            height: 32,
+            width: 16,
+            height: 16,
             image: robotImage,
         });
         super(name, speed, currentImage, x, y);
