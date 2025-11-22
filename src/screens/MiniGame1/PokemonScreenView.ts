@@ -29,6 +29,8 @@ export class PokemonScreenView extends MapView {
 	private bossName: Konva.Text;
 	private onAnswerSelected?: (index: number) => void;
 
+	static readonly TIME_BETWEEN_QUESTIONS = 1000; // 2 seconds
+
 	constructor(screenSwitcher: ScreenSwitcher, model: PokemonScreenModel) {
 		super(model);
 		this.bgGroup = new Konva.Group({ visible: false });
@@ -97,15 +99,15 @@ export class PokemonScreenView extends MapView {
 			listening: false,
 		});
 		// Feedback text for correct/incorrect answers
-		// TODO: replace with attack animation
 		this.feedbackText = new Konva.Text({
 			x: textBox.x() + 20,
 			y: textBox.y() + textBox.height() - 50,
-			width: textBox.width() - 40,
+			width: textBox.width() / 2 - 20,
 			fontSize: 20,
 			fontFamily: 'Arial',
 			fill: '#1b1b1b',
 			text: '',
+			wrap: 'word',
 			visible: false
 		});
 		this.textBoxGroup.add(this.questionText);
@@ -161,7 +163,7 @@ export class PokemonScreenView extends MapView {
 			y: screenSwitcher.getStageHeight() - 120,
 			width: 300,
 			height: 70,
-			fill: 'lightgreen',
+			fill: 'lightblue',
 			stroke: 'black',
 			strokeWidth: 2,
 			cornerRadius: 10,
@@ -172,7 +174,7 @@ export class PokemonScreenView extends MapView {
 			y: screenSwitcher.getStageHeight() - 190,
 			width: 300,
 			height: 70,
-			fill: 'lightcoral',
+			fill: 'lightblue',
 			stroke: 'black',
 			strokeWidth: 2,
 			cornerRadius: 10,
@@ -183,7 +185,7 @@ export class PokemonScreenView extends MapView {
 			y: screenSwitcher.getStageHeight() - 120,
 			width: 300,
 			height: 70,
-			fill: 'white',
+			fill: 'lightblue',
 			stroke: 'black',
 			strokeWidth: 2,
 			cornerRadius: 10,
@@ -327,16 +329,16 @@ export class PokemonScreenView extends MapView {
 	}
 
 	// Animate button click
-	playButtonClickAnimation(index: number): void {
+	playButtonClickAnimation(index: number, isCorrect: boolean): void {
 		const button = this.answerButton[index];
 		if (!button) return;
 		const originalFill = button.fill();
-		button.fill('#79b986ff');
+		button.fill(isCorrect ? 'green' : 'red');
 		button.getLayer()?.batchDraw();
 		setTimeout(() => {
 			button.fill(originalFill);
 			button.getLayer()?.batchDraw();
-		}, 150);
+		}, PokemonScreenView.TIME_BETWEEN_QUESTIONS);
 	}
 
 	playBossDamageAnimation(): void {
@@ -369,7 +371,7 @@ export class PokemonScreenView extends MapView {
 		setTimeout(() => {
 			overlay.destroy();
 			// shakeTween.finish();
-		}, 1000);
+		}, PokemonScreenView.TIME_BETWEEN_QUESTIONS);
 	}
 
 	private positionAnswerLabel(index: number): void {
