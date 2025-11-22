@@ -2,6 +2,7 @@ import { Combat } from "../../combat.ts";
 import { Robot } from "../../entities/robot.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { MapModel } from "../MapScreen/MapModel";
+import { Map } from "../../entities/tempMap.ts";
 import Konva from "konva";
 
 /**
@@ -23,6 +24,7 @@ export class CombatScreenModel extends MapModel{
 	private idleImage!: any;
 	private attackDuration: number = 500; // milliseconds
 	private zombies: Zombie[] = [];
+	private mapBuilder?: Map;
 
 	constructor(width: number, height: number) {
 		super(width, height);
@@ -41,6 +43,18 @@ export class CombatScreenModel extends MapModel{
 		return this.mapData;
 	}
 
+	/* get this screen's Map class object */
+	getMapBuilder(): any{
+		if(!this.mapData)
+			throw new Error("Map class object has not been initialized");
+		return this.mapBuilder;
+	}
+
+	/* init this screen's Map class object */
+	setMapBuilder(mapBuilder: Map): any{
+		this.mapBuilder = mapBuilder;
+	}
+
 	 /* Store entity instances so controller and view can access them. */
 	setEntities(robot: Robot, zombie: Zombie): void {
 		this.robot = robot;
@@ -55,9 +69,15 @@ export class CombatScreenModel extends MapModel{
      */
 	updateRobotPosition(dx: number, dy: number): void {
 		const robot = this.getRobot();
+		const mapObj = this.getMapBuilder();
 		const previousY = robot.getPosition().y;
 		const previousX = robot.getPosition().x;
-		robot.moveTo(previousX + dx * robot.getSpeed(), previousY + dy * robot.getSpeed());
+
+		/* object collision logic */
+		const next = robot.getNextPosition(dx, dy);
+        if(mapObj.canMoveToArea(next.x, next.y, 16, 16)){
+			robot.moveTo(previousX + dx * robot.getSpeed(), previousY + dy * robot.getSpeed());
+		}
 		const currentPosition = robot.getPosition();
 		if (currentPosition.x !== previousX) {
 			robot.faceDirection(currentPosition.x > previousX ? "right" : "left");

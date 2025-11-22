@@ -1,0 +1,10 @@
+{
+    "name": "GutterAndDownspout_Set",
+    "tileWidth": 16,
+    "tileHeight": 16,
+    "tilecount": 84,
+    "columns": 12,
+    "source": "/mapAssets/Gutter-And-Downspout.png",
+    "width": 192,
+    "height": 112
+}

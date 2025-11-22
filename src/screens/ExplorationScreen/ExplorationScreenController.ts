@@ -35,28 +35,29 @@ export class ExplorationScreenController extends ScreenController {
      */
     async init(): Promise<void> {
         /* mapData represents the map's .json file */
-        const mapData = await this.loadMap("/porj0.json");
+        const mapData = await this.loadMap("/maps/Exploration_Map_ZA.json");
 
-        /* mapBuilder uses the Map class to build the map using the tileSheet, tile size, and mapData(.json) */
-        this.mapBuilder = new Map("/tiles/colony.png", 16, mapData, this.loadImage.bind(this));
+        /* mapBuilder uses the Map class to build the map using the mapData(.json)*/
+        this.mapBuilder = new Map(16, mapData, this.loadImage.bind(this));
+        await this.mapBuilder.loadTilesets();
 
         /* Assemble the mapGroup in the Map class and give it to the ScreenView */
         const mapGroup = await this.mapBuilder.buildMap();
         this.view.getMapGroup().add(mapGroup);
 
         /* Create player instance */
-        const playerImage = await this.loadImage("/imagesTemp.jpg");
-        this.player = new Player("player1", 0, 0, playerImage);
+        const playerImage = await this.loadImage("/sprites/idle-frame1.png");
+        this.player = new Player("player1", STAGE_WIDTH/2, STAGE_HEIGHT/2, playerImage);
 
         // Create GameObject instances without Screen dependency
         const key = new GameObject("key", 200, 300, true);
-        const keyImage = await this.loadImage("/key.jpg");
+        const keyImage = await this.loadImage("/objects/key.jpg");
         await key.loadImage(keyImage);
         this.gameObjects.push(key);
         this.model.addObject("key");
 
         const chest = new GameObject("chest", 50, 40, true);
-        const chestImage = await this.loadImage("/chest.png");
+        const chestImage = await this.loadImage("/objects/chest.png");
         await chest.loadImage(chestImage);
         this.gameObjects.push(chest);
         this.model.addObject("chest");
@@ -109,8 +110,8 @@ export class ExplorationScreenController extends ScreenController {
         // LEFT edge && TOP edge
         if(x < 0) playerImg.x(0);
         if(y < 0) playerImg.y(0);
-        // BOTTOM edge
-        const playerHeight = 32;
+        // BOTTOM edge (CHANGE DEPENDING ON SPRITE)
+        const playerHeight = 16;
         if(y > STAGE_HEIGHT - playerHeight){
             playerImg.y(STAGE_HEIGHT - playerHeight);
         }
@@ -138,9 +139,23 @@ export class ExplorationScreenController extends ScreenController {
         
         /* added functionality for OBJECT COLLISION */
         const next = this.player.getNextPosition(dx, dy);
-        if(this.mapBuilder.canMoveToArea(next.x, next.y, 32, 32)){
-            this.player.applyPosition(next.x, next.y);
+        if(this.mapBuilder.canMoveToArea(next.x, next.y, 16, 16)){
+            this.player.moveTo(next.x, next.y);
         }
+
+        /* console.log(
+            "corner ->",
+            next.x, next.y,
+            "tile:",
+            Math.floor(next.x / this.mapBuilder.getTileSize()),
+            Math.floor(next.y / this.mapBuilder.getTileSize()),
+            "blocked:", this.mapBuilder.isBlocked(Math.floor(next.x / this.mapBuilder.getTileSize()), Math.floor(next.y / this.mapBuilder.getTileSize()))
+        ); */
+
+        console.log("mapBuilder =", this.mapBuilder);
+        console.log("next.x =", next.x);
+        console.log("next.y =", next.y);
+        console.log("tileSize =", this.mapBuilder.getTileSize());
 
         this.screenSwitcher.redrawExplorationPlayer();
         requestAnimationFrame(this.explorationLoop);

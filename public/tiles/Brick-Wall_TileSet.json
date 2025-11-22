@@ -1,0 +1,10 @@
+{
+    "name": "Brick-Wall_TileSet",
+    "tileWidth": 16,
+    "tileHeight": 16,
+    "tilecount": 18,
+    "columns": 6,
+    "source": "/mapAssets/Brick-Wall_TileSet.png",
+    "width": 96,
+    "height": 48
+}

@@ -11,11 +11,11 @@ export class Player extends MovableEntity {
         const currentImage = new Konva.Image({
             x,
             y,
-            width: 32,
-            height: 32,
+            width: 16,
+            height: 16,
             image: playerImage,
         });
-        const speed = 3;
+        const speed = 2;
 
         super(name, speed, currentImage, x, y);
     }
