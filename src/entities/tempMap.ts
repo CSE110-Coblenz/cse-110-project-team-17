@@ -18,6 +18,9 @@ export class Map implements Maps {
         firstgid: number;
         image: HTMLImageElement;
         tilesPerRow: number;
+        tileWidth: number,
+        tileHeight: number,
+        name: string
     }[] = [];
 
 	constructor(mapData: any, loadImage: (src: string) => Promise<HTMLImageElement>) {
@@ -48,28 +51,28 @@ export class Map implements Maps {
 	}
 
 async loadTilesets() {
-    const baseTilesDir = "/tiles/"; // adjust to match repo/public/tiles/
+    this.tilesets = [];
 
     for (const ts of this.mapData.tilesets) {
-        // Convert ts.source (e.g., "Dirt_Map.tsx") → "Dirt_Map.png"
-        const pngName = ts.source.replace(".tsx", ".png");
-        const imagePath = baseTilesDir + pngName;
+        // ts.source now points to a JSON file, e.g. "Dark-Green_TileSet.json"
+        const response = await fetch(ts.source);
+        const tsJson = await response.json();
 
-        // Load PNG
-        const image = await this.loadImage(imagePath);
-
-        // Tiles are always 16x16 so width gives us tilesPerRow
-        const tilesPerRow = Math.floor(image.width / 16);
+        // Load the PNG referenced inside the tileset JSON
+        const image = await this.loadImage(tsJson.source);
 
         this.tilesets.push({
             firstgid: ts.firstgid,
             image,
-            tilesPerRow
+            tileWidth: tsJson.tileWidth,
+            tileHeight: tsJson.tileHeight,
+            tilesPerRow: tsJson.columns,
+            name: tsJson.name
         });
     }
 
-    // Sort in case firstgid is not ordered in JSON
-    //this.tilesets.sort((a, b) => a.firstgid - b.firstgid);
+    // Sort tilesets by firstgid (important for gid lookup)
+    this.tilesets.sort((a, b) => a.firstgid - b.firstgid);
 }
 
     private getTilesetForGid(gid: number) {
@@ -90,9 +93,6 @@ async buildMap(): Promise<Konva.Group> {
         return mapGroup;
     }
 
-    const tileWidth = this.tileSize;
-    const tileHeight = this.tileSize;
-
     for (const layer of this.mapData.layers) {
         if (layer.type !== "tilelayer") continue;
 
@@ -104,14 +104,18 @@ async buildMap(): Promise<Konva.Group> {
 
         for (let y = 0; y < mapHeight; y++) {
             for (let x = 0; x < mapWidth; x++) {
+
                 const tileId = tiles[y * mapWidth + x];
                 if (tileId === 0) continue;
 
-                // Find the correct tileset for this GID
                 const ts = this.getTilesetForGid(tileId);
                 if (!ts) continue;
 
+                const tileWidth = ts.tileWidth;
+                const tileHeight = ts.tileHeight;
+
                 const localId = tileId - ts.firstgid;
+
                 const cropX = (localId % ts.tilesPerRow) * tileWidth;
                 const cropY = Math.floor(localId / ts.tilesPerRow) * tileHeight;
 

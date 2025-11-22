@@ -35,10 +35,11 @@ export class ExplorationScreenController extends ScreenController {
      */
     async init(): Promise<void> {
         /* mapData represents the map's .json file */
-        const mapData = await this.loadMap("/porj0.json");
+        const mapData = await this.loadMap("/Exploration_Map_ZA.json");
 
         /* mapBuilder uses the Map class to build the map using the mapData(.json)*/
         this.mapBuilder = new Map(mapData, this.loadImage.bind(this));
+        await this.mapBuilder.loadTilesets();
 
         /* Assemble the mapGroup in the Map class and give it to the ScreenView */
         const mapGroup = await this.mapBuilder.buildMap();
@@ -46,7 +47,7 @@ export class ExplorationScreenController extends ScreenController {
 
         /* Create player instance */
         const playerImage = await this.loadImage("/imagesTemp.jpg");
-        this.player = new Player("player1", 0, 0, playerImage);
+        this.player = new Player("player1", STAGE_WIDTH/2, STAGE_HEIGHT/2, playerImage);
 
         // Create GameObject instances without Screen dependency
         const key = new GameObject("key", 200, 300, true);
