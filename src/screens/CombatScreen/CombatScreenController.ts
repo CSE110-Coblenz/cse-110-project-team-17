@@ -47,7 +47,7 @@ export class CombatScreenController extends ScreenController {
 	/* Loads Map and Player data */
 	async init(): Promise<void> {
 		/* mapData represents .json data of this screen's map */
-		const mapData = await this.loadMap("/SECOND_MAP_ZA.json");
+		const mapData = await this.loadMap("/maps/SECOND_MAP_ZA.json");
 		this.model.setMapData(mapData);
 
 		/* create a new Map class object */
@@ -62,10 +62,10 @@ export class CombatScreenController extends ScreenController {
 		this.view.getMapGroup().add(mapGroup);
 
 		// load images used by robot/zombie and attack animations
-		const robotImage = await this.loadImage("/fish.png");
-		const zombieImage = await this.loadImage("/imagesTemp.jpg");
-		const attackingImage = await this.loadImage("/image.png");
-		const idleImage = await this.loadImage("/fish.png");
+		const robotImage = await this.loadImage("/sprites/fish.png");
+		const zombieImage = await this.loadImage("/sprites/imagesTemp.jpg");
+		const attackingImage = await this.loadImage("/sprites/image.png");
+		const idleImage = await this.loadImage("/sprites/fish.png");
 
 		// create entities centered on stage
 		const robot = new Robot("robot", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
@@ -114,7 +114,7 @@ export class CombatScreenController extends ScreenController {
 	}
 	
 	private async spawnZombie(): Promise<void> {
-		const zombieImage = await this.loadImage("/imagesTemp.jpg");
+		const zombieImage = await this.loadImage("/sprites/imagesTemp.jpg");
 		const x = Math.random() * (STAGE_WIDTH - 32);
 		const y = Math.random() * (STAGE_HEIGHT - 32);
 		const newZombie = new Zombie(`zombie-${Date.now()}`, 100, 50, x, y, zombieImage);

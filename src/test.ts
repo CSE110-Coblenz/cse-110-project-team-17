@@ -1,7 +1,6 @@
 import {Robot} from './entities/robot';
 import { Zombie } from './entities/zombie';
 import { Combat } from './combat';
-import { STAGE_WIDTH, STAGE_HEIGHT } from "./constants.ts";
 
 
 const robot = new Robot('Robo', 200, 200, 100, 20);

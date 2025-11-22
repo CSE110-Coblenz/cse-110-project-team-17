@@ -35,7 +35,7 @@ export class ExplorationScreenController extends ScreenController {
      */
     async init(): Promise<void> {
         /* mapData represents the map's .json file */
-        const mapData = await this.loadMap("/Exploration_Map_ZA.json");
+        const mapData = await this.loadMap("/maps/Exploration_Map_ZA.json");
 
         /* mapBuilder uses the Map class to build the map using the mapData(.json)*/
         this.mapBuilder = new Map(16, mapData, this.loadImage.bind(this));
@@ -46,18 +46,18 @@ export class ExplorationScreenController extends ScreenController {
         this.view.getMapGroup().add(mapGroup);
 
         /* Create player instance */
-        const playerImage = await this.loadImage("/idle-frame1.png");
+        const playerImage = await this.loadImage("/sprites/idle-frame1.png");
         this.player = new Player("player1", STAGE_WIDTH/2, STAGE_HEIGHT/2, playerImage);
 
         // Create GameObject instances without Screen dependency
         const key = new GameObject("key", 200, 300, true);
-        const keyImage = await this.loadImage("/key.jpg");
+        const keyImage = await this.loadImage("/objects/key.jpg");
         await key.loadImage(keyImage);
         this.gameObjects.push(key);
         this.model.addObject("key");
 
         const chest = new GameObject("chest", 50, 40, true);
-        const chestImage = await this.loadImage("/chest.png");
+        const chestImage = await this.loadImage("/objects/chest.png");
         await chest.loadImage(chestImage);
         this.gameObjects.push(chest);
         this.model.addObject("chest");
