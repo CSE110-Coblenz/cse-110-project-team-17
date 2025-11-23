@@ -7,6 +7,7 @@ import { Player } from "../../entities/player.ts";
 import { GameObject } from "../../entities/object.ts";
 import type { ScreenSwitcher } from "../../types.ts";
 import { Map } from "../../entities/tempMap.ts";
+import { npc } from "../../entities/npc.ts"
 
 export class ExplorationScreenController extends ScreenController {
     private model: ExplorationScreenModel;
@@ -14,6 +15,7 @@ export class ExplorationScreenController extends ScreenController {
     private screenSwitcher: ScreenSwitcher;
     private input!: InputManager;
     private player!: Player;
+    private npc!: npc;
     private gameObjects: GameObject[] = [];
     private running: boolean;
     private logicTickInterval?: number;
@@ -56,7 +58,7 @@ export class ExplorationScreenController extends ScreenController {
         this.gameObjects.push(key);
         this.model.addObject("key");
 
-                const npcImage = await this.loadImage("/npc.png");
+        const npcImage = await this.loadImage("/npc.png");
         const gameTrivia = [
             "The first wave of zombies was actually caused by a corrupted line of code, not a virus.",
             "Your robot creation can handle up to three different combat modules, so choose your code wisely!",
