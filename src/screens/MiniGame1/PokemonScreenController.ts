@@ -15,7 +15,7 @@ export class PokemonScreenController extends ScreenController {
 	private model: PokemonScreenModel;
 	private view: PokemonScreenView;
 	private screenSwitcher: ScreenSwitcher;
-	private input!: InputManager;
+	private waitForQuestion: boolean = false;
 
 	/* Create model and view, instantiate reference to top-level App class */
 	constructor(screenSwitcher: ScreenSwitcher) {
@@ -33,11 +33,11 @@ export class PokemonScreenController extends ScreenController {
      * shows the combat view and starts the requestAnimationFrame loop.
      */
 	startCombat(): void {
-		this.input = new InputManager();
 		this.view.show();
 
 		// set running variable to active
 		this.model.resetGame();
+		this.waitForQuestion = false;
 		this.presentNextQuestion();
 		this.view.updateBossHealthText(this.model.getBossHealth());
 
@@ -78,6 +78,9 @@ export class PokemonScreenController extends ScreenController {
 	}
 
 	private handleAnswerSelection = (index: number): void => {
+		if (this.waitForQuestion) {
+			return;
+		}
 		const isCorrect = this.model.checkAnswer(index);
 		this.model.updateCurrentQuestionStatus(isCorrect);
 		this.view.playButtonClickAnimation(index, isCorrect);
@@ -87,7 +90,7 @@ export class PokemonScreenController extends ScreenController {
 		this.view.showFeedbackMessage(message, isCorrect);
 		// Update boss health if correct (takes damage)
 		if (isCorrect) {
-			const damage = this.model.getPlayer().getMaxAttack();
+			const damage = this.model.getPlayer().getMaxAttack() + 200;
 			this.model.dealDamageToBoss(damage);
 			this.view.updateBossHealthText(this.model.getBossHealth());
 			this.view.playBossDamageAnimation();
@@ -98,9 +101,11 @@ export class PokemonScreenController extends ScreenController {
 				}, 2000);
 			}
 		}
+		this.waitForQuestion = true;
 		// Tweak to set delay between questions
 		setTimeout(() => {
 			if (!this.model.isBossDefeated()) {
+				this.waitForQuestion = false;
 				this.presentNextQuestion();
 			}
 		}, PokemonScreenView.TIME_BETWEEN_QUESTIONS);
