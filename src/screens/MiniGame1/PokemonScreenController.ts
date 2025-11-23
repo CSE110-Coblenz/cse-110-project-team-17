@@ -106,6 +106,13 @@ export class PokemonScreenController extends ScreenController {
 			const damage = 20; // Fixed damage for incorrect answers
 			this.model.dealDamageToPlayer(damage);
 			this.view.updatePlayerHealthText(this.model.getPlayerHealth());
+			if (this.model.isPlayerDefeated()) {
+				this.view.showLoseMessage();
+				setTimeout(() => {
+					this.screenSwitcher.switchToScreen({ type: "exploration" });
+				}, 2000);
+				return; // Don't proceed to next question
+			}
 		}
 		if (this.model.isBossDefeated()) {
 			this.view.showVictoryMessage();

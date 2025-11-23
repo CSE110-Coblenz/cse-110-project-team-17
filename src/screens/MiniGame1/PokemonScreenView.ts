@@ -28,6 +28,7 @@ export class PokemonScreenView extends MapView {
 	private bossHealthText: Konva.Text;
 	private playerHealthText: Konva.Text;
 	private victoryText: Konva.Text;
+	private loseText: Konva.Text;
 	private bossName: Konva.Text;
 	private playerName: Konva.Text;
 	private onAnswerSelected?: (index: number) => void;
@@ -172,6 +173,21 @@ export class PokemonScreenView extends MapView {
 		this.victoryText.offsetX(this.victoryText.width() / 2);
 		this.victoryText.offsetY(this.victoryText.height() / 2);
 		this.screenGroup.add(this.victoryText);
+
+		// Lose message
+		this.loseText = new Konva.Text({
+			x: screenSwitcher.getStageWidth() / 2,
+			y: screenSwitcher.getStageHeight() / 2,
+			fontSize: 48,
+			fontFamily: 'Impact',
+			fill: 'red',
+			text: 'Defeated! Try Again!',
+			align: 'center',
+			visible: false
+		});
+		this.loseText.offsetX(this.loseText.width() / 2);
+		this.loseText.offsetY(this.loseText.height() / 2);
+		this.screenGroup.add(this.loseText);
 
 		// Create the answer buttons
 		this.answerButton = [new Rect({
@@ -394,6 +410,7 @@ export class PokemonScreenView extends MapView {
 		});
 		this.clearFeedbackMessage();
 		this.hideVictoryMessage();
+		this.hideLoseMessage();
 		this.textBoxGroup.getLayer()?.batchDraw();
 	}
 
@@ -428,6 +445,16 @@ export class PokemonScreenView extends MapView {
 
 	hideVictoryMessage(): void {
 		this.victoryText.visible(false);
+		this.screenGroup.getLayer()?.batchDraw();
+	}
+
+	showLoseMessage(): void {
+		this.loseText.visible(true);
+		this.screenGroup.getLayer()?.batchDraw();
+	}
+
+	hideLoseMessage(): void {
+		this.loseText.visible(false);
 		this.screenGroup.getLayer()?.batchDraw();
 	}
 
