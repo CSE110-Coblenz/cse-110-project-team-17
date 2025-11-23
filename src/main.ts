@@ -4,12 +4,13 @@ import { MenuScreenController } from "./screens/MenuScreen/MenuScreenController.
 import { ExplorationScreenController } from "./screens/ExplorationScreen/ExplorationScreenController.ts";
 import { CombatScreenController } from "./screens/CombatScreen/CombatScreenController.ts";
 import { ResultsScreenController } from "./screens/ResultsScreen/ResultsScreenController.ts";
+import { PokemonScreenController } from "./screens/MiniGame1/PokemonScreenController.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "./constants.ts";
 
 /**
  * Main Application - Coordinates all screens
  */
-class App implements ScreenSwitcher {
+export class App implements ScreenSwitcher {
     private stage: Konva.Stage;
     private layer: Konva.Layer;
     private explorationLayer: Konva.Layer;
@@ -20,6 +21,7 @@ class App implements ScreenSwitcher {
     private explorationController: ExplorationScreenController;
     private combatController!: CombatScreenController;
     private resultsController: ResultsScreenController;
+    private pokemonController: PokemonScreenController;
 
     constructor(container: string) {
         // Initialize Konva stage
@@ -46,6 +48,7 @@ class App implements ScreenSwitcher {
         this.menuController = new MenuScreenController(this);
         this.explorationController = new ExplorationScreenController(this);
         this.resultsController = new ResultsScreenController(this);
+        this.pokemonController = new PokemonScreenController(this);
 
         // Load exploration controller screen 
         this.explorationController.init();
@@ -54,6 +57,7 @@ class App implements ScreenSwitcher {
         this.layer.add(this.menuController.getView().getGroup());
         this.layer.add(this.explorationController.getView().getGroup());
         this.layer.add(this.resultsController.getView().getGroup());
+        this.layer.add(this.pokemonController.getView().getGroup());
 
         /* ENTITY LAYER = (EXPLORATION)+(PLAYER)+(COMBAT) */
         this.explorationLayer.add(this.explorationController.getView().getEntityGroup());
@@ -78,6 +82,7 @@ class App implements ScreenSwitcher {
             this.combatController.hide();
         }
         this.resultsController.hide();
+        this.pokemonController.hide();
 
         // Show requested screen
         switch (screen.type) {
@@ -116,6 +121,10 @@ class App implements ScreenSwitcher {
 
             case "result":
                 this.resultsController.showResults(screen.score);
+                break;
+            
+            case "pokemon":
+                this.pokemonController.startCombat();
                 break;
         }
     }

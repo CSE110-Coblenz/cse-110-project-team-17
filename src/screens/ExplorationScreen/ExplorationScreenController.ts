@@ -123,6 +123,7 @@ export class ExplorationScreenController extends ScreenController {
         if(x >= STAGE_WIDTH - EDGE_THRESHOLD){
             if(this.model.allObjectsCollected()){
                 this.running = false;
+                this.npc
                 this.screenSwitcher.switchToScreen({ type: "combat" });
                 return;
             } else { // show one message every cooldown period
@@ -135,12 +136,21 @@ export class ExplorationScreenController extends ScreenController {
                 }
             }
         }
-        // LEFT edge && TOP edge
+        // LEFT edge
         if(x < 0) playerImg.x(0);
+        // TOP EDGE: POKEMON MINIGAME
         if(y <= 0) {
-            playerImg.y(0);
-            if (!this.model.allObjectsCollected())
-                this.npc.showUrgentDialog("Maybe you should finish completing your robot before exiting the junkyard. I heard it's real dangerous out there.");
+            // Check if all items have been collected
+            if (this.model.allObjectsCollected()) {
+                console.log("All items collected, switching to Pokemon minigame.");
+                // Start the pokemon minigame
+                this.hide();
+                this.screenSwitcher.switchToScreen({ type: "pokemon" });
+                this.player.moveTo(this.player.getPosition().x, this.player.getPosition().y+10); // Move player slightly down to avoid immediate re-trigger
+            } else {
+                playerImg.y(0);
+                this.npc.showUrgentDialog("Maybe you should finish completing your robot before fighting the boss. You need all the information to defeat him.");
+            }
         }
         // BOTTOM edge (CHANGE DEPENDING ON SPRITE)
         const playerHeight = 16;
