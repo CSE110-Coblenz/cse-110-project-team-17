@@ -98,6 +98,7 @@ export class PokemonScreenController extends ScreenController {
 			this.model.dealDamageToBoss(damage);
 			this.view.updateBossHealthText(this.model.getBossHealth());
 			this.view.playBossDamageAnimation(damage);
+			this.view.playPlayerJumpAnimation();
 			if (this.model.isBossDefeated()) {
 				this.view.showVictoryMessage();
 				setTimeout(() => {

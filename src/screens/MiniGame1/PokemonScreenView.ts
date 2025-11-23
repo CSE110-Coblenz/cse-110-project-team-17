@@ -49,11 +49,11 @@ export class PokemonScreenView extends MapView {
 
 		this.model = model;
 		
-		this.model.getPlayer().getCurrentImage().scale({x:10, y:10});
+		this.model.getPlayer().getCurrentImage().scale({x:5, y:5});
 		this.playerGroup.add(this.model.getPlayer().getCurrentImage());
 		this.model.getBoss().getCurrentImage().scale({x:10, y:10});
 		this.bossGroup.add(this.model.getBoss().getCurrentImage());
-		this.model.getPlayer().moveTo(-500, -100);
+		this.model.getPlayer().moveTo(-screenSwitcher.getStageWidth()/4 - 50, 0);
 		this.model.getBoss().moveTo(800, 100);
 
 		// Load the background
@@ -390,7 +390,7 @@ export class PokemonScreenView extends MapView {
 	}
 
 	updateBossHealthText(health: number): void {
-		this.bossHealthText.text(`${health}/200`);
+		this.bossHealthText.text(`${health}/${PokemonScreenModel.BOSS_MAX_HEALTH}`);
 		this.screenGroup.getLayer()?.batchDraw();
 	}
 
@@ -464,6 +464,29 @@ export class PokemonScreenView extends MapView {
 			damageText.destroy();
 			this.bossGroup.getLayer()?.batchDraw();
 		}, PokemonScreenView.TIME_BETWEEN_QUESTIONS);
+	}
+
+	playPlayerJumpAnimation(): void {
+		// Jump animation: move up and down quickly
+		let startTime = Date.now();
+		const anim = new Konva.Animation(() => {
+			const elapsed = (Date.now() - startTime) / 1000; // seconds
+			const jumpHeight = 30; // jump distance
+			const duration = 0.2; // total jump duration in seconds
+			const t = Math.min(elapsed / duration, 1); // normalized time 0-1
+			// Simple parabolic jump: up then down
+			const yOffset = -jumpHeight * 4 * t * (1 - t); // parabolic curve
+			this.playerGroup.y(yOffset);
+		}, this.playerGroup.getLayer());
+		
+		anim.start();
+		
+		// Stop animation after jump duration
+		setTimeout(() => {
+			anim.stop();
+			this.playerGroup.y(0); // reset position
+			this.playerGroup.getLayer()?.batchDraw();
+		}, 500); // 0.5 seconds
 	}
 
 	private positionAnswerLabel(index: number): void {

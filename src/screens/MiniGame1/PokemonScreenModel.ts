@@ -17,15 +17,18 @@ export class PokemonScreenModel extends MapModel{
 	private boss: Zombie;
 	private currentQuestion: { question: string; answers: string[] } | null = null;
 
+	static readonly BOSS_MAX_HEALTH: number = 100;
+	static readonly PLAYER_MAX_HEALTH: number = 100;
+
 	constructor(width: number, height: number) {
 		super(width, height);
 		this.choiceBox = new ChoiceDialogBox();
 		const pimg = new Image();
-		pimg.src = '/lemon.png';
-		this.player = new Robot("player", 100, 50, width / 2, height / 2, pimg);
+		pimg.src = '/imagesTemp.jpg';
+		this.player = new Robot("player", PokemonScreenModel.PLAYER_MAX_HEALTH, 20, width / 2, height / 2, pimg);
 		const bimg = new Image();
 		bimg.src = '/boss.jpg';
-		this.boss = new Zombie("boss", 200, 75, width / 2 + 100, height / 2, bimg);
+		this.boss = new Zombie("boss", PokemonScreenModel.BOSS_MAX_HEALTH, 75, width / 2 + 100, height / 2, bimg);
 	}
 
 	getPlayer(): Robot {
@@ -45,11 +48,9 @@ export class PokemonScreenModel extends MapModel{
 	}
 
 	public resetGame(): void {
-		this.player.setHealth(100);
-		this.boss.setHealth(200);
+		this.player.setHealth(PokemonScreenModel.PLAYER_MAX_HEALTH);
+		this.boss.setHealth(PokemonScreenModel.BOSS_MAX_HEALTH);
 		this.choiceBox = new ChoiceDialogBox();
-		let pimg = this.getPlayer().getCurrentImage();
-		console.log(`X: ${pimg.x()}, Y: ${pimg.y()}`);
 	}
 
 	generateNextQuestion(): { question: string; answers: string[] } {
