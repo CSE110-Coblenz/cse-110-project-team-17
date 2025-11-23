@@ -23,6 +23,7 @@ export class PokemonScreenController extends ScreenController {
 		this.model = new PokemonScreenModel(screenSwitcher.getStageWidth(), screenSwitcher.getStageHeight());
 		this.view = new PokemonScreenView(this.screenSwitcher, this.model);
 		this.view.setAnswerHandler(this.handleAnswerSelection);
+		this.view.setIntroHandler(this.handleIntroClick);
 	}
 
 	/**
@@ -32,16 +33,10 @@ export class PokemonScreenController extends ScreenController {
      * shows the combat view and starts the requestAnimationFrame loop.
      */
 	startCombat(): void {
+		// Must show the screen to begin with
 		this.view.show();
-
-		// set running variable to active
-		this.model.resetGame();
-		this.waitForQuestion = false;
-		this.presentNextQuestion();
-		this.view.updateBossHealthText(this.model.getBossHealth());
-
-		// start the frame loop
-		// requestAnimationFrame(this.gameLoop);
+		// Show the intro
+		this.view.showIntro();
 	}
 
 	/**  * hide
@@ -70,6 +65,15 @@ export class PokemonScreenController extends ScreenController {
 	// 	// schedule next frame
 	// 	requestAnimationFrame(this.gameLoop);
 	// };
+
+	private handleIntroClick = (): void => {
+		this.view.hideIntro();
+		// set running variable to active
+		this.model.resetGame();
+		this.waitForQuestion = false;
+		this.presentNextQuestion();
+		this.view.updateBossHealthText(this.model.getBossHealth());
+	};
 
 	private presentNextQuestion(): void {
 		const qa = this.model.generateNextQuestion();

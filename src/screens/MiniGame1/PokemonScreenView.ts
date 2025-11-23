@@ -4,7 +4,6 @@ import  { PokemonScreenModel } from "./PokemonScreenModel.ts";
 import { Rect } from "konva/lib/shapes/Rect";
 import type { ScreenSwitcher } from "../../types.ts";
 import type { Group } from "konva/lib/Group";
-import { STAGE_HEIGHT, STAGE_WIDTH } from "../../constants.ts";
 
 /**
  * CombatScreenView
@@ -19,6 +18,7 @@ export class PokemonScreenView extends MapView {
 	private screenGroup: Konva.Group;
 	private playerGroup: Konva.Group;
 	private bossGroup: Konva.Group;
+	private introGroup: Konva.Group;
 	private model: PokemonScreenModel;
 
 	private answerButton: Konva.Rect[];
@@ -29,6 +29,7 @@ export class PokemonScreenView extends MapView {
 	private victoryText: Konva.Text;
 	private bossName: Konva.Text;
 	private onAnswerSelected?: (index: number) => void;
+	private onIntroClick?: () => void;
 
 	static readonly TIME_BETWEEN_QUESTIONS = 1000; // 2 seconds
 
@@ -39,6 +40,7 @@ export class PokemonScreenView extends MapView {
 		this.textBoxGroup = new Konva.Group({ visible: false });
 		this.playerGroup = new Konva.Group({ visible: false });
 		this.bossGroup = new Konva.Group({ visible: false });
+		this.introGroup = new Konva.Group({ visible: false });
 		this.screenGroup = new Konva.Group({ visible: false });
 		this.screenGroup.add(this.bgGroup);
 		this.screenGroup.add(this.playerGroup);
@@ -229,6 +231,59 @@ export class PokemonScreenView extends MapView {
 			label.height(button.height());
 			this.textBoxGroup.add(label);
 		});
+
+
+		// Intro screen elements
+		const introBg = new Konva.Rect({
+			x: 0,
+			y: 0,
+			width: screenSwitcher.getStageWidth(),
+			height: screenSwitcher.getStageHeight(),
+			fill: 'white'
+		});
+		const titleText = new Konva.Text({
+			x: screenSwitcher.getStageWidth() / 2,
+			y: screenSwitcher.getStageHeight() / 4,
+			fontSize: 48,
+			fontFamily: 'Impact',
+			fill: 'gold',
+			text: 'Pokemon Boss Battle!',
+			align: 'center'
+		});
+		titleText.offsetX(titleText.width() / 2);
+
+		const instructionsText = new Konva.Text({
+			x: screenSwitcher.getStageWidth() / 2,
+			y: screenSwitcher.getStageHeight() / 2 - 50,
+			fontSize: 24,
+			fontFamily: 'Arial',
+			fill: 'black',
+			text: 'Answer questions correctly to damage the boss!\nWrong answers will hurt you.\nChoose the right answer by clicking the buttons.',
+			align: 'center',
+			lineHeight: 1.5
+		});
+		instructionsText.offsetX(instructionsText.width() / 2);
+
+		const promptText = new Konva.Text({
+			x: screenSwitcher.getStageWidth() / 2,
+			y: screenSwitcher.getStageHeight() * 3 / 4,
+			fontSize: 28,
+			fontFamily: 'Arial',
+			fill: 'black',
+			text: 'Click the screen to continue',
+			align: 'center'
+		});
+		promptText.offsetX(promptText.width() / 2);
+
+		this.introGroup.add(introBg);
+		this.introGroup.add(titleText);
+		this.introGroup.add(instructionsText);
+		this.introGroup.add(promptText);		// Add click listener to intro group
+		this.introGroup.on('click', () => {
+			if (this.onIntroClick) {
+				this.onIntroClick();
+			}
+		});
 	}
 
 	showAttackAnimation(): void {
@@ -271,6 +326,7 @@ export class PokemonScreenView extends MapView {
 		this.playerGroup.visible(true);
 		this.bossGroup.visible(true);
 		this.bgGroup.visible(true);
+		this.introGroup.visible(true);
 		// this.bgGroup.getLayer()?.draw();
 	}
 
@@ -280,12 +336,28 @@ export class PokemonScreenView extends MapView {
 		this.playerGroup.visible(false);
 		this.bossGroup.visible(false);
 		this.bgGroup.visible(false);
+		this.introGroup.visible(false);
 		// this.bgGroup.getLayer()?.draw();
+	}
+
+	showIntro(): void {
+		this.screenGroup.visible(true);
+		this.screenGroup.add(this.introGroup);
+		this.introGroup.moveToTop();
+	}
+
+	hideIntro(): void {
+		this.introGroup.remove();
 	}
 
 	// Used in the screen controller to set answer handler
 	setAnswerHandler(handler: (index: number) => void): void {
 		this.onAnswerSelected = handler;
+	}
+
+	// Used in the screen controller to set intro click handler
+	setIntroHandler(handler: () => void): void {
+		this.onIntroClick = handler;
 	}
 
 	// Update question and answers
