@@ -4,7 +4,6 @@ import { ExplorationScreenView } from "./ExplorationScreenView.ts";
 import { InputManager } from "../../input.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT , EDGE_THRESHOLD } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
-import { npc } from "../../entities/npc.ts";
 import { GameObject } from "../../entities/object.ts";
 import type { ScreenSwitcher } from "../../types.ts";
 import { Map } from "../../entities/tempMap.ts";
@@ -15,7 +14,6 @@ export class ExplorationScreenController extends ScreenController {
     private screenSwitcher: ScreenSwitcher;
     private input!: InputManager;
     private player!: Player;
-    private npc!: npc;
     private gameObjects: GameObject[] = [];
     private running: boolean;
     private logicTickInterval?: number;
@@ -110,6 +108,7 @@ export class ExplorationScreenController extends ScreenController {
             this.checkObjectCollection();
         }
     };
+
 
     /**
      * Helper method to check Map Border Collisions
@@ -212,7 +211,6 @@ export class ExplorationScreenController extends ScreenController {
         const playerImg = this.player.getCurrentImage();
         const playerX = playerImg.x();
         const playerY = playerImg.y();
-        const wasCompletedBefore = this.model.allObjectsCollected();
 
         for(const obj of this.gameObjects){
             if(obj.isCollected() || !obj.isInteractable()) continue;
@@ -235,12 +233,6 @@ export class ExplorationScreenController extends ScreenController {
                 
                 // Show visual feedback message
                 this.view.showCollectionMessage(`Collected ${obj.getName()}!`);
-                // Check for robot completion
-                const isCompletedNow = this.model.allObjectsCollected();
-                if (!wasCompletedBefore && isCompletedNow) {
-                    const completionMessage = "Now that the robot is complete, you are safe to explore out of this junkyard. Good luck, survivor!";
-                    this.npc.showUrgentDialog(completionMessage);
-                }
                 
                 // Only collect one item per 'P' press
                 break;
