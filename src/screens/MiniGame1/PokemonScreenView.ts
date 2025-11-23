@@ -26,8 +26,10 @@ export class PokemonScreenView extends MapView {
 	private questionText: Konva.Text;
 	private feedbackText: Konva.Text;
 	private bossHealthText: Konva.Text;
+	private playerHealthText: Konva.Text;
 	private victoryText: Konva.Text;
 	private bossName: Konva.Text;
+	private playerName: Konva.Text;
 	private onAnswerSelected?: (index: number) => void;
 	private onIntroClick?: () => void;
 
@@ -135,6 +137,26 @@ export class PokemonScreenView extends MapView {
 		});
 		this.screenGroup.add(this.bossHealthText);
 		this.screenGroup.add(this.bossName);
+
+		this.playerName = new Konva.Text({
+			x: 70,
+			y: 400,
+			fontSize: 40,
+			fontFamily: 'Arial',
+			fill: 'black',
+			text: 'Player:'
+		});
+				// Player health text
+		this.playerHealthText = new Konva.Text({
+			x: 70,
+			y: this.playerName.y() + 50,
+			fontSize: 25,
+			fontFamily: 'Arial',
+			fill: 'blue',
+			text: `${this.model.getPlayerHealth()}/${PokemonScreenModel.PLAYER_MAX_HEALTH}`
+		});
+		this.screenGroup.add(this.playerHealthText);
+		this.screenGroup.add(this.playerName);
 
 		// Victory message
 		this.victoryText = new Konva.Text({
@@ -391,6 +413,11 @@ export class PokemonScreenView extends MapView {
 
 	updateBossHealthText(health: number): void {
 		this.bossHealthText.text(`${health}/${PokemonScreenModel.BOSS_MAX_HEALTH}`);
+		this.screenGroup.getLayer()?.batchDraw();
+	}
+
+	updatePlayerHealthText(health: number): void {
+		this.playerHealthText.text(`${health}/${PokemonScreenModel.PLAYER_MAX_HEALTH}`);
 		this.screenGroup.getLayer()?.batchDraw();
 	}
 

@@ -17,7 +17,7 @@ export class PokemonScreenModel extends MapModel{
 	private boss: Zombie;
 	private currentQuestion: { question: string; answers: string[] } | null = null;
 
-	static readonly BOSS_MAX_HEALTH: number = 100;
+	static readonly BOSS_MAX_HEALTH: number = 200;
 	static readonly PLAYER_MAX_HEALTH: number = 100;
 
 	constructor(width: number, height: number) {
@@ -79,12 +79,24 @@ export class PokemonScreenModel extends MapModel{
 		return this.boss.getHealth();
 	}
 
+	getPlayerHealth(): number {
+		return this.player.getHealth();
+	}
+
 	dealDamageToBoss(damage: number): void {
 		this.boss.takeDamage(damage);
 	}
 
+	dealDamageToPlayer(damage: number): void {
+		this.player.takeDamage(damage);
+	}
+
 	isBossDefeated(): boolean {
 		return this.boss.getHealth() <= 0;
+	}
+
+	isPlayerDefeated(): boolean {
+		return this.player.getHealth() <= 0;
 	}
 
 	resetBoss(): void {

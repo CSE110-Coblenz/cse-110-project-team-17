@@ -73,6 +73,7 @@ export class PokemonScreenController extends ScreenController {
 		this.waitForQuestion = false;
 		this.presentNextQuestion();
 		this.view.updateBossHealthText(this.model.getBossHealth());
+		this.view.updatePlayerHealthText(this.model.getPlayerHealth());
 	};
 
 	private presentNextQuestion(): void {
@@ -99,17 +100,28 @@ export class PokemonScreenController extends ScreenController {
 			this.view.updateBossHealthText(this.model.getBossHealth());
 			this.view.playBossDamageAnimation(damage);
 			this.view.playPlayerJumpAnimation();
-			if (this.model.isBossDefeated()) {
-				this.view.showVictoryMessage();
-				setTimeout(() => {
-					this.screenSwitcher.switchToScreen({ type: "exploration" });
-				}, 2000);
-			}
+
+		} else {
+			// Incorrect answer: player takes damage
+			const damage = 20; // Fixed damage for incorrect answers
+			this.model.dealDamageToPlayer(damage);
+			this.view.updatePlayerHealthText(this.model.getPlayerHealth());
+		}
+		if (this.model.isBossDefeated()) {
+			this.view.showVictoryMessage();
+			setTimeout(() => {
+				this.screenSwitcher.switchToScreen({ type: "exploration" });
+			}, 2000);
+		} else if (this.model.isPlayerDefeated()) {
+			// this.view.showDefeatMessage();
+			setTimeout(() => {
+				this.screenSwitcher.switchToScreen({ type: "exploration" });
+			}, 2000);
 		}
 		this.waitForQuestion = true;
 		// Tweak to set delay between questions
 		setTimeout(() => {
-			if (!this.model.isBossDefeated()) {
+			if (!this.model.isBossDefeated() && !this.model.isPlayerDefeated()) {
 				this.waitForQuestion = false;
 				this.presentNextQuestion();
 			}
