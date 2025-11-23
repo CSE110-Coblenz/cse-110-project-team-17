@@ -18,7 +18,6 @@ export class ChoiceDialogBox {
   private correctAnswerIndex: number = -1;
   private correctQuestions: Set<QuestionData> = new Set();
   private incorrectQuestions: Set<QuestionData> = new Set();
-  private currentQuestionCorrect: boolean = false;
 
   constructor() {
     this.questions = this.initializeQuestions();
@@ -33,7 +32,7 @@ export class ChoiceDialogBox {
   private initializeQuestions(): QuestionData[] {
     return [
       {
-        question: "Public vs Private. Which of these keywords allows a variable to be used outside its class?",
+        question: "Which of these keywords allows a variable to be used outside its class?",
         answers: ["Public", "Private", "Void", "Static"],
         correctIndex: 0
       },
@@ -63,10 +62,25 @@ export class ChoiceDialogBox {
         correctIndex: 1
       },
       {
-        question: "What keyword is used to create a new object?",
-        answers: ["Object = Create object()", "Object = Make object()", "Object = New object()", "Object = Spawn object()"],
+        question: "Which of these is NOT a primitive data type?",
+        answers: ["integer", "boolean", "String", "double"],
         correctIndex: 2
-      }
+      },
+      {
+        question: "What kind of loop statement is typically used if the number of iterations is known?",
+        answers: ["for", "while", "do-while", "if"],
+        correctIndex: 0
+      },
+      {
+        question: "When a variable can be accessed anywhere in a program, it is called a ____ variable.",
+        answers: ["global", "local", "void", "valid"],
+        correctIndex: 0
+      }, 
+      {
+        question: "Where are instance variables typically defined in a class?",
+        answers: ["At the top, after the class name", "At the very bottom", "Inside a constructor", "Outside the class"],
+        correctIndex: 0
+      }, 
     ];
   }
 
@@ -93,7 +107,6 @@ export class ChoiceDialogBox {
     }
 
     this.currentQuestion = selectedQuestion;
-    this.currentQuestionCorrect = false; // Reset for new question
 
     // Shuffle the answers and track the new correct index
     const shuffled = [...this.currentQuestion.answers];
@@ -147,8 +160,6 @@ export class ChoiceDialogBox {
     if (!this.currentQuestion) {
       return;
     }
-
-    this.currentQuestionCorrect = isCorrect;
 
     if (isCorrect) {
       // Move from incorrect to correct
