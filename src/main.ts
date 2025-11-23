@@ -93,7 +93,7 @@ export class App implements ScreenSwitcher {
                 break;
             
             case "pokemon":
-                this.pokemonController.show();
+                this.pokemonController.startCombat();
                 break;
         }
     }

@@ -34,14 +34,15 @@ export class PokemonScreenController extends ScreenController {
      */
 	startCombat(): void {
 		this.input = new InputManager();
-		this.presentNextQuestion();
 		this.view.show();
 
 		// set running variable to active
-		this.model.setRunning(true);
+		this.model.resetGame();
+		this.presentNextQuestion();
+		this.view.updateBossHealthText(this.model.getBossHealth());
 
 		// start the frame loop
-		requestAnimationFrame(this.gameLoop);
+		// requestAnimationFrame(this.gameLoop);
 	}
 
 	/**  * hide
@@ -61,15 +62,15 @@ export class PokemonScreenController extends ScreenController {
      * updates model (movement, attack), then asks the top-level app
      * to redraw the entity layer.
      */
-	private gameLoop = (): void => {
-		// stop condition: model not running or input not initialized
-		if (!this.model.isRunning() || !this.input) {
-			return;
-		}
+	// private gameLoop = (): void => {
+	// 	// stop condition: model not running or input not initialized
+	// 	if (!this.model.isRunning() || !this.input) {
+	// 		return;
+	// 	}
 		
-		// schedule next frame
-		requestAnimationFrame(this.gameLoop);
-	};
+	// 	// schedule next frame
+	// 	requestAnimationFrame(this.gameLoop);
+	// };
 
 	private presentNextQuestion(): void {
 		const qa = this.model.generateNextQuestion();
@@ -93,9 +94,7 @@ export class PokemonScreenController extends ScreenController {
 			if (this.model.isBossDefeated()) {
 				this.view.showVictoryMessage();
 				setTimeout(() => {
-					this.model.resetBoss();
-					this.presentNextQuestion();
-					this.view.updateBossHealthText(this.model.getBossHealth());
+					this.screenSwitcher.switchToScreen({ type: "exploration" });
 				}, 2000);
 			}
 		}

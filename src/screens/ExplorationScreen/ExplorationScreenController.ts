@@ -141,6 +141,7 @@ export class ExplorationScreenController extends ScreenController {
                 // Start the pokemon minigame
                 this.model.setRunning(false);
                 this.screenSwitcher.switchToScreen({ type: "pokemon" });
+                this.player.move(0, +1); // Move player slightly down to avoid immediate re-trigger
                 return;
             }
         }        

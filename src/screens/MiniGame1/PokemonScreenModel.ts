@@ -44,6 +44,14 @@ export class PokemonScreenModel extends MapModel{
 		this.running = running;
 	}
 
+	public resetGame(): void {
+		this.player.setHealth(100);
+		this.boss.setHealth(200);
+		this.choiceBox = new ChoiceDialogBox();
+		let pimg = this.getPlayer().getCurrentImage();
+		console.log(`X: ${pimg.x()}, Y: ${pimg.y()}`);
+	}
+
 	generateNextQuestion(): { question: string; answers: string[] } {
 		this.choiceBox.selectNewQuestion();
 		const qa = this.choiceBox.getQuestionAndAnswers();
