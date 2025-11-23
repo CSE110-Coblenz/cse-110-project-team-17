@@ -106,6 +106,7 @@ export class PokemonScreenController extends ScreenController {
 			const damage = 20; // Fixed damage for incorrect answers
 			this.model.dealDamageToPlayer(damage);
 			this.view.updatePlayerHealthText(this.model.getPlayerHealth());
+			this.view.playPlayerDamageAnimation(damage);
 			if (this.model.isPlayerDefeated()) {
 				this.view.showLoseMessage();
 				setTimeout(() => {

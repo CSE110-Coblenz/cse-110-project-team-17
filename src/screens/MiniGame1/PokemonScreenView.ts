@@ -543,6 +543,55 @@ export class PokemonScreenView extends MapView {
 		}, 500); // 0.5 seconds
 	}
 
+	playPlayerDamageAnimation(damage: number): void {
+		const playerImage = this.model.getPlayer().getCurrentImage();
+		
+		// Create red overlay
+		const overlay = new Konva.Rect({
+			x: playerImage.x(),
+			y: playerImage.y(),
+			width: playerImage.width() * playerImage.scaleX(),
+			height: playerImage.height() * playerImage.scaleY(),
+			fill: 'red',
+			opacity: 0.5
+		});
+		this.playerGroup.add(overlay);
+		
+		// Create damage text indicator
+		const damageText = new Konva.Text({
+			x: playerImage.x() + playerImage.width() * playerImage.scaleX() / 2,
+			y: playerImage.y() - 20,
+			text: `-${damage}`,
+			fontSize: 24,
+			fontFamily: 'Arial',
+			fill: 'red',
+			align: 'center'
+		});
+		damageText.offsetX(damageText.width() / 2);
+		this.screenGroup.add(damageText);
+		
+		// Shake animation using Konva.Animation with oscillation
+		let startTime = Date.now();
+		const anim = new Konva.Animation(() => {
+			const elapsed = (Date.now() - startTime) / 1000; // seconds
+			const amplitude = 10; // shake distance
+			const frequency = 10; // oscillations per second
+			const offset = Math.sin(elapsed * frequency * 2 * Math.PI) * amplitude;
+			this.playerGroup.x(offset);
+		}, this.playerGroup.getLayer());
+		
+		anim.start();
+		
+		// Stop animation and remove overlay and text after TIME_BETWEEN_QUESTIONS
+		setTimeout(() => {
+			anim.stop();
+			this.playerGroup.x(0); // reset position
+			overlay.destroy();
+			damageText.destroy();
+			this.playerGroup.getLayer()?.batchDraw();
+		}, PokemonScreenView.TIME_BETWEEN_QUESTIONS);
+	}
+
 	private positionAnswerLabel(index: number): void {
 		const button = this.answerButton[index];
 		const label = this.answerLabels[index];
