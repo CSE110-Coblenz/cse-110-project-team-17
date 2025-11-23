@@ -34,7 +34,7 @@ export class PokemonScreenView extends MapView {
 	private onAnswerSelected?: (index: number) => void;
 	private onIntroClick?: () => void;
 
-	static readonly TIME_BETWEEN_QUESTIONS = 1000; // 2 seconds
+	static readonly TIME_BETWEEN_QUESTIONS = 2000; // 2 seconds
 
 	constructor(screenSwitcher: ScreenSwitcher, model: PokemonScreenModel) {
 		super(model);
