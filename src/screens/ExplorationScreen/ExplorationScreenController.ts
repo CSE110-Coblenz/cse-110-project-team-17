@@ -181,8 +181,8 @@ export class ExplorationScreenController extends ScreenController {
         }
 
         this.npc.updateDialog(
-            dx,
-            dy,
+            next.x,
+            next.y,
         );
 
         /* console.log(
