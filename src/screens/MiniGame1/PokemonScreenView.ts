@@ -4,6 +4,7 @@ import  { PokemonScreenModel } from "./PokemonScreenModel.ts";
 import { Rect } from "konva/lib/shapes/Rect";
 import type { ScreenSwitcher } from "../../types.ts";
 import type { Group } from "konva/lib/Group";
+import { STAGE_HEIGHT, STAGE_WIDTH } from "../../constants.ts";
 
 /**
  * CombatScreenView
@@ -102,7 +103,7 @@ export class PokemonScreenView extends MapView {
 		this.feedbackText = new Konva.Text({
 			x: textBox.x() + 20,
 			y: textBox.y() + textBox.height() - 50,
-			width: textBox.width() / 2 - 20,
+			width: textBox.width() / 2 - 80,
 			fontSize: 20,
 			fontFamily: 'Arial',
 			fill: '#1b1b1b',
@@ -135,14 +136,17 @@ export class PokemonScreenView extends MapView {
 
 		// Victory message
 		this.victoryText = new Konva.Text({
-			x: screenSwitcher.getStageWidth() / 2 - 100,
-			y: screenSwitcher.getStageHeight() / 2 - 50,
+			x: screenSwitcher.getStageWidth() / 2,
+			y: screenSwitcher.getStageHeight() / 2,
 			fontSize: 48,
 			fontFamily: 'Arial',
 			fill: 'gold',
 			text: 'Victory! Boss Defeated!',
+			align: 'center',
 			visible: false
 		});
+		this.victoryText.offsetX(this.victoryText.width() / 2);
+		this.victoryText.offsetY(this.victoryText.height() / 2);
 		this.screenGroup.add(this.victoryText);
 
 		// Create the answer buttons
