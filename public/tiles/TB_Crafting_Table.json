@@ -1,0 +1,10 @@
+{
+    "name": "TB_Crafting_Table",
+    "tileWidth": 16,
+    "tileHeight": 16,
+    "tilecount": 4,
+    "columns": 2,
+    "source": "/mapAssets/crafting-table.jpeg",
+    "width": 32,
+    "height": 32
+}

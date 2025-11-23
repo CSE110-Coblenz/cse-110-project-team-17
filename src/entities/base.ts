@@ -1,42 +1,86 @@
-/**
- * BaseEntity - Describes basic functionality shared across entities in the game
- */
-import { Map } from './tempMap';
+import Konva from "konva";
 
-export class BaseEntity {
-    private location: Map | null = null;
-    protected name: string = '';
 
-    constructor(name: string) {
+export type position = {
+    x : number;
+    y : number;
+};
+export type Directions = 'up' | 'down' | 'right' | 'left';
+
+/* Holds all of the classes that Robot and Zombie share */
+/* Also hold functions to implement object collision to Player, Zombie, and Robot */
+export abstract class MovableEntity {
+    protected name: string;
+    protected speed: number;
+    protected currentImage: Konva.Image;
+    protected position: position;
+    protected dir: Directions;
+
+    constructor(
+        name: string,
+        speed: number,
+        currentImage: Konva.Image,
+        x: number,
+        y: number
+    ) {
         this.name = name;
+        this.speed = speed;
+        this.currentImage = currentImage;
+        this.position = { x, y };
+        this.dir = 'right';
     }
 
-    /**
-     * Reset entity state
-     */
-    reset(): void {
-        this.location = null;
-        this.name = '';
+    getPosition(): position {
+        return this.position;
     }
 
-    /**
-     * Change location of the entity
-     */
-    changeLocation(newLocation: Map): void {
-        this.location = newLocation;
+    getDirection(): Directions {
+        return this.dir;
     }
 
-    /**
-     * Get the name of the entity
-     */
+    faceDirection(direction: Directions): void {
+        this.dir = direction;
+    }
+
+    /** Get Konva image */
+    getCurrentImage(): Konva.Image {
+        return this.currentImage;
+    }
+
+    /** Current X/Y accessors */
+    getX(): number {
+        return this.currentImage.x();
+    }
+
+    getY(): number {
+        return this.currentImage.y();
+    }
+
+    /** Calculate next position given dx/dy */
+    getNextPosition(dx: number, dy: number) {
+        return {
+            x: this.getX() + dx * this.speed,
+            y: this.getY() + dy * this.speed,
+        };
+    }
+
+    moveTo(x: number, y: number): void {
+        this.currentImage.x(x);
+        this.currentImage.y(y);
+        this.position = { x, y };
+    }
+
+    /** Get the entity's name */
     getName(): string {
         return this.name;
     }
 
-    /**
-     * Get the location of the entity
-     */
-    getLocation(): Map | null {
-        return this.location;
+    /** Get the movement speed */
+    getSpeed(): any {
+        return this.speed;
+    }
+
+    setSpeed(speed: number): void {
+        this.speed = speed;
     }
 }

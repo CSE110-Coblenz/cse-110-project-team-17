@@ -1,0 +1,10 @@
+{
+    "name": "Building_Gray_Set",
+    "tileWidth": 16,
+    "tileHeight": 16,
+    "tilecount": 169,
+    "columns": 13,
+    "source": "/mapAssets/Buildings_gray_TileSet.png",
+    "width": 208,
+    "height": 208
+}

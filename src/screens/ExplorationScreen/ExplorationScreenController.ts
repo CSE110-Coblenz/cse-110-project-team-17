@@ -2,11 +2,12 @@ import { ScreenController } from "../../types.ts";
 import { ExplorationScreenModel } from "./ExplorationScreenModel.ts";
 import { ExplorationScreenView } from "./ExplorationScreenView.ts";
 import { InputManager } from "../../input.ts";
-import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
+import { STAGE_WIDTH, STAGE_HEIGHT , EDGE_THRESHOLD } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
-import { npc } from "../../entities/npc.ts";
 import { GameObject } from "../../entities/object.ts";
 import type { ScreenSwitcher } from "../../types.ts";
+import { Map } from "../../entities/tempMap.ts";
+import { npc } from "../../entities/npc.ts"
 
 export class ExplorationScreenController extends ScreenController {
     private model: ExplorationScreenModel;
@@ -16,30 +17,47 @@ export class ExplorationScreenController extends ScreenController {
     private player!: Player;
     private npc!: npc;
     private gameObjects: GameObject[] = [];
-    private readonly EDGE_THRESHOLD = 10; // Pixels from edge to trigger transition
+    private running: boolean;
+    private logicTickInterval?: number;
+    private lastCollectionMsgTs = 0;
+    private COLLECTION_MSG_COOLDOWN_MS = 750;
+    private mapBuilder!: Map;
 
     constructor(screenSwitcher: ScreenSwitcher) {
         super();
         this.screenSwitcher = screenSwitcher;
         this.model = new ExplorationScreenModel();
         this.view = new ExplorationScreenView();
+        this.running = false;
     }
 
-    /* Load Map and spawn objects */
+    /**
+     * Called by top-level App class BEFORE the game starts
+     *  --> builds map, initializes entities
+     */
     async init(): Promise<void> {
-        const mapData = await this.loadMap("/porj0.json");
-        const playerImage = await this.loadImage("/imagesTemp.jpg");
-        
-        this.player = new Player("player1", STAGE_WIDTH / 2, STAGE_HEIGHT / 2, playerImage);
+        /* mapData represents the map's .json file */
+        const mapData = await this.loadMap("/maps/Exploration_Map_ZA.json");
+
+        /* mapBuilder uses the Map class to build the map using the mapData(.json)*/
+        this.mapBuilder = new Map(16, mapData, this.loadImage.bind(this));
+        await this.mapBuilder.loadTilesets();
+
+        /* Assemble the mapGroup in the Map class and give it to the ScreenView */
+        const mapGroup = await this.mapBuilder.buildMap();
+        this.view.getMapGroup().add(mapGroup);
+
+        /* Create player instance */
+        const playerImage = await this.loadImage("/sprites/idle-frame1.png");
+        this.player = new Player("player1", STAGE_WIDTH/2, STAGE_HEIGHT/2, playerImage);
 
         // Create GameObject instances without Screen dependency
         const key = new GameObject("key", 200, 300, true);
-        const keyImage = await this.loadImage("/key.jpg");
+        const keyImage = await this.loadImage("/objects/key.jpg");
         await key.loadImage(keyImage);
         this.gameObjects.push(key);
         this.model.addObject("key");
 
-        // NPC Initialization
         const npcImage = await this.loadImage("/npc.png");
         const gameTrivia = [
             "The first wave of zombies was actually caused by a corrupted line of code, not a virus.",
@@ -65,119 +83,137 @@ export class ExplorationScreenController extends ScreenController {
         this.view.getEntityGroup().add(this.npc.getCurrentImage());
         this.view.getEntityGroup().draw();
 
-        const chest = new GameObject("chest", 500, 400, true);
-        const chestImage = await this.loadImage("/chest.png");
+        const chest = new GameObject("chest", 50, 40, true);
+        const chestImage = await this.loadImage("/objects/chest.png");
         await chest.loadImage(chestImage);
         this.gameObjects.push(chest);
         this.model.addObject("chest");
 
-        await this.view.build(mapData, this.player, this.gameObjects, this.loadImage.bind(this));
+        /* */
+        await this.view.build(this.player, this.gameObjects);
     }
 
-    startExploration(): void {
-        this.model.setRunning(true);
-        this.input = new InputManager();
-        this.view.show();
-        requestAnimationFrame(this.explorationLoop);
-    }
 
-    hide(): void {
-        this.model.setRunning(false);
-        this.view.hide();
-    }
-
-    /* Exploration game loop */
-    private explorationLoop = (): void => {
-        if (!this.model.isRunning()) return;
-
+    /**
+     * check Map Border Collisions 10 times a second  
+     * check Object Collection 10 times a second
+     */ 
+    private logicTick = (): void => {
+        if (!this.running) return;
         const { dx, dy } = this.input.getDirection();
+
+        if(dx !== 0 || dy !== 0){
+            this.checkEdges();
+        }
+
+        if(this.input.getInteract()){
+            this.checkObjectCollection();
+        }
+    };
+
+
+    /**
+     * Helper method to check Map Border Collisions
+     */
+    private checkEdges(): void {
         const playerImg = this.player.getCurrentImage();
-        const currentX = playerImg.x();
-        const currentY = playerImg.y();
+        const x = playerImg.x();
+        const y = playerImg.y();
+        // RIGHT EDGE
+        if(x >= STAGE_WIDTH - EDGE_THRESHOLD){
+            if(this.model.allObjectsCollected()){
+                this.running = false;
+                this.npc
+                this.screenSwitcher.switchToScreen({ type: "combat" });
+                return;
+            } else { // show one message every cooldown period
+                playerImg.x(STAGE_WIDTH - EDGE_THRESHOLD);
+                const now = performance.now();
+                if (now - this.lastCollectionMsgTs > this.COLLECTION_MSG_COOLDOWN_MS) {
+                    this.view.showCollectionMessage("Collect all items first!");
+                    this.lastCollectionMsgTs = now;
+                    this.npc.showUrgentDialog("Maybe you should finish completing your robot before exiting the junkyard. I heard it's real dangerous out there.");
+                }
+            }
+        }
+        // LEFT edge
+        if(x < 0) playerImg.x(0);
+        // TOP EDGE: POKEMON MINIGAME
+        if(y <= 0) {
+            // Check if all items have been collected
+            if (this.model.allObjectsCollected()) {
+                console.log("All items collected, switching to Pokemon minigame.");
+                // Start the pokemon minigame
+                this.hide();
+                this.screenSwitcher.switchToScreen({ type: "pokemon" });
+                this.player.moveTo(this.player.getPosition().x, this.player.getPosition().y+10); // Move player slightly down to avoid immediate re-trigger
+            } else {
+                playerImg.y(0);
+                this.npc.showUrgentDialog("Maybe you should finish completing your robot before fighting the boss. You need all the information to defeat him.");
+            }
+        }
+        // BOTTOM edge (CHANGE DEPENDING ON SPRITE)
+        const playerHeight = 16;
+        if(y > STAGE_HEIGHT - playerHeight){
+            playerImg.y(STAGE_HEIGHT - playerHeight);
+            if (!this.model.allObjectsCollected())
+                this.npc.showUrgentDialog("Maybe you should finish completing your robot before exiting the junkyard. I heard it's real dangerous out there.");
+        }
+    }
 
-        console.log("Player position: ", currentX, currentY);
 
-        // Move player
-        this.player.move(dx, dy);
+    /* Initializes ExplorationScreen gameplay:
+    *   --> called by top-level App class when screen switches to ExplorationScreen
+    */
+    startExploration(): void {
+        this.running = true;
+        this.input = new InputManager();
+        requestAnimationFrame(this.explorationLoop);
+        this.view.show();
+        this.logicTickInterval = window.setInterval(() => this.logicTick(), 50);
+    }
 
-        // Get new position after movement
-        const newX = playerImg.x();
-        const newY = playerImg.y();
 
-        const robotCompleted = this.model.allObjectsCollected();
-        // If the player pressed any movement key, mark activity and hide any global hints
+    /* GAME LOOP: 
+    *    --> runs 60 times/sec, only responsible for playerSprite movement
+    */
+    private explorationLoop = (): void => {
+        if(!this.running) return;
+        const { dx, dy } = this.input.getDirection();
+
         if (dx !== 0 || dy !== 0) {
             this.npc.markActive();
         }
+        
+        /* added functionality for OBJECT COLLISION */
+        const next = this.player.getNextPosition(dx, dy);
+        if(this.mapBuilder.canMoveToArea(next.x, next.y, 16, 16)){
+            this.player.moveTo(next.x, next.y);
+        }
 
         this.npc.updateDialog(
-            newX,
-            newY,
+            next.x,
+            next.y,
         );
-        
 
-        // Check if player is trying to go past the right edge
-        if (newX >= STAGE_WIDTH - this.EDGE_THRESHOLD) {
-            // Check if all items have been collected
-            if (this.model.allObjectsCollected()) {
-                // Transition to combat
-                this.model.setRunning(false);
-                this.screenSwitcher.switchToScreen({ type: "combat" });
-                return;
-            } else {
-                // Prevent movement past the edge
-                playerImg.x(STAGE_WIDTH - this.EDGE_THRESHOLD);
-                // Show message that items must be collected first
-                this.view.showCollectionMessage("Collect all items first!");
-                // to show the specific message about the exit being blocked.
-                this.npc.showUrgentDialog("Maybe you should finish completing your robot before exiting the junkyard. I heard it's real dangerous out there.");
-            }
-        }
-        // Check if player is trying to go past the top edge
-        else if (newY <= 0) {
-            // Check if all items have been collected
-            if (this.model.allObjectsCollected()) {
-                this.view.hide();
-                // Start the pokemon minigame
-                this.model.setRunning(false);
-                this.screenSwitcher.switchToScreen({ type: "pokemon" });
-                this.player.move(0, +1); // Move player slightly down to avoid immediate re-trigger
-                return;
-            }
-        }        
+        /* console.log(
+            "corner ->",
+            next.x, next.y,
+            "tile:",
+            Math.floor(next.x / this.mapBuilder.getTileSize()),
+            Math.floor(next.y / this.mapBuilder.getTileSize()),
+            "blocked:", this.mapBuilder.isBlocked(Math.floor(next.x / this.mapBuilder.getTileSize()), Math.floor(next.y / this.mapBuilder.getTileSize()))
+        ); */
 
-        // Optional: Prevent movement past other edges
-        if (newX < 0) {
-            playerImg.x(0);
-        }
-        if (newY < 0) {
-            playerImg.y(0);
-            if (!robotCompleted) {
-                // Robot not completed
-                playerImg.y(0);
-                this.view.showCollectionMessage("Collect all items first!");
-                this.npc.showUrgentDialog("Maybe you should finish completing your robot before starting the pokemon boss battles. I heard they are real dangerous.");
-            }
-        }
-        if (newY > STAGE_HEIGHT - 32) { 
-            playerImg.y(STAGE_HEIGHT - 32);
-            if (!robotCompleted) {
-                // Robot not completed
-                playerImg.y(STAGE_HEIGHT - 32);
-                this.view.showCollectionMessage("Collect all items first!");
-                this.npc.showUrgentDialog("Maybe you should finish completing your robot before exiting the junkyard. I heard it's real dangerous out there.");
-            }
-        }
+        console.log("mapBuilder =", this.mapBuilder);
+        console.log("next.x =", next.x);
+        console.log("next.y =", next.y);
+        console.log("tileSize =", this.mapBuilder.getTileSize());
 
-        // Check if 'P' key is pressed for object collection
-        const interact = this.input.getInteract();
-        if (interact) {
-            this.checkObjectCollection();
-        }
-
-        this.screenSwitcher.redrawEntities();
+        this.screenSwitcher.redrawExplorationPlayer();
         requestAnimationFrame(this.explorationLoop);
     };
+
 
     /**
      * Check if player is near any collectible objects
@@ -187,10 +223,9 @@ export class ExplorationScreenController extends ScreenController {
         const playerImg = this.player.getCurrentImage();
         const playerX = playerImg.x();
         const playerY = playerImg.y();
-        const wasCompletedBefore = this.model.allObjectsCollected();
 
-        for (const obj of this.gameObjects) {
-            if (obj.isCollected() || !obj.isInteractable()) continue;
+        for(const obj of this.gameObjects){
+            if(obj.isCollected() || !obj.isInteractable()) continue;
 
             const objPos = obj.getPosition();
             const objX = objPos.x;
@@ -210,12 +245,6 @@ export class ExplorationScreenController extends ScreenController {
                 
                 // Show visual feedback message
                 this.view.showCollectionMessage(`Collected ${obj.getName()}!`);
-                // Check for robot completion
-                const isCompletedNow = this.model.allObjectsCollected();
-                if (!wasCompletedBefore && isCompletedNow) {
-                    const completionMessage = "Now that the robot is complete, you are safe to explore out of this junkyard. Good luck, survivor!";
-                    this.npc.showUrgentDialog(completionMessage);
-                }
                 
                 // Only collect one item per 'P' press
                 break;
@@ -223,11 +252,19 @@ export class ExplorationScreenController extends ScreenController {
         }
     }
 
+
+    /**
+     * Convert a .json to a Konva struct that we can reference
+     */
     private async loadMap(jsonPath: string): Promise<any> {
         const res = await fetch(jsonPath);
         return await res.json();
     }
 
+
+    /**
+     * Convert a .png --> HTMLImageElement (Konva Object)
+     */
     private loadImage(src: string): Promise<HTMLImageElement> {
         return new Promise((resolve, reject) => {
             const img = new Image();
@@ -237,14 +274,36 @@ export class ExplorationScreenController extends ScreenController {
         });
     }
 
+    /**
+     * Return this view
+     */
     getView(): ExplorationScreenView {
         return this.view;
     }
+
 
     /**
      * Get collected items to pass to combat screen
      */
     getCollectedItems(): string[] {
         return this.model.getCollectedItems();
+    }
+
+
+    /**
+     * Hide the Exploration Screen
+     */
+    hide(): void {
+        this.running = false;
+        this.view.hide();
+        this.stopLogicLoop();
+    }
+
+    /* just in case */
+    private stopLogicLoop(): void {
+        if(this.logicTickInterval){
+            clearInterval(this.logicTickInterval);
+            this.logicTickInterval = undefined;
+        }
     }
 }
