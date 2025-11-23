@@ -1,6 +1,5 @@
 import { ScreenController } from "../../types.ts";
 import type { ScreenSwitcher } from "../../types.ts";
-import { InputManager } from "../../input.ts";
 import { PokemonScreenModel } from "./PokemonScreenModel.ts";
 import { PokemonScreenView } from "./PokemonScreenView.ts";
 
@@ -90,10 +89,11 @@ export class PokemonScreenController extends ScreenController {
 		this.view.showFeedbackMessage(message, isCorrect);
 		// Update boss health if correct (takes damage)
 		if (isCorrect) {
-			const damage = this.model.getPlayer().getMaxAttack() + 200;
+			// TODO: CHANGE DAMAGE FORMULA (THIS IS JUST FOR TESTING)
+			const damage = this.model.getPlayer().getMaxAttack();
 			this.model.dealDamageToBoss(damage);
 			this.view.updateBossHealthText(this.model.getBossHealth());
-			this.view.playBossDamageAnimation();
+			this.view.playBossDamageAnimation(damage);
 			if (this.model.isBossDefeated()) {
 				this.view.showVictoryMessage();
 				setTimeout(() => {

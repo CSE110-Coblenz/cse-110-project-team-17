@@ -139,8 +139,8 @@ export class PokemonScreenView extends MapView {
 			x: screenSwitcher.getStageWidth() / 2,
 			y: screenSwitcher.getStageHeight() / 2,
 			fontSize: 48,
-			fontFamily: 'Arial',
-			fill: 'gold',
+			fontFamily: 'Impact',
+			fill: 'violet',
 			text: 'Victory! Boss Defeated!',
 			align: 'center',
 			visible: false
@@ -345,9 +345,10 @@ export class PokemonScreenView extends MapView {
 		}, PokemonScreenView.TIME_BETWEEN_QUESTIONS);
 	}
 
-	playBossDamageAnimation(): void {
+	playBossDamageAnimation(damage: number): void {
 		const bossImage = this.model.getBoss().getCurrentImage();
-		// const originalX = bossImage.x();
+		
+		// Create red overlay
 		const overlay = new Konva.Rect({
 			x: bossImage.x(),
 			y: bossImage.y(),
@@ -357,24 +358,39 @@ export class PokemonScreenView extends MapView {
 			opacity: 0.5
 		});
 		this.bossGroup.add(overlay);
-		// this.bossGroup.getLayer()?.batchDraw();
-
-		// Shake animation: move left and right 5 times, doesnt work
-		// const shakeTween = new Konva.Tween({
-		// 	node: this.bossGroup,
-		// 	x: originalX - 90,
-		// 	duration: .1,
-		// 	yoyo: true,
-		// 	repeat: 2,
-		// 	onFinish: () => {
-		// 		overlay.destroy();
-		// 		shakeTween.destroy();
-		// 		// this.bossGroup.setX(originalX);
-		// 	}
-		// });
+		
+		// Create damage text indicator
+		const damageText = new Konva.Text({
+			x: bossImage.x() + bossImage.width() * bossImage.scaleX() / 2,
+			y: bossImage.y() - bossImage.height() / 2 - 20,
+			text: `-${damage}`,
+			fontSize: 24,
+			fontFamily: 'Arial',
+			fill: 'red',
+			align: 'center'
+		});
+		damageText.offsetX(damageText.width() / 2);
+		this.screenGroup.add(damageText);
+		
+		// Wiggle animation using Konva.Animation with oscillation
+		let startTime = Date.now();
+		const anim = new Konva.Animation(() => {
+			const elapsed = (Date.now() - startTime) / 1000; // seconds
+			const amplitude = 15; // wiggle distance
+			const frequency = 8; // oscillations per second
+			const offset = Math.sin(elapsed * frequency * 2 * Math.PI) * amplitude;
+			this.bossGroup.x(offset);
+		}, this.bossGroup.getLayer());
+		
+		anim.start();
+		
+		// Stop animation and remove overlay and text after TIME_BETWEEN_QUESTIONS
 		setTimeout(() => {
+			anim.stop();
+			this.bossGroup.x(0); // reset position
 			overlay.destroy();
-			// shakeTween.finish();
+			damageText.destroy();
+			this.bossGroup.getLayer()?.batchDraw();
 		}, PokemonScreenView.TIME_BETWEEN_QUESTIONS);
 	}
 
