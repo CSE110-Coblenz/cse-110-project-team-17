@@ -24,10 +24,10 @@ export class PokemonScreenModel extends MapModel{
 		super(width, height);
 		this.choiceBox = new ChoiceDialogBox();
 		const pimg = new Image();
-		pimg.src = '/imagesTemp.jpg';
+		pimg.src = '/sprites/idle-frame1.png';
 		this.player = new Robot("player", PokemonScreenModel.PLAYER_MAX_HEALTH, 20, width / 2, height / 2, pimg);
 		const bimg = new Image();
-		bimg.src = '/boss.jpg';
+		bimg.src = '/sprites/imagesTemp.jpg';
 		this.boss = new Zombie("boss", PokemonScreenModel.BOSS_MAX_HEALTH, 75, width / 2 + 100, height / 2, bimg);
 	}
 

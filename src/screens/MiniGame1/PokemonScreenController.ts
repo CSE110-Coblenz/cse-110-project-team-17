@@ -2,6 +2,7 @@ import { ScreenController } from "../../types.ts";
 import type { ScreenSwitcher } from "../../types.ts";
 import { PokemonScreenModel } from "./PokemonScreenModel.ts";
 import { PokemonScreenView } from "./PokemonScreenView.ts";
+import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 
 
 /**
@@ -20,8 +21,8 @@ export class PokemonScreenController extends ScreenController {
 	constructor(screenSwitcher: ScreenSwitcher) {
 		super();
 		this.screenSwitcher = screenSwitcher;
-		this.model = new PokemonScreenModel(screenSwitcher.getStageWidth(), screenSwitcher.getStageHeight());
-		this.view = new PokemonScreenView(this.screenSwitcher, this.model);
+		this.model = new PokemonScreenModel(STAGE_WIDTH, STAGE_HEIGHT);
+		this.view = new PokemonScreenView(this.model);
 		this.view.setAnswerHandler(this.handleAnswerSelection);
 		this.view.setIntroHandler(this.handleIntroClick);
 	}
@@ -109,6 +110,7 @@ export class PokemonScreenController extends ScreenController {
 			this.view.playPlayerDamageAnimation(damage);
 			if (this.model.isPlayerDefeated()) {
 				this.view.showLoseMessage();
+				this.waitForQuestion = true;
 				setTimeout(() => {
 					this.screenSwitcher.switchToScreen({ type: "exploration" });
 				}, 2000);
@@ -117,6 +119,7 @@ export class PokemonScreenController extends ScreenController {
 		}
 		if (this.model.isBossDefeated()) {
 			this.view.showVictoryMessage();
+			this.waitForQuestion = true;
 			setTimeout(() => {
 				this.screenSwitcher.switchToScreen({ type: "exploration" });
 			}, 2000);

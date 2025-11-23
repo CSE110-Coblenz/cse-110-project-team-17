@@ -2,7 +2,7 @@ import Konva from "konva";
 import { MapView } from "../MapScreen/MapView.ts";
 import  { PokemonScreenModel } from "./PokemonScreenModel.ts";
 import { Rect } from "konva/lib/shapes/Rect";
-import type { ScreenSwitcher } from "../../types.ts";
+import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 import type { Group } from "konva/lib/Group";
 
 /**
@@ -36,7 +36,7 @@ export class PokemonScreenView extends MapView {
 
 	static readonly TIME_BETWEEN_QUESTIONS = 2000; // 2 seconds
 
-	constructor(screenSwitcher: ScreenSwitcher, model: PokemonScreenModel) {
+	constructor(model: PokemonScreenModel) {
 		super(model);
 		this.bgGroup = new Konva.Group({ visible: false });
 		this.bgGroup.moveToBottom();
@@ -52,11 +52,11 @@ export class PokemonScreenView extends MapView {
 
 		this.model = model;
 		
-		this.model.getPlayer().getCurrentImage().scale({x:5, y:5});
+		this.model.getPlayer().getCurrentImage().scale({x:10, y:10});
 		this.playerGroup.add(this.model.getPlayer().getCurrentImage());
 		this.model.getBoss().getCurrentImage().scale({x:10, y:10});
 		this.bossGroup.add(this.model.getBoss().getCurrentImage());
-		this.model.getPlayer().moveTo(-screenSwitcher.getStageWidth()/4 - 50, 0);
+		this.model.getPlayer().moveTo(STAGE_WIDTH/4, 2 * STAGE_HEIGHT/4);
 		this.model.getBoss().moveTo(800, 100);
 
 		// Load the background
@@ -67,8 +67,8 @@ export class PokemonScreenView extends MapView {
 				image: img,
 				x: 0,
 				y: 0,
-				scaleX: screenSwitcher.getStageWidth() / img.width,
-				scaleY: screenSwitcher.getStageHeight() / img.height,
+				scaleX: STAGE_WIDTH / img.width,
+				scaleY: STAGE_HEIGHT / img.height,
 			});
 
 			this.bgGroup.add(konvaImage);
@@ -78,8 +78,8 @@ export class PokemonScreenView extends MapView {
 		// This is what the user will interact with
 		const textBox = new Rect({
 			x: 50,
-			y: screenSwitcher.getStageHeight() - 220,
-			width: screenSwitcher.getStageWidth() - 100,
+			y: STAGE_HEIGHT - 220,
+			width: STAGE_WIDTH - 100,
 			height: 200,
 			fill: 'white',
 			stroke: 'black',
@@ -161,8 +161,8 @@ export class PokemonScreenView extends MapView {
 
 		// Victory message
 		this.victoryText = new Konva.Text({
-			x: screenSwitcher.getStageWidth() / 2,
-			y: screenSwitcher.getStageHeight() / 2,
+			x: STAGE_WIDTH / 2,
+			y: STAGE_HEIGHT / 2,
 			fontSize: 48,
 			fontFamily: 'Impact',
 			fill: 'violet',
@@ -176,8 +176,8 @@ export class PokemonScreenView extends MapView {
 
 		// Lose message
 		this.loseText = new Konva.Text({
-			x: screenSwitcher.getStageWidth() / 2,
-			y: screenSwitcher.getStageHeight() / 2,
+			x: STAGE_WIDTH / 2,
+			y: STAGE_HEIGHT / 2,
 			fontSize: 48,
 			fontFamily: 'Impact',
 			fill: 'red',
@@ -193,7 +193,7 @@ export class PokemonScreenView extends MapView {
 		this.answerButton = [new Rect({
 			id: 'answer1',
 			x: 600,
-			y: screenSwitcher.getStageHeight() - 190,
+			y: STAGE_HEIGHT - 190,
 			width: 300,
 			height: 70,
 			fill: 'lightblue',
@@ -204,7 +204,7 @@ export class PokemonScreenView extends MapView {
 		new Rect({
 			id: 'answer2',
 			x: 900,
-			y: screenSwitcher.getStageHeight() - 120,
+			y: STAGE_HEIGHT - 120,
 			width: 300,
 			height: 70,
 			fill: 'lightblue',
@@ -215,7 +215,7 @@ export class PokemonScreenView extends MapView {
 		new Rect({
 			id: 'answer3',
 			x: 900,
-			y: screenSwitcher.getStageHeight() - 190,
+			y: STAGE_HEIGHT - 190,
 			width: 300,
 			height: 70,
 			fill: 'lightblue',
@@ -226,7 +226,7 @@ export class PokemonScreenView extends MapView {
 		new Rect({
 			id: 'answer4',
 			x: 600,
-			y: screenSwitcher.getStageHeight() - 120,
+			y: STAGE_HEIGHT - 120,
 			width: 300,
 			height: 70,
 			fill: 'lightblue',
@@ -275,13 +275,13 @@ export class PokemonScreenView extends MapView {
 		const introBg = new Konva.Rect({
 			x: 0,
 			y: 0,
-			width: screenSwitcher.getStageWidth(),
-			height: screenSwitcher.getStageHeight(),
+			width: STAGE_WIDTH,
+			height: STAGE_HEIGHT,
 			fill: 'white'
 		});
 		const titleText = new Konva.Text({
-			x: screenSwitcher.getStageWidth() / 2,
-			y: screenSwitcher.getStageHeight() / 4,
+			x: STAGE_WIDTH / 2,
+			y: STAGE_HEIGHT / 4,
 			fontSize: 48,
 			fontFamily: 'Impact',
 			fill: 'gold',
@@ -291,8 +291,8 @@ export class PokemonScreenView extends MapView {
 		titleText.offsetX(titleText.width() / 2);
 
 		const instructionsText = new Konva.Text({
-			x: screenSwitcher.getStageWidth() / 2,
-			y: screenSwitcher.getStageHeight() / 2 - 50,
+			x: STAGE_WIDTH / 2,
+			y: STAGE_HEIGHT / 2 - 50,
 			fontSize: 24,
 			fontFamily: 'Arial',
 			fill: 'black',
@@ -303,8 +303,8 @@ export class PokemonScreenView extends MapView {
 		instructionsText.offsetX(instructionsText.width() / 2);
 
 		const promptText = new Konva.Text({
-			x: screenSwitcher.getStageWidth() / 2,
-			y: screenSwitcher.getStageHeight() * 3 / 4,
+			x: STAGE_WIDTH / 2,
+			y: STAGE_HEIGHT * 3 / 4,
 			fontSize: 28,
 			fontFamily: 'Arial',
 			fill: 'black',
