@@ -169,13 +169,17 @@ export class ExplorationScreenController extends ScreenController {
     private explorationLoop = (): void => {
         if(!this.running) return;
         const { dx, dy } = this.input.getDirection();
+
+        if (dx !== 0 || dy !== 0) {
+            this.npc.markActive();
+        }
         
         /* added functionality for OBJECT COLLISION */
         const next = this.player.getNextPosition(dx, dy);
         if(this.mapBuilder.canMoveToArea(next.x, next.y, 16, 16)){
             this.player.moveTo(next.x, next.y);
         }
-        
+
         this.npc.updateDialog(
             dx,
             dy,
