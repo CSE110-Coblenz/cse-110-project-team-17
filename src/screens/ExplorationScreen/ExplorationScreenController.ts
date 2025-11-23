@@ -185,6 +185,7 @@ export class ExplorationScreenController extends ScreenController {
             next.x,
             next.y,
         );
+        
 
         /* console.log(
             "corner ->",
