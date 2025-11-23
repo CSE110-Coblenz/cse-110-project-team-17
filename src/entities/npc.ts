@@ -18,7 +18,7 @@ export class npc {
     private isShowingHint = false;
     private dialogBackground?: Konva.Rect;
 
-    private lingerEndTime: number = 10;
+    private lingerEndTime: number = 0;
     private readonly LINGER_DURATION: number = 3000; // 3 seconds
 
     constructor(x: number, y: number, triviaFacts: string[], image: HTMLImageElement) {
