@@ -36,6 +36,7 @@ export class ExplorationScreenController extends ScreenController {
     private collisionOverlay?: Konva.Group;
     private hitbox?: Konva.Rect;
     private movementLockUntil = 0;
+    private collisionDebugEnabled = false;
 
     constructor(screenSwitcher: ScreenSwitcher, eduControl: EducationScreenController) {
         super();
@@ -160,7 +161,7 @@ export class ExplorationScreenController extends ScreenController {
             this.checkEdges();
         }
 
-        if (this.collisionOverlay && this.input.getToggleDebug()) {
+        if (this.collisionDebugEnabled && this.collisionOverlay && this.input.getToggleDebug()) {
             const showing = this.collisionOverlay.visible();
             this.collisionOverlay.visible(!showing);
             this.view.getMapGroup().draw();
@@ -446,6 +447,14 @@ export class ExplorationScreenController extends ScreenController {
             duration: duration / 1000,
             easing: Konva.Easings.EaseOut,
         }).play();
+    }
+
+    enableCollisionDebug(flag: boolean): void {
+        this.collisionDebugEnabled = flag;
+        if (!flag && this.collisionOverlay) {
+            this.collisionOverlay.visible(false);
+            this.view.getMapGroup().draw();
+        }
     }
 
 
