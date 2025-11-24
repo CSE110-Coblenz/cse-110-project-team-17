@@ -36,9 +36,9 @@ describe("CombatScreenModel function tests", () => {
     model.addZombie(zombie);
 
     // Set dummy attack/idle images
-    const dummyImage = new Image();
-    model.setAttackingImage(dummyImage);
-    model.setIdleImage(dummyImage);
+    const dummyImg = new (globalThis as any).Image();
+    model.setAttackingImage(dummyImg);
+    model.setIdleImage(dummyImg);
   });
 
   it("starts with running set to false", () => {
