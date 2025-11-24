@@ -6,8 +6,8 @@ import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
 import { GameObject } from "../../entities/object.ts";
 import { Robot } from "../../entities/robot.ts";
-import { audioManager } from "../../audioManager.ts";
 import type { ScreenSwitcher } from "../../types.ts";
+import { audioManager } from "../../audioManager.ts";
 
 type TextSnippetDefinition = {
     id: string;
@@ -119,6 +119,7 @@ export class MiniGame2ScreenController extends ScreenController {
     private readonly COUNTDOWN_MS = 60000;
     private timerInterval?: number;
     private timerTimeout?: number;
+    static completed = false;
 
     constructor(screenSwitcher: ScreenSwitcher) {
         super();
@@ -160,6 +161,10 @@ export class MiniGame2ScreenController extends ScreenController {
     }
 
     startMiniGame(): void {
+        if (MiniGame2ScreenController.completed) {
+            this.screenSwitcher.switchToScreen({ type: "exploration" });
+            return;
+        }
         this.model.setRunning(false);
         this.input = new InputManager();
         this.view.show();
@@ -189,7 +194,7 @@ export class MiniGame2ScreenController extends ScreenController {
         }
 
         const { dx, dy } = this.input.getDirection();
-        this.player.setSpeed(this.input.isSprinting() ? 6 : 3);
+        this.player.setSpeed(this.input.isSprinting() ? 10 : 6);
         const playerImg = this.player.getCurrentImage();
 
         // Move player
@@ -575,6 +580,13 @@ export class MiniGame2ScreenController extends ScreenController {
         if (!this.celebrationTriggered && this.allSlotsCorrect()) {
             this.celebrationTriggered = true;
             this.view.showConfetti();
+            this.model.setRunning(false);
+            this.stopTimer();
+            MiniGame2ScreenController.completed = true;
+            setTimeout(() => {
+                this.hide();
+                this.screenSwitcher.switchToScreen({ type: "exploration" });
+            }, 1500);
         }
         return true;
     }

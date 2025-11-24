@@ -12,6 +12,7 @@ import { npc } from "../../entities/npc.ts"
 import { Robot } from "../../entities/robot.ts";
 import { audioManager } from "../../audioManager.ts";
 import Konva from "konva";
+import { MiniGame2ScreenController } from "../MiniGame2Screen/MiniGame2ScreenController.ts";
 
 export class ExplorationScreenController extends ScreenController {
     private model: ExplorationScreenModel;
@@ -227,6 +228,11 @@ export class ExplorationScreenController extends ScreenController {
         const playerHeight = 16;
         if(y >= STAGE_HEIGHT - EDGE_THRESHOLD){
             if (this.robotBuilt && !this.transitioning) {
+                if (MiniGame2ScreenController.completed) {
+                    this.npc.showUrgentDialogFor("You've already cleared this path. Head right for the main fight.", 1200);
+                    this.nudgeFromEdge("bottom");
+                    return;
+                }
                 this.transitioning = true;
                 this.running = false;
                 this.movementLockUntil = 0;
@@ -449,14 +455,13 @@ export class ExplorationScreenController extends ScreenController {
         }).play();
     }
 
-    enableCollisionDebug(flag: boolean): void {
+    setCollisionDebugEnabled(flag: boolean): void {
         this.collisionDebugEnabled = flag;
         if (!flag && this.collisionOverlay) {
             this.collisionOverlay.visible(false);
             this.view.getMapGroup().draw();
         }
     }
-
 
     /**
      * Convert a .json to a Konva struct that we can reference

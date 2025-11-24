@@ -344,7 +344,7 @@ export class MiniGame2ScreenView implements View {
         const instructions = new Konva.Text({
             x: STAGE_WIDTH / 2,
             y: 260,
-            text: "Use W/A/S/D to move.\nPress P to pick up the highlighted code block.\nCarry one block at a time to the correct slot on the right.\nA block can only fit a slot when the block itself is visually in contact with the slot.\nMatch all snippets to complete the robot code.",
+            text: "Use W/A/S/D to move.\nPress P to pick up the highlighted code block.\nCarry one block at a time to the correct slot on the right.\nA block can only fit a slot when the block itself is visually in contact with the slot.\nMatch all snippets to complete the robot code.\nFinish before the timer runs out!",
             fontSize: 22,
             fontFamily: "Arial",
             fill: "#e2e8f0",
