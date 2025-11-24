@@ -35,6 +35,11 @@ describe("CombatScreenModel function tests", () => {
     model.setEntities(robot, zombie);
     model.addZombie(zombie);
 
+    // Set dummy images to prevent errors
+    const dummyImage = new Image();
+    model.setAttackingImage(dummyImage);
+    model.setIdleImage(dummyImage);
+
     expect(zombie.getHealth()).toBe(50);
 
     model.processAttackRequest(true, 1000, -1, true); // robot attacks
@@ -67,6 +72,10 @@ describe("CombatScreenModel function tests", () => {
     const model = new CombatScreenModel(800, 600);
     const robot = new Robot("Robo", 100, 50, 0, 0);
     model.setEntities(robot, new Zombie("Zed", 50, 5, 100, 100));
+
+    // Mock the map so movement check passes
+    const mockMap = { canMoveToArea: (_x: number, _y: number, _w: number, _h: number) => true };
+    model.setMapBuilder(mockMap as any);
 
     model.updateRobotPosition(10, 0); // move right
     expect(robot.getPosition().x).toBeGreaterThan(0);
