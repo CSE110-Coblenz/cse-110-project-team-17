@@ -12,13 +12,11 @@ import { EducationScreenView } from "./EducationScreenView.ts";
 export class EducationScreenController {
     private view: EducationScreenView;
     private model: EducationScreenModel;
-    private screenSwitcher: ScreenSwitcher;
     private totalLessons = 7;
     private currLessonIdx;
     private onClose?: () => void;
 
-    constructor(screenSwitcher: ScreenSwitcher) {
-        this.screenSwitcher = screenSwitcher;
+    constructor() {
         this.view = new EducationScreenView(() => this.handleXClick(), () => this.handleLeftArrowClick(),
                                             () => this.handleRightArrowClick());
         this.model = new EducationScreenModel(this.totalLessons);
