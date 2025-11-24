@@ -1,4 +1,3 @@
-import type { ScreenSwitcher } from "../../types.ts";
 import { EducationScreenModel } from "./EducationScreenModel.ts";
 import { audioManager } from "../../audioManager.ts";
 import { EducationScreenView } from "./EducationScreenView.ts";
