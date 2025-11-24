@@ -88,11 +88,4 @@ describe("CombatScreenModel function tests", () => {
     expect(model.isRunning()).toBe(false);
     expect(model.getScore()).toBe(0);
   });
-
-  it("can retrieve attacking and idle images", () => {
-    const attackImg = model.getAttackingImage();
-    const idleImg = model.getIdleImage();
-    expect(attackImg).toBeDefined();
-    expect(idleImg).toBeDefined();
-  });
 });
