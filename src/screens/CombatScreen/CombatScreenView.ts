@@ -3,7 +3,7 @@ import { Robot } from "../../entities/robot.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { MapView } from "../MapScreen/MapView.ts";
 import { CombatScreenModel } from "./CombatScreenModel.ts";
-import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
+import { STAGE_WIDTH } from "../../constants.ts";
 
 /**
  * CombatScreenView
