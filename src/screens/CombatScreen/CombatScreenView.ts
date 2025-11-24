@@ -3,6 +3,7 @@ import { Robot } from "../../entities/robot.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { MapView } from "../MapScreen/MapView.ts";
 import { CombatScreenModel } from "./CombatScreenModel.ts";
+import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 
 /**
  * CombatScreenView
@@ -17,12 +18,15 @@ export class CombatScreenView extends MapView {
 	private entityGroup: Konva.Group;
 	private zombies: Zombie[] = [];
 	private RobotHealthText!: Konva.Text;
+	private introGroup: Konva.Group;
+	private onIntroClick?: () => void;
 
 	constructor(model: CombatScreenModel) {
 		super(model);
 		this.screenGroup = new Konva.Group({ visible: false });
 		this.mapGroup = new Konva.Group({ visible: false });
 		this.entityGroup = new Konva.Group({ visible: false });
+		this.introGroup = new Konva.Group({ visible: false });
 	}
 
 	/**
@@ -37,13 +41,16 @@ export class CombatScreenView extends MapView {
 		this.entityGroup.add(robot.getCurrentImage());
 
 		/* add both groups to this.screenGroup */
-		this.screenGroup.add(this.mapGroup);
-		this.screenGroup.add(this.entityGroup);
-		this.RobotHealthText = new Konva.Text({
-			x: 1100,
-			y: 10,
-			text: "Robot Health: 100",
-			fontSize: 20,
+			this.screenGroup.add(this.mapGroup);
+			this.screenGroup.add(this.entityGroup);
+			this.buildIntro();
+			this.screenGroup.add(this.introGroup);
+			this.introGroup.moveToTop();
+			this.RobotHealthText = new Konva.Text({
+				x: 1100,
+				y: 10,
+				text: "Robot Health: 100",
+				fontSize: 20,
 			fontFamily: "Arial",
 			fill: "Black",
 		});
@@ -63,11 +70,11 @@ export class CombatScreenView extends MapView {
 
 	private zombieCounterText!: Konva.Text;
 
-	addZombieCounter(x: number, y: number): void {
-		this.zombieCounterText = new Konva.Text({
-			x,
-			y,
-			text: "Score: 0",
+		addZombieCounter(x: number, y: number): void {
+			this.zombieCounterText = new Konva.Text({
+				x,
+				y,
+				text: "Score: 0",
 			fontSize: 20,
 			fontFamily: "Arial",
 			fill: "black",
@@ -105,6 +112,69 @@ export class CombatScreenView extends MapView {
 		this.screenGroup.visible(true);
 		this.mapGroup.visible(true);
 		this.entityGroup.visible(true);
+	}
+
+	private buildIntro(): void {
+		const bg = new Konva.Rect({
+			x: 0,
+			y: 0,
+			width: this.screenGroup.width() || 1280,
+			height: this.screenGroup.height() || 720,
+			fill: "rgba(0,0,0,0.75)",
+		});
+
+		const title = new Konva.Text({
+			x: STAGE_WIDTH / 2,
+			y: 160,
+			text: "Zombie Combat",
+			fontSize: 42,
+			fontFamily: "Arial",
+			fill: "white",
+			fontStyle: "bold",
+		});
+		title.offsetX(title.width() / 2);
+
+		const instructions = new Konva.Text({
+			x: STAGE_WIDTH / 2,
+			y: 260,
+			text: "W/A/S/D to move your robot.\nSpace to punch.\nAvoid zombies and defeat them before they reach you.\nSurvive to rack up your score.",
+			fontSize: 22,
+			fontFamily: "Arial",
+			fill: "#e2e8f0",
+			align: "center",
+			lineHeight: 1.4,
+		});
+		instructions.offsetX(instructions.width() / 2);
+
+		const prompt = new Konva.Text({
+			x: STAGE_WIDTH / 2,
+			y: 480,
+			text: "Click to start",
+			fontSize: 24,
+			fontFamily: "Arial",
+			fill: "#cbd5e1",
+		});
+		prompt.offsetX(prompt.width() / 2);
+
+		this.introGroup.add(bg);
+		this.introGroup.add(title);
+		this.introGroup.add(instructions);
+		this.introGroup.add(prompt);
+		this.introGroup.on("click", () => {
+			if (this.onIntroClick) this.onIntroClick();
+		});
+	}
+
+	showIntro(): void {
+		this.introGroup.visible(true);
+	}
+
+	hideIntro(): void {
+		this.introGroup.visible(false);
+	}
+
+	setIntroHandler(fn: () => void): void {
+		this.onIntroClick = fn;
 	}
 
 	hide(): void {

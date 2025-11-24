@@ -3,6 +3,7 @@ import type { ScreenSwitcher } from "../../types.ts";
 import { PokemonScreenModel } from "./PokemonScreenModel.ts";
 import { PokemonScreenView } from "./PokemonScreenView.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
+import { audioManager } from "../../audioManager.ts";
 
 
 /**
@@ -104,17 +105,18 @@ export class PokemonScreenController extends ScreenController {
 
 		} else {
 			// Incorrect answer: player takes damage
-			const damage = 20; // Fixed damage for incorrect answers
-			this.model.dealDamageToPlayer(damage);
-			this.view.updatePlayerHealthText(this.model.getPlayerHealth());
-			this.view.playPlayerDamageAnimation(damage);
-			if (this.model.isPlayerDefeated()) {
-				this.view.showLoseMessage();
-				this.waitForQuestion = true;
-				setTimeout(() => {
-					this.screenSwitcher.switchToScreen({ type: "exploration" });
-				}, 2000);
-				return; // Don't proceed to next question
+				const damage = 20; // Fixed damage for incorrect answers
+				this.model.dealDamageToPlayer(damage);
+				this.view.updatePlayerHealthText(this.model.getPlayerHealth());
+				this.view.playPlayerDamageAnimation(damage);
+				if (this.model.isPlayerDefeated()) {
+					this.view.showLoseMessage();
+					audioManager.playSfx("minigame_lose");
+					this.waitForQuestion = true;
+					setTimeout(() => {
+						this.screenSwitcher.switchToScreen({ type: "exploration" });
+					}, 2000);
+					return; // Don't proceed to next question
 			}
 		}
 		if (this.model.isBossDefeated()) {

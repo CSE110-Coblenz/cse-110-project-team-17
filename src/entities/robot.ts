@@ -1,5 +1,6 @@
 import { MovableEntity } from './base';
 import Konva from 'konva';
+import { audioManager } from '../audioManager.ts';
 
 
 
@@ -50,6 +51,7 @@ export class Robot extends MovableEntity {
      */
     takeDamage(amount: number): void {
         this.health -= amount;
+        audioManager.playSfx("robot_damage");
         if (this.health <= 0) {
             console.log("You have died");
             this.destroy();

@@ -8,6 +8,7 @@ import { ResultsScreenController } from "./screens/ResultsScreen/ResultsScreenCo
 import { EducationScreenController } from "./screens/EducationScreen/EducationScreenController.ts";
 import { PokemonScreenController } from "./screens/MiniGame1/PokemonScreenController.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "./constants.ts";
+import { audioManager } from "./audioManager.ts";
 
 /**
  * Main Application - Coordinates all screens
@@ -26,6 +27,7 @@ export class App implements ScreenSwitcher {
     private resultsController: ResultsScreenController;
 	  private educationController: EducationScreenController;
     private pokemonController: PokemonScreenController;
+    private audioPrimed = false;
 
     constructor(container: string) {
         // Initialize Konva stage
@@ -50,13 +52,10 @@ export class App implements ScreenSwitcher {
 
         // Initialize all screen controllers
         this.menuController = new MenuScreenController(this);
-        this.explorationController = new ExplorationScreenController(this);
         this.miniGame2Controller = new MiniGame2ScreenController(this);
         this.combatController = new CombatScreenController(this);
-        this.resultsController = new ResultsScreenController(this);
-		    this.educationController = new EducationScreenController(this);
+			this.educationController = new EducationScreenController(this);
         this.explorationController = new ExplorationScreenController(this, this.educationController);
-        // this.explorationController = new ExplorationScreenController(this);
         this.resultsController = new ResultsScreenController(this);
         this.pokemonController = new PokemonScreenController(this);
 
@@ -71,13 +70,13 @@ export class App implements ScreenSwitcher {
         this.layer.add(this.miniGame2Controller.getView().getGroup());
         this.layer.add(this.combatController.getView().getGroup());
         this.layer.add(this.resultsController.getView().getGroup());
-		    this.layer.add(this.educationController.getView().getGroup());
+		this.layer.add(this.educationController.getView().getGroup());
         this.layer.add(this.pokemonController.getView().getGroup());
 
         // Add entity groups
-        this.entityLayer.add(this.explorationController.getView().getEntityGroup());
-        this.entityLayer.add(this.miniGame2Controller.getView().getEntityGroup());
-        this.entityLayer.add(this.combatController.getView().getEntityGroup());
+        // this.entityLayer.add(this.explorationController.getView().getEntityGroup());
+        // this.entityLayer.add(this.miniGame2Controller.getView().getEntityGroup());
+        // this.entityLayer.add(this.combatController.getView().getEntityGroup());
         /* ENTITY LAYER = (EXPLORATION)+(PLAYER)+(COMBAT) */
         this.explorationLayer.add(this.explorationController.getView().getEntityGroup());
         this.playerLayer.add(this.explorationController.getView().getPlayerGroup());
@@ -89,8 +88,20 @@ export class App implements ScreenSwitcher {
         this.playerLayer.draw();
         this.combatLayer.draw();
 
+        // Prime audio after first gesture to bypass autoplay blocking
+        const primeAudio = () => {
+            if (this.audioPrimed) return;
+            this.audioPrimed = true;
+            audioManager.playTrack("menu");
+            window.removeEventListener("pointerdown", primeAudio);
+            window.removeEventListener("keydown", primeAudio);
+        };
+        window.addEventListener("pointerdown", primeAudio);
+        window.addEventListener("keydown", primeAudio);
+
         // Start with menu screen
         this.menuController.getView().show();
+        audioManager.playTrack("menu");
     }
 
     async switchToScreen(screen: Screen): Promise<void> {
@@ -110,14 +121,17 @@ export class App implements ScreenSwitcher {
         switch (screen.type) {
             case "menu":
                 this.menuController.show();
+                audioManager.playTrack("menu");
                 break;
 
             case "exploration":
                 this.explorationController.startExploration();
+                audioManager.playTrack("exploration");
                 break;
 
             case "minigame2":
                 this.miniGame2Controller.startMiniGame();
+                audioManager.playTrack("minigame2");
                 break;
 
             case "combat":
@@ -143,17 +157,20 @@ export class App implements ScreenSwitcher {
 
                 // Start combat
                 this.combatController.startCombat();
+                audioManager.playTrack("combat");
                 break;
 
             case "result":
                 this.resultsController.showResults(screen.score);
+                audioManager.playTrack("result");
                 break;
-			      case "education":
-				       this.educationController.show();
-				       break;
-            
+			  case "education":
+				   this.educationController.show();
+				   break;
+        
             case "pokemon":
                 this.pokemonController.startCombat();
+                audioManager.playTrack("pokemon");
                 break;
         }
     }

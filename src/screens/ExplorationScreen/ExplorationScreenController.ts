@@ -9,6 +9,9 @@ import { GameObject } from "../../entities/object.ts";
 import type { ScreenSwitcher } from "../../types.ts";
 import { Map } from "../../entities/tempMap.ts";
 import { npc } from "../../entities/npc.ts"
+import { Robot } from "../../entities/robot.ts";
+import { audioManager } from "../../audioManager.ts";
+import Konva from "konva";
 
 export class ExplorationScreenController extends ScreenController {
     private model: ExplorationScreenModel;
@@ -18,12 +21,21 @@ export class ExplorationScreenController extends ScreenController {
     private input!: InputManager;
     private player!: Player;
     private npc!: npc;
+    private robot?: Robot;
+    private robotBuilt = false;
+    private worktable?: GameObject;
     private gameObjects: GameObject[] = [];
+    private transitioning = false;
     private running: boolean;
     private logicTickInterval?: number;
     private lastCollectionMsgTs = 0;
     private COLLECTION_MSG_COOLDOWN_MS = 750;
     private mapBuilder!: Map;
+    private moveSound?: HTMLAudioElement;
+    private moveSoundPlaying = false;
+    private collisionOverlay?: Konva.Group;
+    private hitbox?: Konva.Rect;
+    private movementLockUntil = 0;
 
     constructor(screenSwitcher: ScreenSwitcher, eduControl: EducationScreenController) {
         super();
@@ -31,6 +43,7 @@ export class ExplorationScreenController extends ScreenController {
         this.model = new ExplorationScreenModel();
         this.view = new ExplorationScreenView(() => this.handleBookClick());
         this.eduControl = eduControl;
+        this.eduControl.setOnClose(() => this.handleBookClose());
         // this.view = new ExplorationScreenView();
         this.running = false;
     }
@@ -51,34 +64,59 @@ export class ExplorationScreenController extends ScreenController {
         const mapGroup = await this.mapBuilder.buildMap();
         this.view.getMapGroup().add(mapGroup);
 
+        this.collisionOverlay = this.mapBuilder.buildCollisionOverlay();
+        this.collisionOverlay.visible(false); // hidden by default
+        this.view.getMapGroup().add(this.collisionOverlay);
+
+
         /* Create player instance */
         const playerImage = await this.loadImage("/sprites/idle-frame1.png");
         this.player = new Player("player1", STAGE_WIDTH/2, STAGE_HEIGHT/2, playerImage);
+        this.moveSound = new Audio("/sounds/sfx/movement_cut.mp3");
+        this.moveSound.volume = 0.2;
+
+        const hitbox = new Konva.Rect({
+            x: 0, y: 0, width: 16, height: 16,
+            stroke: "lime", strokeWidth: 1, listening: false,
+        });
+        this.view.getPlayerGroup().add(hitbox);
+
+        this.hitbox = new Konva.Rect({
+            x: 0,
+            y: 0,
+            width: 16,
+            height: 16,
+            stroke: "lime",
+            strokeWidth: 1,
+            listening: false,
+        });
+        this.view.getPlayerGroup().add(this.hitbox);
+
 
         const collectibleDefinitions = [
-            { name: "key", x: 200, y: 300, sprite: "/key.jpg" },
-            { name: "chest", x: 500, y: 400, sprite: "/chest.png" },
-            { name: "orb", x: 150, y: 180, sprite: "/lemon.png" },
-            { name: "scroll", x: 420, y: 220, sprite: "/image.png" },
-            { name: "gem", x: 320, y: 480, sprite: "/imagesTemp.jpg" },
-            { name: "battery", x: 600, y: 260, sprite: "/key.jpg" },
-            { name: "antenna", x: 700, y: 360, sprite: "/chest.png" },
+            { name: "robot_arm1", x: 200, y: 300, sprite: "/objects/robot_parts/Robot_Arm1.png" },
+            { name: "robot_arm2", x: 500, y: 400, sprite: "/objects/robot_parts/Robot_Arm2.png" },
+            { name: "robot_leg1", x: 400, y: 180, sprite: "/objects/robot_parts/Robot_leg1.png" },
+            { name: "robot_leg2", x: 420, y: 220, sprite: "/objects/robot_parts/Robot_leg2.png" },
+            { name: "robot_chest", x: 320, y: 480, sprite: "/objects/robot_parts/Robot_chest.png" },
+            { name: "robot_head", x: 600, y: 260, sprite: "/objects/robot_parts/Robot_head.png" },
+            { name: "robot_wires", x: 700, y: 360, sprite: "/objects/robot_parts/Robot_wires.png" },
         ];
 
         this.gameObjects.length = 0; // ensure no duplicate pushes on re-init
         for (const definition of collectibleDefinitions) {
             const gameObject = new GameObject(definition.name, definition.x, definition.y, true);
             const objectImage = await this.loadImage(definition.sprite);
-            await gameObject.loadImage(objectImage);
+            await gameObject.loadImage(objectImage, 0.5);
             this.gameObjects.push(gameObject);
             this.model.addObject(definition.name);
         }
-        // Create GameObject instances without Screen dependency
-        const key = new GameObject("key", 200, 300, true);
-        const keyImage = await this.loadImage("/objects/key.jpg");
-        await key.loadImage(keyImage);
-        this.gameObjects.push(key);
-        this.model.addObject("key");
+
+        // Add worktable (not collectible) as an interactable station
+        this.worktable = new GameObject("worktable", STAGE_WIDTH - 120, STAGE_HEIGHT - 140, true);
+        const worktableImage = await this.loadImage("/objects/chest.png");
+        await this.worktable.loadImage(worktableImage);
+        this.gameObjects.push(this.worktable);
 
         const npcImage = await this.loadImage("/npc.png");
         const gameTrivia = [
@@ -105,12 +143,6 @@ export class ExplorationScreenController extends ScreenController {
         this.view.getEntityGroup().add(this.npc.getCurrentImage());
         this.view.getEntityGroup().draw();
 
-        const chest = new GameObject("chest", 50, 40, true);
-        const chestImage = await this.loadImage("/objects/chest.png");
-        await chest.loadImage(chestImage);
-        this.gameObjects.push(chest);
-        this.model.addObject("chest");
-
         /* */
         await this.view.build(this.player, this.gameObjects);
     }
@@ -128,6 +160,13 @@ export class ExplorationScreenController extends ScreenController {
             this.checkEdges();
         }
 
+        if (this.collisionOverlay && this.input.getToggleDebug()) {
+            const showing = this.collisionOverlay.visible();
+            this.collisionOverlay.visible(!showing);
+            this.view.getMapGroup().draw();
+        }
+
+
         if(this.input.getInteract()){
             this.checkObjectCollection();
         }
@@ -141,45 +180,72 @@ export class ExplorationScreenController extends ScreenController {
         const playerImg = this.player.getCurrentImage();
         const x = playerImg.x();
         const y = playerImg.y();
-        // RIGHT EDGE
+        // RIGHT EDGE -> Combat
         if(x >= STAGE_WIDTH - EDGE_THRESHOLD){
-            if(this.model.allObjectsCollected()){
+            if(this.robotBuilt && !this.transitioning){
+                this.transitioning = true;
                 this.running = false;
-                this.npc
+                this.movementLockUntil = 0;
+                this.hide();
+                this.view.hideEdgeIndicator("right");
                 this.screenSwitcher.switchToScreen({ type: "combat" });
                 return;
             } else { // show one message every cooldown period
                 playerImg.x(STAGE_WIDTH - EDGE_THRESHOLD);
+                this.lockMovement(1200);
                 const now = performance.now();
                 if (now - this.lastCollectionMsgTs > this.COLLECTION_MSG_COOLDOWN_MS) {
-                    this.view.showCollectionMessage("Collect all items first!");
+                    this.view.showCollectionMessage("Build your robot at the worktable first!");
                     this.lastCollectionMsgTs = now;
-                    this.npc.showUrgentDialog("Maybe you should finish completing your robot before exiting the junkyard. I heard it's real dangerous out there.");
+                    this.npc.showUrgentDialogFor("Finish assembling your robot at the worktable before heading out.", 1200);
                 }
+                this.nudgeFromEdge("right");
+                return;
             }
         }
         // LEFT edge
         if(x < 0) playerImg.x(0);
         // TOP EDGE: POKEMON MINIGAME
         if(y <= 0) {
-            // Check if all items have been collected
-            if (this.model.allObjectsCollected()) {
-                console.log("All items collected, switching to Pokemon minigame.");
-                // Start the pokemon minigame
+            if (this.robotBuilt && !this.transitioning) {
+                this.transitioning = true;
+                this.movementLockUntil = 0;
                 this.hide();
+                this.view.hideEdgeIndicator("top");
                 this.screenSwitcher.switchToScreen({ type: "pokemon" });
                 this.player.moveTo(this.player.getPosition().x, this.player.getPosition().y+10); // Move player slightly down to avoid immediate re-trigger
             } else {
                 playerImg.y(0);
-                this.npc.showUrgentDialog("Maybe you should finish completing your robot before fighting the boss. You need all the information to defeat him.");
+                this.lockMovement(1200);
+                this.npc.showUrgentDialogFor("Finish assembling your robot at the worktable before fighting the boss.", 1200);
+                this.nudgeFromEdge("top");
+                return;
             }
         }
-        // BOTTOM edge (CHANGE DEPENDING ON SPRITE)
+        // BOTTOM edge -> MiniGame2
         const playerHeight = 16;
-        if(y > STAGE_HEIGHT - playerHeight){
-            playerImg.y(STAGE_HEIGHT - playerHeight);
-            if (!this.model.allObjectsCollected())
-                this.npc.showUrgentDialog("Maybe you should finish completing your robot before exiting the junkyard. I heard it's real dangerous out there.");
+        if(y >= STAGE_HEIGHT - EDGE_THRESHOLD){
+            if (this.robotBuilt && !this.transitioning) {
+                this.transitioning = true;
+                this.running = false;
+                this.movementLockUntil = 0;
+                this.stopLogicLoop();
+                this.view.hide();
+                this.view.hideEdgeIndicator("bottom");
+                this.screenSwitcher.switchToScreen({ type: "minigame2" });
+                return;
+            } else {
+                playerImg.y(STAGE_HEIGHT - playerHeight);
+                this.lockMovement(1200);
+                const now = performance.now();
+                if (now - this.lastCollectionMsgTs > this.COLLECTION_MSG_COOLDOWN_MS) {
+                    this.view.showCollectionMessage("Build your robot at the worktable first!");
+                    this.lastCollectionMsgTs = now;
+                }
+                this.npc.showUrgentDialogFor("Finish assembling your robot at the worktable before heading down.", 1200);
+                this.nudgeFromEdge("bottom");
+                return;
+            }
         }
     }
 
@@ -189,6 +255,8 @@ export class ExplorationScreenController extends ScreenController {
     */
     startExploration(): void {
         this.running = true;
+        this.transitioning = false;
+        this.movementLockUntil = 0;
         this.input = new InputManager();
         requestAnimationFrame(this.explorationLoop);
         this.view.show();
@@ -201,16 +269,39 @@ export class ExplorationScreenController extends ScreenController {
     */
     private explorationLoop = (): void => {
         if(!this.running) return;
+        const now = performance.now();
+        if (now < this.movementLockUntil) {
+            requestAnimationFrame(this.explorationLoop);
+            return;
+        }
         const { dx, dy } = this.input.getDirection();
+        this.player.setSpeed(this.input.isSprinting() ? 6 : 3);
 
         if (dx !== 0 || dy !== 0) {
             this.npc.markActive();
         }
         
         /* added functionality for OBJECT COLLISION */
+        const prevPos = this.player.getCurrentImage().position();
         const next = this.player.getNextPosition(dx, dy);
         if(this.mapBuilder.canMoveToArea(next.x, next.y, 16, 16)){
             this.player.moveTo(next.x, next.y);
+            const moved = dx !== 0 || dy !== 0;
+            const newPos = this.player.getCurrentImage().position();
+            if (moved && (newPos.x !== prevPos.x || newPos.y !== prevPos.y)) {
+                if (this.moveSound && !this.moveSoundPlaying) {
+                    this.moveSound.currentTime = 0;
+                    this.moveSoundPlaying = true;
+                    this.moveSound.onended = () => { this.moveSoundPlaying = false; };
+                    void this.moveSound.play().catch(() => { this.moveSoundPlaying = false; });
+                }
+            } else {
+                if (this.moveSound && this.moveSoundPlaying) {
+                    this.moveSound.pause();
+                    this.moveSound.currentTime = 0;
+                    this.moveSoundPlaying = false;
+                }
+            }
         }
 
         this.npc.updateDialog(
@@ -218,21 +309,32 @@ export class ExplorationScreenController extends ScreenController {
             next.y,
         );
 
-        /* console.log(
-            "corner ->",
-            next.x, next.y,
-            "tile:",
-            Math.floor(next.x / this.mapBuilder.getTileSize()),
-            Math.floor(next.y / this.mapBuilder.getTileSize()),
-            "blocked:", this.mapBuilder.isBlocked(Math.floor(next.x / this.mapBuilder.getTileSize()), Math.floor(next.y / this.mapBuilder.getTileSize()))
-        ); */
-
-        console.log("mapBuilder =", this.mapBuilder);
-        console.log("next.x =", next.x);
-        console.log("next.y =", next.y);
-        console.log("tileSize =", this.mapBuilder.getTileSize());
+        if (this.robot && this.robotBuilt) {
+            const robotImg = this.robot.getCurrentImage();
+            const rx = robotImg.x();
+            const ry = robotImg.y();
+            const px = this.player.getCurrentImage().x();
+            const py = this.player.getCurrentImage().y();
+            const dxToPlayer = px - rx;
+            const dyToPlayer = py - ry;
+            const dist = Math.sqrt(dxToPlayer * dxToPlayer + dyToPlayer * dyToPlayer);
+            const desiredOffset = 20;
+            if (dist > desiredOffset) {
+                const step = Math.min(2.5, dist - desiredOffset);
+                const nx = rx + (dxToPlayer / dist) * step;
+                const ny = ry + (dyToPlayer / dist) * step;
+                if (this.mapBuilder.canMoveToArea(nx, ny, 16, 16)) {
+                    this.robot.moveTo(nx, ny);
+                }
+            }
+        }
 
         this.screenSwitcher.redrawExplorationPlayer();
+
+        if (this.hitbox) {
+            this.hitbox.position(this.player.getCurrentImage().position());
+        }
+
         requestAnimationFrame(this.explorationLoop);
     };
 
@@ -241,13 +343,14 @@ export class ExplorationScreenController extends ScreenController {
      * Check if player is near any collectible objects
      * Only called when 'P' is pressed
      */
-    private checkObjectCollection(): void {
+    private async checkObjectCollection(): Promise<void> {
         const playerImg = this.player.getCurrentImage();
         const playerX = playerImg.x();
         const playerY = playerImg.y();
 
         for(const obj of this.gameObjects){
             if(obj.isCollected() || !obj.isInteractable()) continue;
+            if (obj.getName() === "worktable") continue; // handled separately
 
             const objPos = obj.getPosition();
             const objX = objPos.x;
@@ -263,15 +366,86 @@ export class ExplorationScreenController extends ScreenController {
                 this.model.collectObject(obj.getName());
                 this.player.addToInventory(obj.getName());
                 this.view.updateInventory(this.model.getCollectedItems());
-                console.log(`Collected: ${obj.getName()}`);
+                audioManager.playSfx("object_collect");
                 
                 // Show visual feedback message
                 this.view.showCollectionMessage(`Collected ${obj.getName()}!`);
+
+                const unlocked = this.eduControl.unlockLesson();
+                if (unlocked) {
+                    this.view.showBookNotification();
+                }
+
+                if (this.model.allObjectsCollected() && this.worktable) {
+                    this.view.showWorktableNotification(this.worktable.getPosition());
+                }
                 
                 // Only collect one item per 'P' press
                 break;
             }
         }
+
+        if (this.model.allObjectsCollected()) {
+            await this.handleWorktableInteraction();
+        }
+    }
+
+    private async handleWorktableInteraction(): Promise<void> {
+        if (!this.worktable || this.robotBuilt) return;
+
+        const playerPos = this.player.getCurrentImage().position();
+        const worktablePos = this.worktable.getPosition();
+        const distance = Math.sqrt(
+            Math.pow(playerPos.x - worktablePos.x, 2) +
+            Math.pow(playerPos.y - worktablePos.y, 2)
+        );
+
+        if (distance >= 60) return;
+
+        const robotImage = await this.loadImage("/sprites/idle-frame1.png");
+        this.robot = new Robot("companion-robot", 100, 10, worktablePos.x, worktablePos.y, robotImage);
+        this.view.getPlayerGroup().add(this.robot.getCurrentImage());
+        this.robotBuilt = true;
+        this.view.hideWorktableNotification();
+        audioManager.playSfx("robot_completion");
+        this.view.showEdgeIndicators();
+        this.lockMovement(1200);
+        this.npc.showUrgentDialogFor(
+            "Robot complete! New areas are open. Main combat lies to the right.\nCheck minigames at the top and bottom to unlock new capabilities.",
+            6000
+        );
+    }
+
+    private lockMovement(durationMs: number): void {
+        this.movementLockUntil = performance.now() + durationMs;
+    }
+
+    private nudgeFromEdge(edge: "right" | "top" | "bottom"): void {
+        const img = this.player.getCurrentImage();
+        if (!img) return;
+        const duration = 150;
+        let targetX = img.x();
+        let targetY = img.y();
+
+        switch (edge) {
+            case "right":
+                targetX = STAGE_WIDTH - EDGE_THRESHOLD - 12;
+                break;
+            case "top":
+                targetY = 14;
+                break;
+            case "bottom":
+                targetY = STAGE_HEIGHT - 20;
+                break;
+        }
+
+        new Konva.Tween({
+            node: img,
+            x: targetX,
+            y: targetY,
+            duration: duration / 1000,
+            easing: Konva.Easings.EaseOut,
+        }).play();
     }
 
 
@@ -297,8 +471,18 @@ export class ExplorationScreenController extends ScreenController {
     }
 
     private handleBookClick(): void {
-        this.eduControl.unlockLesson();
+        const opened = this.eduControl.openBook();
+        if (opened) {
+            this.view.hideBookNotification();
+            this.view.hideEntities();
+            this.npc.clearDialog();
+        }
     }
+
+    private handleBookClose(): void {
+        this.view.showEntities();
+    }
+
 
     /**
      * Return this view
@@ -323,6 +507,7 @@ export class ExplorationScreenController extends ScreenController {
         this.running = false;
         this.view.hide();
         this.stopLogicLoop();
+        this.npc.clearDialog();
     }
 
     /* just in case */

@@ -7,6 +7,7 @@ import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { Robot } from "../../entities/robot.ts";
 import { Map } from "../../entities/tempMap.ts";
+import { audioManager } from "../../audioManager.ts";
 
 /**
  * CombatScreenController
@@ -84,6 +85,7 @@ export class CombatScreenController extends ScreenController {
 
 		// build view (map + add entity images to the view's groups)
 		await this.view.build(robot);
+		this.view.setIntroHandler(this.beginCombat);
 	}
 
 	/**
@@ -95,13 +97,14 @@ export class CombatScreenController extends ScreenController {
 	startCombat(): void {
 		this.input = new InputManager();
 		this.view.show();
-
-		// set running variable to active
-		this.model.setRunning(true);
-
-		// start the frame loop
-		this.animationFrameId = requestAnimationFrame(this.gameLoop);
+		this.view.showIntro();
 	}
+
+	private beginCombat = (): void => {
+		this.view.hideIntro();
+		this.model.setRunning(true);
+		this.animationFrameId = requestAnimationFrame(this.gameLoop);
+	};
 
 	/**  * hide
 	 *
@@ -134,6 +137,7 @@ export class CombatScreenController extends ScreenController {
 	private gameLoop = (timestamp: number): void => {
 
 		if (this.model.getRobot().getHealth() <= 0) {
+			audioManager.playSfx("game_over");
 			this.model.getRobot().setHealth(100);
 			console.log("Robot defeated! Game Over.");
 			this.model.setRunning(false);
@@ -181,6 +185,7 @@ export class CombatScreenController extends ScreenController {
 		let returned = this.model.processAttackRequest(attack, timestamp, this.lastAttackTime, true);
 		if (attack && returned != -1) {
 			this.lastAttackTime = timestamp;
+			audioManager.playSfx("robot_punch");
 		}
 
 		// spawn zombies periodically

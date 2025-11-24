@@ -86,6 +86,29 @@ export class Map implements Maps {
         return found;
     }
 
+    // in src/entities/tempMap.ts
+    buildCollisionOverlay(): Konva.Group {
+    const g = new Konva.Group({ name: "collisionOverlay", listening: false });
+    for (let y = 0; y < this.height; y++) {
+        for (let x = 0; x < this.width; x++) {
+        if (this.isBlocked(x, y)) {
+            g.add(new Konva.Rect({
+            x: x * this.tileSize,
+            y: y * this.tileSize,
+            width: this.tileSize,
+            height: this.tileSize,
+            fill: "rgba(255,0,0,0.25)",
+            stroke: "red",
+            strokeWidth: 0.5,
+            listening: false,
+            }));
+        }
+        }
+    }
+    return g;
+    }
+
+
     async buildMap(): Promise<Konva.Group> {
         const mapGroup = new Konva.Group();
 

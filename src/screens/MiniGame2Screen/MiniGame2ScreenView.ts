@@ -2,6 +2,7 @@ import Konva from "konva";
 import { Player } from "../../entities/player.ts";
 import { GameObject } from "../../entities/object.ts";
 import type { View } from "../../types.ts";
+import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 
 /**
  * MiniGame2ScreenView - Renders the minigame 2 screen
@@ -13,8 +14,11 @@ export class MiniGame2ScreenView implements View {
     private dropSlotGroup: Konva.Group;
     private entityGroup: Konva.Group;
     private uiGroup: Konva.Group;
-    private carriedItemsText: Konva.Text;
+    private timerText!: Konva.Text;
+    private failureText!: Konva.Text;
     private dropSlotVisuals: Map<string, { rect: Konva.Rect; label: Konva.Text }>;
+    private introGroup: Konva.Group;
+    private onIntroClick?: () => void;
 
     constructor() {
         this.screenGroup = new Konva.Group({ visible: false });
@@ -23,24 +27,48 @@ export class MiniGame2ScreenView implements View {
         this.entityGroup = new Konva.Group({ visible: false });
         this.uiGroup = new Konva.Group({ visible: false });
         this.dropSlotVisuals = new Map();
+        this.introGroup = new Konva.Group({ visible: false });
 
-        // Create carried items display
-        this.carriedItemsText = new Konva.Text({
+        this.buildUi();
+
+        this.screenGroup.add(this.mapGroup);
+        this.screenGroup.add(this.dropSlotGroup);
+        this.screenGroup.add(this.entityGroup);
+        this.screenGroup.add(this.uiGroup);
+        this.buildIntro();
+        this.screenGroup.add(this.introGroup);
+        this.introGroup.moveToTop();
+    }
+
+    private buildUi(): void {
+        // Timer display
+        this.timerText = new Konva.Text({
             x: 10,
             y: 10,
-            text: "Carrying: ",
+            text: "",
             fontSize: 20,
             fontFamily: "Arial",
             fill: "white",
             stroke: "black",
             strokeWidth: 1,
         });
-        this.uiGroup.add(this.carriedItemsText);
+        this.uiGroup.add(this.timerText);
 
-        this.screenGroup.add(this.mapGroup);
-        this.screenGroup.add(this.dropSlotGroup);
-        this.screenGroup.add(this.entityGroup);
-        this.screenGroup.add(this.uiGroup);
+        // Failure popup
+        this.failureText = new Konva.Text({
+            x: STAGE_WIDTH / 2,
+            y: STAGE_HEIGHT / 2,
+            text: "",
+            fontSize: 28,
+            fontFamily: "Arial",
+            fill: "red",
+            stroke: "black",
+            strokeWidth: 2,
+            visible: false,
+        });
+        this.failureText.offsetX(this.failureText.width() / 2);
+        this.failureText.offsetY(this.failureText.height() / 2);
+        this.uiGroup.add(this.failureText);
     }
 
     async build(
@@ -247,15 +275,21 @@ export class MiniGame2ScreenView implements View {
         }
     }
 
-    /**
-     * Update carried items display
-     */
-    updateCarriedItems(items: string[]): void {
-        if (items.length === 0) {
-            this.carriedItemsText.text("Carrying: Nothing");
-        } else {
-            this.carriedItemsText.text(`Carrying: ${items[0]}`); // Show only one item
-        }
+    updateTimer(secondsLeft: number): void {
+        this.timerText.text(`Time: ${secondsLeft}s`);
+    }
+
+    showFailureMessage(msg: string): void {
+        this.failureText.text(msg);
+        this.failureText.offsetX(this.failureText.width() / 2);
+        this.failureText.offsetY(this.failureText.height() / 2);
+        this.failureText.visible(true);
+        this.uiGroup.draw();
+    }
+
+    hideFailureMessage(): void {
+        this.failureText.visible(false);
+        this.uiGroup.draw();
     }
 
     getGroup(): Konva.Group {
@@ -268,10 +302,6 @@ export class MiniGame2ScreenView implements View {
 
     getEntityGroup(): Konva.Group {
         return this.entityGroup;
-    }
-
-    getUIGroup(): Konva.Group {
-        return this.uiGroup;
     }
 
     show(): void {
@@ -288,5 +318,69 @@ export class MiniGame2ScreenView implements View {
         this.dropSlotGroup.visible(false);
         this.entityGroup.visible(false);
         this.uiGroup.visible(false);
+    }
+
+    private buildIntro(): void {
+        const bg = new Konva.Rect({
+            x: 0,
+            y: 0,
+            width: STAGE_WIDTH,
+            height: STAGE_HEIGHT,
+            fill: "rgba(0,0,0,0.75)",
+        });
+
+        const title = new Konva.Text({
+            x: STAGE_WIDTH / 2,
+            y: 160,
+            text: "MiniGame 2: Rebuild the Code",
+            fontSize: 38,
+            fontFamily: "Arial",
+            fill: "white",
+            fontStyle: "bold",
+            align: "center",
+        });
+        title.offsetX(title.width() / 2);
+
+        const instructions = new Konva.Text({
+            x: STAGE_WIDTH / 2,
+            y: 260,
+            text: "Use W/A/S/D to move.\nPress P to pick up the highlighted code block.\nCarry one block at a time to the correct slot on the right.\nA block can only fit a slot when the block itself is visually in contact with the slot.\nMatch all snippets to complete the robot code.",
+            fontSize: 22,
+            fontFamily: "Arial",
+            fill: "#e2e8f0",
+            align: "center",
+            lineHeight: 1.4,
+        });
+        instructions.offsetX(instructions.width() / 2);
+
+        const prompt = new Konva.Text({
+            x: STAGE_WIDTH / 2,
+            y: 480,
+            text: "Click to start",
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#cbd5e1",
+        });
+        prompt.offsetX(prompt.width() / 2);
+
+        this.introGroup.add(bg);
+        this.introGroup.add(title);
+        this.introGroup.add(instructions);
+        this.introGroup.add(prompt);
+        this.introGroup.on("click", () => {
+            if (this.onIntroClick) this.onIntroClick();
+        });
+    }
+
+    showIntro(): void {
+        this.introGroup.visible(true);
+    }
+
+    hideIntro(): void {
+        this.introGroup.visible(false);
+    }
+
+    setIntroHandler(fn: () => void): void {
+        this.onIntroClick = fn;
     }
 }

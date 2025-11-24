@@ -10,6 +10,7 @@ export class InputManager {
   private keys: Record<string, boolean> = {};
   private attack: boolean = false;
   private interact: boolean = false;  // Track 'P' key state
+  private toggleDebug: boolean = false;
 
   constructor() {
     window.addEventListener("keydown", (e) => this.keys[e.key.toLowerCase()] = true);
@@ -23,6 +24,10 @@ export class InputManager {
     if (this.keys["a"]) dx -= 1;
     if (this.keys["d"]) dx += 1;
     return { dx, dy };
+  }
+
+  isSprinting(): boolean {
+    return !!this.keys["shift"];
   }
   
   getAttack(): boolean {
@@ -53,6 +58,18 @@ export class InputManager {
     }
     else {
       this.interact = false;
+      return false;
+    }
+  }
+
+  getToggleDebug(): boolean {
+    if (this.keys["g"] && !this.toggleDebug) {
+      this.toggleDebug = true;
+      return true;
+    } else if (this.keys["g"] && this.toggleDebug) {
+      return false;
+    } else {
+      this.toggleDebug = false;
       return false;
     }
   }
