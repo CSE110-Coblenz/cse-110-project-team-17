@@ -54,7 +54,7 @@ export class App implements ScreenSwitcher {
         this.menuController = new MenuScreenController(this);
         this.miniGame2Controller = new MiniGame2ScreenController(this);
         this.combatController = new CombatScreenController(this);
-			this.educationController = new EducationScreenController(this);
+		this.educationController = new EducationScreenController();
         this.explorationController = new ExplorationScreenController(this, this.educationController);
         this.resultsController = new ResultsScreenController(this);
         this.pokemonController = new PokemonScreenController(this);
