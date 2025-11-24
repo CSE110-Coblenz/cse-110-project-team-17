@@ -18,6 +18,7 @@ export interface View {
 export type Screen =
 	| { type: "menu" }
 	| { type: "exploration" }
+	| { type: "minigame2" }
 	| { type: "combat" }
 	| { type: "result"; score: number }
 	| { type: "education" };

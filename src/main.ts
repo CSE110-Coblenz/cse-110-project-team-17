@@ -2,6 +2,7 @@ import Konva from "konva";
 import type { ScreenSwitcher, Screen } from "./types.ts";
 import { MenuScreenController } from "./screens/MenuScreen/MenuScreenController.ts";
 import { ExplorationScreenController } from "./screens/ExplorationScreen/ExplorationScreenController.ts";
+import { MiniGame2ScreenController } from "./screens/MiniGame2Screen/MiniGame2ScreenController.ts";
 import { CombatScreenController } from "./screens/CombatScreen/CombatScreenController.ts";
 import { ResultsScreenController } from "./screens/ResultsScreen/ResultsScreenController.ts";
 import { EducationScreenController } from "./screens/EducationScreen/EducationScreenController.ts";
@@ -20,7 +21,8 @@ export class App implements ScreenSwitcher {
 
     private menuController: MenuScreenController;
     private explorationController: ExplorationScreenController;
-    private combatController!: CombatScreenController;
+    private miniGame2Controller: MiniGame2ScreenController;
+    private combatController: CombatScreenController;
     private resultsController: ResultsScreenController;
 	  private educationController: EducationScreenController;
     private pokemonController: PokemonScreenController;
@@ -48,6 +50,8 @@ export class App implements ScreenSwitcher {
 
         // Initialize all screen controllers
         this.menuController = new MenuScreenController(this);
+        this.explorationController = new ExplorationScreenController(this);
+        this.miniGame2Controller = new MiniGame2ScreenController(this);
         this.combatController = new CombatScreenController(this);
         this.resultsController = new ResultsScreenController(this);
 		    this.educationController = new EducationScreenController(this);
@@ -58,14 +62,22 @@ export class App implements ScreenSwitcher {
 
         // Load exploration controller screen 
         this.explorationController.init();
+        this.miniGame2Controller.init();    
+        this.combatController.init();
 
         // Add all screen groups to layers
         this.layer.add(this.menuController.getView().getGroup());
         this.layer.add(this.explorationController.getView().getGroup());
+        this.layer.add(this.miniGame2Controller.getView().getGroup());
+        this.layer.add(this.combatController.getView().getGroup());
         this.layer.add(this.resultsController.getView().getGroup());
 		    this.layer.add(this.educationController.getView().getGroup());
         this.layer.add(this.pokemonController.getView().getGroup());
 
+        // Add entity groups
+        this.entityLayer.add(this.explorationController.getView().getEntityGroup());
+        this.entityLayer.add(this.miniGame2Controller.getView().getEntityGroup());
+        this.entityLayer.add(this.combatController.getView().getEntityGroup());
         /* ENTITY LAYER = (EXPLORATION)+(PLAYER)+(COMBAT) */
         this.explorationLayer.add(this.explorationController.getView().getEntityGroup());
         this.playerLayer.add(this.explorationController.getView().getPlayerGroup());
@@ -85,6 +97,8 @@ export class App implements ScreenSwitcher {
         // Hide all screens
         this.menuController.hide();
         this.explorationController.hide();
+        this.miniGame2Controller.hide();
+        this.combatController.hide();
         if (this.combatController) {
             this.combatController.hide();
         }
@@ -100,6 +114,10 @@ export class App implements ScreenSwitcher {
 
             case "exploration":
                 this.explorationController.startExploration();
+                break;
+
+            case "minigame2":
+                this.miniGame2Controller.startMiniGame();
                 break;
 
             case "combat":

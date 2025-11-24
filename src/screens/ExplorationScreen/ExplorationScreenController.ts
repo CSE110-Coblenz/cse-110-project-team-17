@@ -55,6 +55,24 @@ export class ExplorationScreenController extends ScreenController {
         const playerImage = await this.loadImage("/sprites/idle-frame1.png");
         this.player = new Player("player1", STAGE_WIDTH/2, STAGE_HEIGHT/2, playerImage);
 
+        const collectibleDefinitions = [
+            { name: "key", x: 200, y: 300, sprite: "/key.jpg" },
+            { name: "chest", x: 500, y: 400, sprite: "/chest.png" },
+            { name: "orb", x: 150, y: 180, sprite: "/lemon.png" },
+            { name: "scroll", x: 420, y: 220, sprite: "/image.png" },
+            { name: "gem", x: 320, y: 480, sprite: "/imagesTemp.jpg" },
+            { name: "battery", x: 600, y: 260, sprite: "/key.jpg" },
+            { name: "antenna", x: 700, y: 360, sprite: "/chest.png" },
+        ];
+
+        this.gameObjects.length = 0; // ensure no duplicate pushes on re-init
+        for (const definition of collectibleDefinitions) {
+            const gameObject = new GameObject(definition.name, definition.x, definition.y, true);
+            const objectImage = await this.loadImage(definition.sprite);
+            await gameObject.loadImage(objectImage);
+            this.gameObjects.push(gameObject);
+            this.model.addObject(definition.name);
+        }
         // Create GameObject instances without Screen dependency
         const key = new GameObject("key", 200, 300, true);
         const keyImage = await this.loadImage("/objects/key.jpg");
