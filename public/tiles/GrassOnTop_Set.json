@@ -1,0 +1,10 @@
+{
+    "name": "GrassOnTop_Set",
+    "tileWidth": 16,
+    "tileHeight": 16,
+    "tilecount": 48,
+    "columns": 8,
+    "source": "/mapAssets/Grass_On-Top_TileSet.png",
+    "width": 128,
+    "height": 96
+}

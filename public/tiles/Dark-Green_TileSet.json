@@ -1,0 +1,10 @@
+{
+    "name": "Dark-Green_TileSet",
+    "tileWidth": 16,
+    "tileHeight": 16,
+    "tilecount": 408,
+    "columns": 24,
+    "source": "/mapAssets/Background_Dark-Green_TileSet.png",
+    "width": 384,
+    "height": 272
+}

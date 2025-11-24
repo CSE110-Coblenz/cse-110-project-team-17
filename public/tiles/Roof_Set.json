@@ -1,0 +1,10 @@
+{
+    "name": "Roof_Set",
+    "tileWidth": 16,
+    "tileHeight": 16,
+    "tilecount": 80,
+    "columns": 16,
+    "source": "/mapAssets/Roof_TileSet.png",
+    "width": 256,
+    "height": 80
+}

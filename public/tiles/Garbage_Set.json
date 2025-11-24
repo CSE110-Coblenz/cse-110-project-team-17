@@ -1,0 +1,10 @@
+{
+    "name": "Garbage_Set",
+    "tileWidth": 16,
+    "tileHeight": 16,
+    "tilecount": 32,
+    "columns": 8,
+    "source": "/mapAssets/Garbage_TileSet.png",
+    "width": 128,
+    "height": 64
+}

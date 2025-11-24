@@ -1,43 +1,33 @@
-import { BaseEntity } from './base';
+import { MovableEntity } from './base';
 import Konva from 'konva';
 
-export type position = {
-    x : number;
-    y : number;
-};
 
-export type Directions = 'up' | 'down' | 'right' | 'left';
-
-export class Zombie extends BaseEntity {
-    // private screen: Screen;
+export class Zombie extends MovableEntity {
     private group: Konva.Group;
     private health: number;
     private maxAttack: number;
     private terminated: boolean = false;
     private sprite: Konva.Image | Konva.Rect | null = null;
-    private position: position;
-    private currentImage: Konva.Image;
-    private dir: Directions;
+    private isZombie: boolean = true;
 
-    constructor(name: string, health: number, maxAttack: number, x: number = 0, y: number = 0, robotImage?: HTMLImageElement) {
-        super(name);
-        this.health = health;
-        this.maxAttack = maxAttack;
-        this.position = { x, y };
-        this.dir = 'left';
-        
-        this.group = new Konva.Group({ x, y });
-        this.createSprite();
-        this.currentImage = new Konva.Image({
+    constructor(name: string, health: number, maxAttack: number, x: number, y: number, robotImage?: HTMLImageElement) {
+        let currentImage = new Konva.Image({
             x,
             y,
             width: 32,
             height: 32,
             image: robotImage,
         });
+        super(name, 1, currentImage, x, y);
+        this.health = health;
+        this.maxAttack = maxAttack;
         
-        // Spawn the zombie on the screen
-        // this.screen.addEntity(this.group);
+        this.group = new Konva.Group({ x, y });
+        this.createSprite();
+    }
+
+    getIsZombie(): boolean {
+        return this.isZombie;
     }
 
     /**
@@ -67,28 +57,13 @@ export class Zombie extends BaseEntity {
             }
             this.sprite = image;
             this.group.add(image);
-            // this.screen.render();
         });
-    }
-
-    getCurrentImage(){
-        return this.currentImage;
     }
 
     /**
      * Render the Zombie (update the screen)
      */
     render(): void {
-        // this.screen.render();
-    }
-
-    /**
-     * Move the zombie to a specific position
-     */
-    moveTo(x: number, y: number): void {
-        this.currentImage.x(x);
-        this.currentImage.y(y);
-        this.position = { x: this.currentImage.x(), y: this.currentImage.y() };
         // this.screen.render();
     }
 
@@ -128,14 +103,6 @@ export class Zombie extends BaseEntity {
         this.terminated = true;
     }
 
-    getPosition(): position {
-        return this.position;
-    }
-
-    getDirection(): Directions {
-        return this.dir;
-    }
-
     /**
      * Take damage
      */
@@ -151,6 +118,10 @@ export class Zombie extends BaseEntity {
      */
     getHealth(): number {
         return this.health;
+    }
+
+    setHealth(val : number) :void {
+        this.health = val;
     }
 
     /**

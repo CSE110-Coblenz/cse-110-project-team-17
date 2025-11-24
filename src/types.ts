@@ -20,7 +20,9 @@ export type Screen =
 	| { type: "exploration" }
 	| { type: "minigame2" }
 	| { type: "combat" }
-	| { type: "result"; score: number };
+	| { type: "result"; score: number }
+	| { type: "education" };
+	| { type: "pokemon" };
 
 export abstract class ScreenController {
 	abstract getView(): View;
@@ -37,12 +39,18 @@ export abstract class ScreenController {
 export interface ScreenSwitcher {
 	switchToScreen(screen: Screen): void;
 	
-	/* added this function so that gameloop can update  */
-	/* the main layer from the GameScreenController 	*/
+	/* added these functions so that gameloop can update  */
+	/* the main layer from the GameScreenController 	  */
 	redraw(): void;
 	getLayer(): Konva.Layer;
-	redrawEntities(): void;
-	getEntityLayer(): Konva.Layer;
-	getStageWidth(): number;
-	getStageHeight(): number;
+	redrawCombatEntities(): void;
+	redrawExplorationPlayer(): void;
+	getCombatLayer(): Konva.Layer;
+}
+
+/* Map interface, allows map to be built using mapData 	    */
+/* --> mapData is created in the ScreenController 	   	    */
+/* --> mapData holds parsed JSON data as JavaScript object  */
+export interface Maps {
+	buildMap(mapData: any): Promise<Konva.Group>;
 }

@@ -2,8 +2,6 @@ import {Robot} from './entities/robot';
 import { Zombie } from './entities/zombie';
 import { Combat } from './combat';
 
-// Test code to create a screen and add entities
-// const screen = new Screen('gameContainer', 800, 600);
 
 const robot = new Robot('Robo', 200, 200, 100, 20);
 const zombie = new Zombie('Zombie', 50, 15, 300, 300);

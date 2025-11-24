@@ -5,21 +5,27 @@ import { ExplorationScreenController } from "./screens/ExplorationScreen/Explora
 import { MiniGame2ScreenController } from "./screens/MiniGame2Screen/MiniGame2ScreenController.ts";
 import { CombatScreenController } from "./screens/CombatScreen/CombatScreenController.ts";
 import { ResultsScreenController } from "./screens/ResultsScreen/ResultsScreenController.ts";
+import { EducationScreenController } from "./screens/EducationScreen/EducationScreenController.ts";
+import { PokemonScreenController } from "./screens/MiniGame1/PokemonScreenController.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "./constants.ts";
 
 /**
  * Main Application - Coordinates all screens
  */
-class App implements ScreenSwitcher {
+export class App implements ScreenSwitcher {
     private stage: Konva.Stage;
     private layer: Konva.Layer;
-    private entityLayer: Konva.Layer;
+    private explorationLayer: Konva.Layer;
+    private combatLayer: Konva.Layer;
+    private playerLayer: Konva.Layer;
 
     private menuController: MenuScreenController;
     private explorationController: ExplorationScreenController;
     private miniGame2Controller: MiniGame2ScreenController;
     private combatController: CombatScreenController;
     private resultsController: ResultsScreenController;
+	  private educationController: EducationScreenController;
+    private pokemonController: PokemonScreenController;
 
     constructor(container: string) {
         // Initialize Konva stage
@@ -33,8 +39,14 @@ class App implements ScreenSwitcher {
         this.layer = new Konva.Layer();
         this.stage.add(this.layer);
 
-        this.entityLayer = new Konva.Layer();
-        this.stage.add(this.entityLayer);
+        this.explorationLayer = new Konva.Layer();
+        this.stage.add(this.explorationLayer);
+
+        this.combatLayer = new Konva.Layer();
+        this.stage.add(this.combatLayer);
+
+        this.playerLayer = new Konva.Layer();
+        this.stage.add(this.playerLayer);
 
         // Initialize all screen controllers
         this.menuController = new MenuScreenController(this);
@@ -42,8 +54,13 @@ class App implements ScreenSwitcher {
         this.miniGame2Controller = new MiniGame2ScreenController(this);
         this.combatController = new CombatScreenController(this);
         this.resultsController = new ResultsScreenController(this);
+		    this.educationController = new EducationScreenController(this);
+        this.explorationController = new ExplorationScreenController(this, this.educationController);
+        // this.explorationController = new ExplorationScreenController(this);
+        this.resultsController = new ResultsScreenController(this);
+        this.pokemonController = new PokemonScreenController(this);
 
-        // Load both screens
+        // Load exploration controller screen 
         this.explorationController.init();
         this.miniGame2Controller.init();    
         this.combatController.init();
@@ -54,27 +71,40 @@ class App implements ScreenSwitcher {
         this.layer.add(this.miniGame2Controller.getView().getGroup());
         this.layer.add(this.combatController.getView().getGroup());
         this.layer.add(this.resultsController.getView().getGroup());
+		    this.layer.add(this.educationController.getView().getGroup());
+        this.layer.add(this.pokemonController.getView().getGroup());
 
         // Add entity groups
         this.entityLayer.add(this.explorationController.getView().getEntityGroup());
         this.entityLayer.add(this.miniGame2Controller.getView().getEntityGroup());
         this.entityLayer.add(this.combatController.getView().getEntityGroup());
+        /* ENTITY LAYER = (EXPLORATION)+(PLAYER)+(COMBAT) */
+        this.explorationLayer.add(this.explorationController.getView().getEntityGroup());
+        this.playerLayer.add(this.explorationController.getView().getPlayerGroup());
+        //this.combatLayer.add(this.combatController.getView().getEntityGroup());
 
         // Draw layers
         this.layer.draw();
-        this.entityLayer.draw();
+        this.explorationLayer.draw();
+        this.playerLayer.draw();
+        this.combatLayer.draw();
 
         // Start with menu screen
         this.menuController.getView().show();
     }
 
-    switchToScreen(screen: Screen): void {
+    async switchToScreen(screen: Screen): Promise<void> {
         // Hide all screens
         this.menuController.hide();
         this.explorationController.hide();
         this.miniGame2Controller.hide();
         this.combatController.hide();
+        if (this.combatController) {
+            this.combatController.hide();
+        }
         this.resultsController.hide();
+		    this.educationController.hide();
+        this.pokemonController.hide();
 
         // Show requested screen
         switch (screen.type) {
@@ -91,11 +121,39 @@ class App implements ScreenSwitcher {
                 break;
 
             case "combat":
+                console.log("Switching to combat screen");
+                // Clean up old combat controller if it exists
+                if (this.combatController) {
+                    // CRITICAL: Stop the game loop first
+                    this.combatController.cleanup();
+                    
+                    // Then destroy the visual elements
+                    this.combatController.getView().getGroup().destroy();
+                    this.combatController.getView().getEntityGroup().destroy();
+                }
+
+                // Create new combat controller
+                this.combatController = new CombatScreenController(this);
+                console.log("Initialized new CombatScreenController");
+                await this.combatController.init();
+
+                // Add to layers
+                this.layer.add(this.combatController.getView().getGroup());
+                this.combatLayer.add(this.combatController.getView().getEntityGroup());
+
+                // Start combat
                 this.combatController.startCombat();
                 break;
 
             case "result":
                 this.resultsController.showResults(screen.score);
+                break;
+			      case "education":
+				       this.educationController.show();
+				       break;
+            
+            case "pokemon":
+                this.pokemonController.startCombat();
                 break;
         }
     }
@@ -108,20 +166,20 @@ class App implements ScreenSwitcher {
         return this.layer;
     }
 
-    redrawEntities(): void {
-        this.entityLayer.batchDraw();
+    redrawExplorationPlayer(): void {
+        this.playerLayer.batchDraw();
     }
 
-    getEntityLayer(): Konva.Layer {
-        return this.entityLayer;
+    redrawCombatEntities(): void {
+        this.combatLayer.batchDraw();
     }
 
-    getStageWidth(): number {
-        return STAGE_WIDTH;
+    getExplorationLayer(): Konva.Layer {
+        return this.explorationLayer;
     }
 
-    getStageHeight(): number {
-        return STAGE_HEIGHT;
+    getCombatLayer(): Konva.Layer {
+        return this.combatLayer;
     }
 }
 
