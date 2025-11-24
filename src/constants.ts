@@ -5,3 +5,5 @@ export const EDGE_THRESHOLD = 10;
 
 // Game settings
 export const GAME_DURATION = 10; // seconds
+
+// 1920x1024

@@ -75,11 +75,11 @@ export class Map implements Maps {
         }
     }
 
-    /* identify which spriteSheet to use given gid */
-    private getTilesetForGid(gid: number) {
+    /* identify which spriteSheet to use given tileID */
+    private getTilesetForID(tileID: number) {
         let found = null;
         for (const ts of this.tilesets) {
-            if (gid >= ts.firstgid) {
+            if (tileID >= ts.firstgid) {
                 found = ts;
             } else break;
         }
@@ -99,27 +99,39 @@ export class Map implements Maps {
 
             const layerGroup = new Konva.Group({ name: layer.name });
 
+            /* 1D array containing map's tile data */
             const tiles = layer.data;
+
+            /* map's width in tiles */
             const mapWidth = layer.width;
+
+            /* map's height in tiles */
             const mapHeight = layer.height;
 
-            for (let y = 0; y < mapHeight; y++) {
-                for (let x = 0; x < mapWidth; x++) {
+            /* iterate through every tile using x,y coordinates */
+            for(let y = 0; y < mapHeight; y++){
+                for(let x = 0; x < mapWidth; x++){
+                    /* get tile's index in the 1D array using x,y coordinates */
+                    const tileID = tiles[y * mapWidth + x];
+                    if (tileID === 0) continue;
 
-                    const tileId = tiles[y * mapWidth + x];
-                    if (tileId === 0) continue;
+                    /* obtain tilesets struct for the tileSet used for tile (x,y) */
+                    const ts = this.getTilesetForID(tileID);
+                    if(!ts) continue;
 
-                    const ts = this.getTilesetForGid(tileId);
-                    if (!ts) continue;
 
+                    /* retrieve tile data from the tilesets struct */
                     const tileWidth = ts.tileWidth;
                     const tileHeight = ts.tileHeight;
 
-                    const localId = tileId - ts.firstgid;
+                    /* obtain the localID, representing which tile in the tilesheet we are rendering */
+                    const localID = tileID - ts.firstgid;
 
-                    const cropX = (localId % ts.tilesPerRow) * tileWidth;
-                    const cropY = Math.floor(localId / ts.tilesPerRow) * tileHeight;
+                    /* crop the tilesheet (ts.image) to only show the tile: localID */
+                    const cropX = (localID % ts.tilesPerRow) * tileWidth;
+                    const cropY = Math.floor(localID / ts.tilesPerRow) * tileHeight;
 
+                    /* represent tile as Konva Image, at the tile coordinates (x,y) */
                     const tile = new Konva.Image({
                         x: x * tileWidth,
                         y: y * tileHeight,
@@ -133,14 +145,15 @@ export class Map implements Maps {
                             height: tileHeight
                         }
                     });
-
+                    /* add all tiles from layer[i] to the layerGroup */
                     layerGroup.add(tile);
                 }
             }
-
+            /* for each layer, add all tiles to the map group */
             mapGroup.add(layerGroup);
         }
 
+        /* mapGroup now shows the entire map as a single Konva Group*/
         return mapGroup;
     }
 
