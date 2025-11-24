@@ -1,6 +1,7 @@
 import { ScreenController } from "../../types.ts";
 import { ExplorationScreenModel } from "./ExplorationScreenModel.ts";
 import { ExplorationScreenView } from "./ExplorationScreenView.ts";
+import { EducationScreenController } from "../EducationScreen/EducationScreenController.ts";
 import { InputManager } from "../../input.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT , EDGE_THRESHOLD } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
@@ -13,6 +14,7 @@ export class ExplorationScreenController extends ScreenController {
     private model: ExplorationScreenModel;
     private view: ExplorationScreenView;
     private screenSwitcher: ScreenSwitcher;
+    private eduControl: EducationScreenController;
     private input!: InputManager;
     private player!: Player;
     private npc!: npc;
@@ -23,11 +25,13 @@ export class ExplorationScreenController extends ScreenController {
     private COLLECTION_MSG_COOLDOWN_MS = 750;
     private mapBuilder!: Map;
 
-    constructor(screenSwitcher: ScreenSwitcher) {
+    constructor(screenSwitcher: ScreenSwitcher, eduControl: EducationScreenController) {
         super();
         this.screenSwitcher = screenSwitcher;
         this.model = new ExplorationScreenModel();
-        this.view = new ExplorationScreenView();
+        this.view = new ExplorationScreenView(() => this.handleBookClick());
+        this.eduControl = eduControl;
+        // this.view = new ExplorationScreenView();
         this.running = false;
     }
 
@@ -272,6 +276,10 @@ export class ExplorationScreenController extends ScreenController {
             img.onload = () => resolve(img);
             img.onerror = () => reject(`Failed to load image: ${src}`);
         });
+    }
+
+    private handleBookClick(): void {
+        this.eduControl.unlockLesson();
     }
 
     /**

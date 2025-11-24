@@ -20,6 +20,7 @@ export type Screen =
 	| { type: "exploration" }
 	| { type: "combat" }
 	| { type: "result"; score: number }
+	| { type: "education" };
 	| { type: "pokemon" };
 
 export abstract class ScreenController {
