@@ -1,0 +1,10 @@
+{
+    "name": "OBJECTS_PACK3",
+    "tileWidth": 16,
+    "tileHeight": 16,
+    "tilecount": 292,
+    "columns": 4,
+    "source": "/mapAssets/OBJECTS_PACK3.png",
+    "width": 64,
+    "height": 1168
+}
