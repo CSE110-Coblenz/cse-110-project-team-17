@@ -3,6 +3,7 @@ import { Robot } from "../../entities/robot.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { MapModel } from "../MapScreen/MapModel";
 import { Map } from "../../entities/tempMap.ts";
+import { STAGE_HEIGHT, STAGE_WIDTH } from "../../constants.ts";
 import Konva from "konva";
 
 /**
@@ -74,9 +75,21 @@ export class CombatScreenModel extends MapModel{
 		const previousX = robot.getPosition().x;
 
 		/* object collision logic */
-		const next = robot.getNextPosition(dx, dy);
+		let next = robot.getNextPosition(dx, dy);
+		if (next.x < 0) {
+			next.x = 0;
+		}
+		else if (next.x > STAGE_WIDTH - 32) {
+			next.x = STAGE_WIDTH - 32;
+		}
+		if (next.y < 0) {
+			next.y = 0;
+		}
+		else if (next.y > STAGE_HEIGHT - 32) {
+			next.y = STAGE_HEIGHT - 32;
+		}
         if(mapObj.canMoveToArea(next.x, next.y, 16, 16)){
-			robot.moveTo(previousX + dx * robot.getSpeed(), previousY + dy * robot.getSpeed());
+			robot.moveTo(next.x, next.y);
 		}
 		const currentPosition = robot.getPosition();
 		if (currentPosition.x !== previousX) {

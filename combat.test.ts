@@ -31,7 +31,7 @@ describe("Combat Attack Logic", () => {
     robot.moveTo(250, 251);
     robot.faceDirection("up");
     combat.performAttack({ attacker: robot }, { attacked: zombie });
-    expect(zombie.getHealth()).toBe(-10); // final hit kills zombie
+    expect(zombie.getHealth()).toBe(-10);
   });
 
 });
