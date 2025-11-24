@@ -1,3 +1,62 @@
+export type TextSnippetDefinition = {
+    id: string;
+    label: string;
+    text: string;
+};
+
+export const TEXT_SNIPPETS: TextSnippetDefinition[] = [
+    { id: "object1", label: "1", text: "CLASS Robot" },
+    { id: "object2", label: "2", text: "    PRIVATE text name: String" },
+    {
+        id: "object3",
+        label: "3",
+        text: [
+            "    PUBLIC CONSTRUCTOR Robot(inputName : String)",
+            "        SET name ← inputName",
+        ].join("\n"),
+    },
+    {
+        id: "object4",
+        label: "4",
+        text: [
+            "    PUBLIC METHOD attack() -> String",
+            "        RETURN name + \" light zap (5 dmg).\"",
+        ].join("\n"),
+    },
+    { id: "object5", label: "5", text: "CLASS AdvancedRobot EXTENDS Robot" },
+    {
+        id: "object6",
+        label: "6",
+        text: [
+            "    PUBLIC METHOD attack() -> String",
+            "        RETURN \"⚡ SUPER BLAST!\" +",
+            "               \" EMP burst\"",
+            "               \"  (25 dmg + stun).\"",
+        ].join("\n"),
+    },
+    {
+        id: "object7",
+        label: "7",
+        text: [
+            "Robot r1 = NEW Robot(\"R1\")",
+            "Robot r2 = NEW AdvancedRobot(\"R2\")",
+        ].join("\n"),
+    },
+];
+
+export const PICKUP_POSITION_TEMPLATES: Array<{ x: number; y: number }> = [
+    { x: 120, y: 140 },
+    { x: 120, y: 220 },
+    { x: 120, y: 300 },
+    { x: 120, y: 380 },
+    { x: 120, y: 460 },
+    { x: 220, y: 180 },
+    { x: 220, y: 260 },
+    { x: 220, y: 340 },
+    { x: 220, y: 420 },
+    { x: 220, y: 500 },
+];
+
 /**
  * MiniGame2ScreenModel - Manages minigame 2 state
  * Objects can be picked up and dropped one at a time

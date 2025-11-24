@@ -1,5 +1,10 @@
 import { ScreenController } from "../../types.ts";
-import { MiniGame2ScreenModel } from "./MiniGame2ScreenModel.ts";
+import {
+    MiniGame2ScreenModel,
+    PICKUP_POSITION_TEMPLATES,
+    TEXT_SNIPPETS,
+} from "./MiniGame2ScreenModel.ts";
+import type { TextSnippetDefinition } from "./MiniGame2ScreenModel.ts";
 import { MiniGame2ScreenView } from "./MiniGame2ScreenView.ts";
 import { InputManager } from "../../input.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
@@ -8,12 +13,6 @@ import { GameObject } from "../../entities/object.ts";
 import { Robot } from "../../entities/robot.ts";
 import type { ScreenSwitcher } from "../../types.ts";
 import { audioManager } from "../../audioManager.ts";
-
-type TextSnippetDefinition = {
-    id: string;
-    label: string;
-    text: string;
-};
 
 type DropSlotState = {
     id: string;
@@ -32,59 +31,6 @@ type RectBounds = {
     top: number;
     bottom: number;
 };
-
-const TEXT_SNIPPETS: TextSnippetDefinition[] = [
-    { id: "object1", label: "1", text: "CLASS Robot" },
-    { id: "object2", label: "2", text: "    PRIVATE text name: String" },
-    {
-        id: "object3",
-        label: "3",
-        text: [
-            "    PUBLIC CONSTRUCTOR Robot(inputName : String)",
-            "        SET name ← inputName",
-        ].join("\n"),
-    },
-    {
-        id: "object4",
-        label: "4",
-        text: [
-            "    PUBLIC METHOD attack() -> String",
-            "        RETURN name + \" light zap (5 dmg).\"",
-        ].join("\n"),
-    },
-    { id: "object5", label: "5", text: "CLASS AdvancedRobot EXTENDS Robot" },
-    {
-        id: "object6",
-        label: "6",
-        text: [
-            "    PUBLIC METHOD attack() -> String",
-            "        RETURN \"⚡ SUPER BLAST!\" +",
-            "               \" EMP burst\"",
-            "               \"  (25 dmg + stun).\"",
-        ].join("\n"),
-    },
-    {
-        id: "object7",
-        label: "7",
-        text: [
-            "Robot r1 = NEW Robot(\"R1\")",
-            "Robot r2 = NEW AdvancedRobot(\"R2\")",
-        ].join("\n"),
-    },
-];
-
-const PICKUP_POSITION_TEMPLATES: Array<{ x: number; y: number }> = [
-    { x: 120, y: 140 },
-    { x: 120, y: 220 },
-    { x: 120, y: 300 },
-    { x: 120, y: 380 },
-    { x: 120, y: 460 },
-    { x: 220, y: 180 },
-    { x: 220, y: 260 },
-    { x: 220, y: 340 },
-    { x: 220, y: 420 },
-    { x: 220, y: 500 },
-];
 
 /**
  * MiniGame2ScreenController
