@@ -1,9 +1,18 @@
+// Mock Audio so Node doesn't crash
+(globalThis as any).Audio = class {
+  constructor() {}
+  play() {}
+  pause() {}
+  loop = false;
+  volume = 1;
+};
+
+
 // combat.test.ts
 import { describe, it, expect } from "vitest";
 import { Robot } from "../src/entities/robot";
 import { Zombie } from "../src/entities/zombie";
 import { Combat } from "../src/combat";
-import { audioManager } from "../src/audioManager.ts";
 
 describe("Combat Attack Logic", () => {
 

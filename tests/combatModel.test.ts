@@ -1,8 +1,17 @@
+// Mock Audio so Node doesn't crash
+(globalThis as any).Audio = class {
+  constructor() {}
+  play() {}
+  pause() {}
+  loop = false;
+  volume = 1;
+};
+
+
 import { describe, it, expect, beforeAll } from "vitest";
 import { CombatScreenModel } from "../src/screens/CombatScreen/CombatScreenModel.ts";
 import { Robot } from "../src/entities/robot.ts";
 import { Zombie } from "../src/entities/zombie.ts";
-import { audioManager } from "../src/audioManager.ts";
 
 // Mock the Image class for Konva
 beforeAll(() => {
