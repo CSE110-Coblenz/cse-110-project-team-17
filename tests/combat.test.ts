@@ -1,21 +1,20 @@
 // combat.test.ts
-import { describe, it, expect, beforeAll} from "vitest";
+// Mock Audio BEFORE any imports
+(globalThis as any).Audio = class {
+  src = "";
+  loop = false;
+  volume = 1;
+  play() { return Promise.resolve(); }
+  pause() {}
+  load() {}
+  addEventListener() {}
+  removeEventListener() {}
+};
+
+import { describe, it, expect } from "vitest";
 import { Robot } from "../src/entities/robot";
 import { Zombie } from "../src/entities/zombie";
 import { Combat } from "../src/combat";
-
-beforeAll(() => {
-  (globalThis as any).Audio = class {
-    src = "";
-    loop = false;
-    volume = 1;
-    play() { return Promise.resolve(); }
-    pause() {}
-    load() {}
-    addEventListener() {}
-    removeEventListener() {}
-  };
-});
 
 describe("Combat Attack Logic", () => {
 
