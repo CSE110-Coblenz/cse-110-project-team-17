@@ -1,5 +1,6 @@
 import { Robot } from "./entities/robot";
 import { Zombie } from "./entities/zombie";
+import { audioManager } from "./audioManager.ts";
 
 let TOLERANCE = 100; // allow small offset so attack feels natural
 
@@ -7,7 +8,7 @@ export class Combat {
     /**
      * Perform an attack from the player to the enemy
      */
-    async performAttack(player: { attacker: Zombie | Robot }, enemy: { attacked: Zombie | Robot }): Promise<void> {
+    performAttack(player: { attacker: Zombie | Robot }, enemy: { attacked: Zombie | Robot }): void {
         if (player.attacker.getIsZombie() == true) {
             TOLERANCE = 30; // zombies have shorter reach
         }
@@ -51,13 +52,10 @@ export class Combat {
 
         if (hit) {
             enemy.attacked.takeDamage(player.attacker.getMaxAttack());
-            if (typeof Audio !== 'undefined') {
-                const { audioManager } = await import("./audioManager.ts");
-                if (player.attacker.getIsZombie()) {
-                    audioManager.playSfx("robot_damage");
-                } else {
-                    audioManager.playSfx("robot_punch", { volume: 0.35 });
-                }
+            if (player.attacker.getIsZombie()) {
+                audioManager.playSfx("robot_damage");
+            } else {
+                audioManager.playSfx("robot_punch", { volume: 0.35 });
             }
             console.log('Hit!');
             if (enemy.attacked.getHealth() <= 0) {

@@ -1,39 +1,17 @@
 // combatModel.test.ts
-// Mock Audio BEFORE any imports
-(globalThis as any).Audio = class MockAudio {
-  src = "";
-  loop = false;
-  volume = 1;
-  currentTime = 0;
-  duration = 0;
-  paused = true;
-  
-  constructor(src?: string) {
-    if (src) this.src = src;
-  }
-  
-  play() {
-    this.paused = false;
-    return Promise.resolve();
-  }
-  
-  pause() {
-    this.paused = true;
-  }
-  
-  load() {}
-  cloneNode() { return new MockAudio(); }
-  addEventListener() {}
-  removeEventListener() {}
-  dispatchEvent() { return true; }
-};
-
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
+vi.mock('../src/audioManager.ts', () => { // Use the actual relative path
+    return {
+        audioManager: {
+            playSfx: vi.fn(), // Use a spy function for easier assertion
+        },
+    };
+});
 import { CombatScreenModel } from "../src/screens/CombatScreen/CombatScreenModel.ts";
 import { Robot } from "../src/entities/robot.ts";
 import { Zombie } from "../src/entities/zombie.ts";
 
-// Mock the Image class for Konva and Audio API
+// Mock the Image class for Konva
 beforeAll(() => {
   (globalThis as any).Image = class {
     src = "";
