@@ -194,7 +194,7 @@ export class CombatScreenController extends ScreenController {
 			this.lastSpawnTime = timestamp;
 		}
 
-		if (timestamp - this.lastIncrementTimeForSpawning >= 10000 && this.rateOfSpawn < 5) {
+		if (timestamp - this.lastIncrementTimeForSpawning >= 10000) {
 			this.rateOfSpawn += 0.5;
 			console.log(`Increased zombie spawn rate to ${this.rateOfSpawn}x`);
 			this.lastIncrementTimeForSpawning = timestamp;

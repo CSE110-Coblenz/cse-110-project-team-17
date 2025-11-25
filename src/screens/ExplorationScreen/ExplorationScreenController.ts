@@ -290,6 +290,9 @@ export class ExplorationScreenController extends ScreenController {
         /* added functionality for OBJECT COLLISION */
         const prevPos = this.player.getCurrentImage().position();
         const next = this.player.getNextPosition(dx, dy);
+        if (next.y <= 0) {
+            next.y = 0
+        }
         if(this.mapBuilder.canMoveToArea(next.x, next.y, 16, 16)){
             this.player.moveTo(next.x, next.y);
             const moved = dx !== 0 || dy !== 0;
