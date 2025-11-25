@@ -6,7 +6,7 @@ type Spy = ReturnType<typeof vi.spyOn>;
 // mock image for Konva
 const mockKonvaImage = {} as any;
 
-const INACTIVITY_LIMIT = 8000;
+const INACTIVITY_LIMIT = 30000;
 const PRE_ROBOT_MSG = "Don't forget to explore and find those robot parts!";
 const POST_ROBOT_MSG = "Don't stop now! Let's keep exploring the other areas to unlock new capabilities.";
 const WORKBENCH_HINT_MSG = "You have all the pieces! Head to the workbench with the '!' mark and press 'P' to assemble the robot.";
