@@ -21,7 +21,7 @@ export type Screen =
 	| { type: "minigame2" }
 	| { type: "combat" }
 	| { type: "result"; score: number }
-	| { type: "education" };
+	| { type: "education" }
 	| { type: "pokemon" };
 
 export abstract class ScreenController {

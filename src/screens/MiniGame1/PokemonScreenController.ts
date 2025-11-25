@@ -3,6 +3,7 @@ import type { ScreenSwitcher } from "../../types.ts";
 import { PokemonScreenModel } from "./PokemonScreenModel.ts";
 import { PokemonScreenView } from "./PokemonScreenView.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
+import { audioManager } from "../../audioManager.ts";
 
 
 /**
@@ -110,6 +111,7 @@ export class PokemonScreenController extends ScreenController {
 			this.view.playPlayerDamageAnimation(damage);
 			if (this.model.isPlayerDefeated()) {
 				this.view.showLoseMessage();
+				audioManager.playSfx("minigame_lose");
 				this.waitForQuestion = true;
 				setTimeout(() => {
 					this.screenSwitcher.switchToScreen({ type: "exploration" });

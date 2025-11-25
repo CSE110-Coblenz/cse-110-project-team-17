@@ -47,6 +47,18 @@ export class npc {
         this.showDialog(message, true);
     }
 
+    // Show urgent dialog that auto-hides after durationMs
+    public showUrgentDialogFor(message: string, durationMs: number): void {
+        this.showDialog(message, true);
+        this.stickyTrivia = null;
+        this.isShowingHint = false;
+        this.lingerEndTime = Date.now() + durationMs;
+    }
+
+    public clearDialog(): void {
+        this.hideDialog();
+    }
+
     // Clears only the visual elements of the dialog,
     //used to make trivia persist without changing text.
     private clearDialogVisuals() {

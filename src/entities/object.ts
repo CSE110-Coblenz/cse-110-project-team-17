@@ -54,7 +54,7 @@ export class GameObject{
     /**
      * Load object image from URL or HTMLImageElement
      */
-    async loadImage(imageSource: string | HTMLImageElement): Promise<void> {
+    async loadImage(imageSource: string | HTMLImageElement, scale: number = 1): Promise<void> {
         if (typeof imageSource === 'string') {
             // Load from URL
             return new Promise((resolve) => {
@@ -64,6 +64,8 @@ export class GameObject{
                     }
                     this.sprite = image;
                     this.currentImage = image;
+                    image.width(image.width() * scale);
+                    image.height(image.height() * scale);
                     this.group.add(image);
                     this.size = { width: image.width(), height: image.height() };
                     resolve();
@@ -77,8 +79,8 @@ export class GameObject{
             this.currentImage = new Konva.Image({
                 x: 0,
                 y: 0,
-                width: 40,
-                height: 40,
+                width: 40 * scale,
+                height: 40 * scale,
                 image: imageSource,
             });
             this.sprite = this.currentImage;
@@ -285,9 +287,7 @@ export class GameObject{
             this.size = { ...this.textSize };
         }
     }
-}
-     * Get the name of the entity
-     */
+
     getName(): string {
         return this.name;
     }

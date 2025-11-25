@@ -15,9 +15,15 @@ export class Player extends MovableEntity {
             height: 16,
             image: playerImage,
         });
-        const speed = 2;
+        const speed = 3;
 
         super(name, speed, currentImage, x, y);
+    }
+
+    /** Move by delta and update position */
+    move(dx: number, dy: number): void {
+        const next = this.getNextPosition(dx, dy);
+        this.moveTo(next.x, next.y);
     }
 
     /**

@@ -1,5 +1,6 @@
 import { Robot } from "./entities/robot";
 import { Zombie } from "./entities/zombie";
+import { audioManager } from "./audioManager.ts";
 
 let TOLERANCE = 100; // allow small offset so attack feels natural
 
@@ -51,6 +52,11 @@ export class Combat {
 
         if (hit) {
             enemy.attacked.takeDamage(player.attacker.getMaxAttack());
+            if (player.attacker.getIsZombie()) {
+                audioManager.playSfx("robot_damage");
+            } else {
+                audioManager.playSfx("robot_punch", { volume: 0.35 });
+            }
             console.log('Hit!');
             if (enemy.attacked.getHealth() <= 0) {
                 console.log('Enemy defeated!');

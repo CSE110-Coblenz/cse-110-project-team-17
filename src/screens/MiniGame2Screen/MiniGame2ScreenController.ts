@@ -1,17 +1,18 @@
 import { ScreenController } from "../../types.ts";
-import { MiniGame2ScreenModel } from "./MiniGame2ScreenModel.ts";
+import {
+    MiniGame2ScreenModel,
+    PICKUP_POSITION_TEMPLATES,
+    TEXT_SNIPPETS,
+} from "./MiniGame2ScreenModel.ts";
+import type { TextSnippetDefinition } from "./MiniGame2ScreenModel.ts";
 import { MiniGame2ScreenView } from "./MiniGame2ScreenView.ts";
 import { InputManager } from "../../input.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
 import { GameObject } from "../../entities/object.ts";
+import { Robot } from "../../entities/robot.ts";
 import type { ScreenSwitcher } from "../../types.ts";
-
-type TextSnippetDefinition = {
-    id: string;
-    label: string;
-    text: string;
-};
+import { audioManager } from "../../audioManager.ts";
 
 type DropSlotState = {
     id: string;
@@ -31,59 +32,6 @@ type RectBounds = {
     bottom: number;
 };
 
-const TEXT_SNIPPETS: TextSnippetDefinition[] = [
-    { id: "object1", label: "1", text: "CLASS Robot" },
-    { id: "object2", label: "2", text: "    PRIVATE text name: String" },
-    {
-        id: "object3",
-        label: "3",
-        text: [
-            "    PUBLIC CONSTRUCTOR Robot(inputName : String)",
-            "        SET name ← inputName",
-        ].join("\n"),
-    },
-    {
-        id: "object4",
-        label: "4",
-        text: [
-            "    PUBLIC METHOD attack() -> String",
-            "        RETURN name + \" light zap (5 dmg).\"",
-        ].join("\n"),
-    },
-    { id: "object5", label: "5", text: "CLASS AdvancedRobot EXTENDS Robot" },
-    {
-        id: "object6",
-        label: "6",
-        text: [
-            "    PUBLIC METHOD attack() -> String",
-            "        RETURN \"⚡ SUPER BLAST!\" +",
-            "               \" EMP burst\"",
-            "               \"  (25 dmg + stun).\"",
-        ].join("\n"),
-    },
-    {
-        id: "object7",
-        label: "7",
-        text: [
-            "Robot r1 = NEW Robot(\"R1\")",
-            "Robot r2 = NEW AdvancedRobot(\"R2\")",
-        ].join("\n"),
-    },
-];
-
-const PICKUP_POSITION_TEMPLATES: Array<{ x: number; y: number }> = [
-    { x: 120, y: 140 },
-    { x: 120, y: 220 },
-    { x: 120, y: 300 },
-    { x: 120, y: 380 },
-    { x: 120, y: 460 },
-    { x: 220, y: 180 },
-    { x: 220, y: 260 },
-    { x: 220, y: 340 },
-    { x: 220, y: 420 },
-    { x: 220, y: 500 },
-];
-
 /**
  * MiniGame2ScreenController
  * 
@@ -96,6 +44,7 @@ export class MiniGame2ScreenController extends ScreenController {
     private screenSwitcher: ScreenSwitcher;
     private input!: InputManager;
     private player!: Player;
+    private robot?: Robot;
     private gameObjects: Map<string, GameObject> = new Map(); // Map name to GameObject
     private dropSlots: DropSlotState[] = [];
     private celebrationTriggered = false;
@@ -111,46 +60,72 @@ export class MiniGame2ScreenController extends ScreenController {
     private readonly CUBE_SPACING = 16;
     private readonly SLOT_VERTICAL_GAP = 30;
     private readonly BASE_SLOT_HEIGHT = 60;
+    private moveSound?: HTMLAudioElement;
+    private moveSoundPlaying = false;
+    private readonly COUNTDOWN_MS = 60000;
+    private timerInterval?: number;
+    private timerTimeout?: number;
+    static completed = false;
 
     constructor(screenSwitcher: ScreenSwitcher) {
         super();
         this.screenSwitcher = screenSwitcher;
         this.model = new MiniGame2ScreenModel();
         this.view = new MiniGame2ScreenView();
+        this.view.setIntroHandler(this.beginMiniGame);
     }
 
     /* Load Map and spawn objects */
     async init(): Promise<void> {
-        const mapData = await this.loadMap("/porj0.json");
-        const playerImage = await this.loadImage("/imagesTemp.jpg");
-        
-        this.player = new Player("player1", STAGE_WIDTH / 2, STAGE_HEIGHT / 2, playerImage);
-        this.model.reset();
-        this.gameObjects.clear();
-        this.dropSlots = [];
-        this.celebrationTriggered = false;
+        try {
+            const mapData = await this.loadMap("/maps/porj0.json");
+            const playerImage = await this.loadImage("/sprites/idle-frame1.png");
+            const robotImage = await this.loadImage("/sprites/idle-frame1.png");
 
-        this.setupTextSnippets();
+            this.player = new Player("player1", STAGE_WIDTH / 2, 80, playerImage);
+            this.robot = new Robot("companion-robot", 100, 10, STAGE_WIDTH / 2, 120, robotImage);
+            this.moveSound = audioManager.createSfxInstance("movement", { volume: 0.15 });
+            this.resetState();
 
-        await this.view.build(
-            mapData,
-            this.player,
-            Array.from(this.gameObjects.values()),
-            this.loadImage.bind(this)
-        );
-        this.view.renderDropSlots(this.getDropSlotVisuals());
-        this.reflowSlotPositions();
+            this.setupTextSnippets();
+
+            await this.view.build(
+                mapData,
+                this.player,
+                Array.from(this.gameObjects.values()),
+                this.loadImage.bind(this)
+            );
+            if (this.robot) {
+                this.view.getEntityGroup().add(this.robot.getCurrentImage());
+            }
+            this.view.renderDropSlots(this.getDropSlotVisuals());
+            this.reflowSlotPositions();
+        } catch (err) {
+            console.error("Failed to init MiniGame2:", err);
+        }
     }
 
     startMiniGame(): void {
-        this.model.setRunning(true);
+        if (MiniGame2ScreenController.completed) {
+            this.screenSwitcher.switchToScreen({ type: "exploration" });
+            return;
+        }
+        this.model.setRunning(false);
         this.input = new InputManager();
         this.view.show();
-        requestAnimationFrame(this.miniGameLoop);
+        this.view.showIntro();
     }
+
+    private beginMiniGame = (): void => {
+        this.view.hideIntro();
+        this.model.setRunning(true);
+        this.startTimer();
+        requestAnimationFrame(this.miniGameLoop);
+    };
 
     hide(): void {
         this.model.setRunning(false);
+        this.stopTimer();
         this.view.hide();
     }
 
@@ -158,37 +133,54 @@ export class MiniGame2ScreenController extends ScreenController {
     private miniGameLoop = (): void => {
         if (!this.model.isRunning()) return;
 
+        if (!this.player) {
+            console.error("MiniGame2 player not initialized");
+            return;
+        }
+
         const { dx, dy } = this.input.getDirection();
+        this.player.setSpeed(this.input.isSprinting() ? 10 : 6);
         const playerImg = this.player.getCurrentImage();
 
         // Move player
+        const prevPos = playerImg.position();
         this.player.move(dx, dy);
 
         // Get new position after movement
         const newX = playerImg.x();
         const newY = playerImg.y();
 
+        const moved = (dx !== 0 || dy !== 0) && (newX !== prevPos.x || newY !== prevPos.y);
+        if (moved) {
+            if (this.moveSound && !this.moveSoundPlaying) {
+                this.moveSound.currentTime = 0;
+                this.moveSoundPlaying = true;
+                this.moveSound.onended = () => { this.moveSoundPlaying = false; };
+                void this.moveSound.play().catch(() => { this.moveSoundPlaying = false; });
+            }
+        } else if (this.moveSound && this.moveSoundPlaying) {
+            this.moveSound.pause();
+            this.moveSound.currentTime = 0;
+            this.moveSoundPlaying = false;
+        }
+
         // Update carried object position to follow player
         this.updateCarriedObjectPosition(newX, newY);
 
-        // Check if player is trying to go past the right edge
-        if (newX >= STAGE_WIDTH - this.EDGE_THRESHOLD) {
-            // Check if all items have been delivered
-            if (this.model.allObjectsDelivered()) {
-                // Transition to next screen
-                this.model.setRunning(false);
-                this.screenSwitcher.switchToScreen({ type: "combat" });
-                return;
-            } else {
-                // Prevent movement past the edge
-                playerImg.x(STAGE_WIDTH - this.EDGE_THRESHOLD);
-            }
-        }
-
         // Boundary checks
+        const maxX = STAGE_WIDTH - playerImg.width();
+        const maxY = STAGE_HEIGHT - playerImg.height();
         if (newX < 0) playerImg.x(0);
+        if (newX > maxX) playerImg.x(maxX);
         if (newY < 0) playerImg.y(0);
-        if (newY > STAGE_HEIGHT - 32) playerImg.y(STAGE_HEIGHT - 32);
+        if (newY > maxY) playerImg.y(maxY);
+        if (newY <= 0) {
+            playerImg.y(0);
+            this.model.setRunning(false);
+            this.hide();
+            this.screenSwitcher.switchToScreen({ type: "exploration" });
+            return;
+        }
 
         // Check if 'P' key is pressed for pickup/drop
         const interact = this.input.getInteract();
@@ -196,9 +188,70 @@ export class MiniGame2ScreenController extends ScreenController {
             this.handleInteraction();
         }
 
-        this.screenSwitcher.redrawEntities();
+        if (this.robot) {
+            const rx = this.robot.getCurrentImage().x();
+            const ry = this.robot.getCurrentImage().y();
+            const dxToPlayer = newX - rx;
+            const dyToPlayer = newY - ry;
+            const dist = Math.sqrt(dxToPlayer * dxToPlayer + dyToPlayer * dyToPlayer);
+            const desiredOffset = 20;
+            if (dist > desiredOffset) {
+                const step = Math.min(2.5, dist - desiredOffset);
+                const nx = rx + (dxToPlayer / dist) * step;
+                const ny = ry + (dyToPlayer / dist) * step;
+                this.robot.moveTo(nx, ny);
+            }
+        }
+
+        // Redraw the main layer; App exposes redraw() instead of a dedicated mini-game entity redraw
+        this.screenSwitcher.redraw();
         requestAnimationFrame(this.miniGameLoop);
     };
+
+    private startTimer(): void {
+        this.stopTimer();
+        let remaining = this.COUNTDOWN_MS;
+        this.view.updateTimer(Math.ceil(remaining / 1000));
+        this.timerInterval = window.setInterval(() => {
+            remaining -= 1000;
+            if (remaining <= 0) {
+                this.failDueToTimeout();
+            } else {
+                this.view.updateTimer(Math.ceil(remaining / 1000));
+            }
+        }, 1000);
+        this.timerTimeout = window.setTimeout(() => this.failDueToTimeout(), this.COUNTDOWN_MS);
+    }
+
+    private stopTimer(): void {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = undefined;
+        }
+        if (this.timerTimeout) {
+            clearTimeout(this.timerTimeout);
+            this.timerTimeout = undefined;
+        }
+    }
+
+    private failDueToTimeout(): void {
+        if (!this.model.isRunning()) return;
+        this.model.setRunning(false);
+        this.stopTimer();
+        this.view.showFailureMessage("Time's up! You failed to finish in 60s.");
+        setTimeout(() => {
+            this.view.hideFailureMessage();
+            this.hide();
+            this.screenSwitcher.switchToScreen({ type: "exploration" });
+        }, 2000);
+    }
+
+    private resetState(): void {
+        this.model.reset();
+        this.gameObjects.clear();
+        this.dropSlots = [];
+        this.celebrationTriggered = false;
+    }
 
     /**
      * Handle pickup/drop interaction with 'P' key
@@ -232,7 +285,6 @@ export class MiniGame2ScreenController extends ScreenController {
                         obj.show();
                         obj.showCubeAppearance();
                         obj.setHighlight('idle');
-                        this.view.updateCarriedItems([]);
                     }
                 }
             }
@@ -262,7 +314,7 @@ export class MiniGame2ScreenController extends ScreenController {
                 obj.moveTo(offsetX, offsetY);
                 
                 // Update UI
-                this.view.updateCarriedItems([name]);
+                audioManager.playSfx("object_collect");
 
                 // Only pick up one item per 'P' press
                 return;
@@ -458,11 +510,17 @@ export class MiniGame2ScreenController extends ScreenController {
             status: targetSlot.status,
         });
         this.reflowSlotPositions();
-        this.view.updateCarriedItems([]);
 
         if (!this.celebrationTriggered && this.allSlotsCorrect()) {
             this.celebrationTriggered = true;
             this.view.showConfetti();
+            this.model.setRunning(false);
+            this.stopTimer();
+            MiniGame2ScreenController.completed = true;
+            setTimeout(() => {
+                this.hide();
+                this.screenSwitcher.switchToScreen({ type: "exploration" });
+            }, 1500);
         }
         return true;
     }
