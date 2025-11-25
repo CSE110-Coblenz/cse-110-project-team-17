@@ -1,12 +1,14 @@
-// Mock Audio so Node doesn't crash
-(globalThis as any).Audio = class {
+// ENSURE THIS RUNS BEFORE ANY OTHER IMPORTS
+import { vi } from "vitest";
+
+// Stub Audio globally BEFORE any module loads
+vi.stubGlobal("Audio", class {
   constructor() {}
   play() {}
   pause() {}
   loop = false;
   volume = 1;
-};
-
+});
 
 // combat.test.ts
 import { describe, it, expect } from "vitest";
