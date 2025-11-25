@@ -53,9 +53,12 @@ export class Combat {
         if (hit) {
             enemy.attacked.takeDamage(player.attacker.getMaxAttack());
             if (player.attacker.getIsZombie()) {
-                audioManager.playSfx("robot_damage");
+                if (typeof Audio !== null) {
+                    audioManager.playSfx("robot_damage");
+                }
             } else {
-                audioManager.playSfx("robot_punch", { volume: 0.35 });
+                if (typeof Audio !== null)
+                    audioManager.playSfx("robot_punch", { volume: 0.35 });
             }
             console.log('Hit!');
             if (enemy.attacked.getHealth() <= 0) {
