@@ -1,14 +1,31 @@
 // combat.test.ts
 // Mock Audio BEFORE any imports
-(globalThis as any).Audio = class {
+(globalThis as any).Audio = class MockAudio {
   src = "";
   loop = false;
   volume = 1;
-  play() { return Promise.resolve(); }
-  pause() {}
+  currentTime = 0;
+  duration = 0;
+  paused = true;
+  
+  constructor(src?: string) {
+    if (src) this.src = src;
+  }
+  
+  play() {
+    this.paused = false;
+    return Promise.resolve();
+  }
+  
+  pause() {
+    this.paused = true;
+  }
+  
   load() {}
+  cloneNode() { return new MockAudio(); }
   addEventListener() {}
   removeEventListener() {}
+  dispatchEvent() { return true; }
 };
 
 import { describe, it, expect } from "vitest";
