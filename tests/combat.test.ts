@@ -20,19 +20,19 @@ describe("Combat Attack Logic", () => {
 
     // Initially far away → no hit
     combat.performAttack({ attacker: robot }, { attacked: zombie });
-    expect(zombie.getHealth()).toBe(30);
+    expect(zombie.getHealth()).toBe(50);
 
     // Move robot next to zombie (left of zombie)
     robot.moveTo(249, 250);
     robot.faceDirection("right");
     combat.performAttack({ attacker: robot }, { attacked: zombie });
-    expect(zombie.getHealth()).toBe(10); // got hit once
+    expect(zombie.getHealth()).toBe(30); // got hit once
 
     // Move robot above zombie
     robot.moveTo(250, 249);
     robot.faceDirection("down");
     combat.performAttack({ attacker: robot }, { attacked: zombie });
-    expect(zombie.getHealth()).toBe(-10); // second hit
+    expect(zombie.getHealth()).toBe(10); // second hit
 
     // Move robot below zombie and face up
     robot.moveTo(250, 251);
