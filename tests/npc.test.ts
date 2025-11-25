@@ -1,10 +1,16 @@
-import { npc } from "./src/entities/npc.js";
+import { npc } from "../src/entities/npc.ts";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 type Spy = ReturnType<typeof vi.spyOn>;
 
 // mock image for Konva
 const mockKonvaImage = {} as any;
+
+const INACTIVITY_LIMIT = 8000;
+const PRE_ROBOT_MSG = "Don't forget to explore and find those robot parts!";
+const POST_ROBOT_MSG = "Don't stop now! Let's keep exploring the other areas to unlock new capabilities.";
+const WORKBENCH_HINT_MSG = "You have all the pieces! Head to the workbench with the '!' mark and press 'P' to assemble the robot.";
+
 
 describe("NPC Logic Tests", () => {
   let npcInstance: npc;
@@ -18,8 +24,6 @@ describe("NPC Logic Tests", () => {
 
   beforeEach(() => {
     npcInstance = new npc(400, 300, trivia, mockKonvaImage);
-
-    // Correct spy setup (NO override for hideDialog)
     showDialogSpy = vi.spyOn(npcInstance as any, "showDialog").mockImplementation(() => {});
     hideDialogSpy = vi.spyOn(npcInstance as any, "hideDialog");
 
@@ -60,36 +64,57 @@ describe("NPC Logic Tests", () => {
 
 
   // inactivity hint
-  describe("Inactivity Hint", () => {
-    it("shows inactivity hint after enough idle time", () => {
-      const limit = 8000;
-      const msg = "Don't forget to explore and find those robot parts!";
+  describe("Inactivity Hint (Tutorial/Exploration Prompt)", () => {
+    it("shows pre-robot inactivity hint (tutorial text) after enough idle time", () => {
 
       npcInstance.updateDialog(800, 800);
       expect(showDialogSpy).not.toHaveBeenCalled();
 
-      vi.advanceTimersByTime(limit + 100);
+      vi.advanceTimersByTime(INACTIVITY_LIMIT + 100);
       npcInstance.updateDialog(800, 800);
 
-      expect(showDialogSpy).toHaveBeenCalledWith(msg, true);
+      expect(showDialogSpy).toHaveBeenCalledWith(PRE_ROBOT_MSG, true);
+    });
+
+    it("shows workbench hint when parts are collected but robot is not built", () => {
+      npcInstance.setAllPartsCollected(true);
+      expect((npcInstance as any).robotBuilt).toBe(false); 
+      
+      npcInstance.updateDialog(800, 800);
+      expect(showDialogSpy).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(INACTIVITY_LIMIT + 100);
+      npcInstance.updateDialog(800, 800);
+
+      expect(showDialogSpy).toHaveBeenCalledWith(WORKBENCH_HINT_MSG, true);
+    });
+
+    it("shows post-robot inactivity hint (exploration prompt) after enough idle time when robot is built", () => {
+      npcInstance.setRobotBuilt(true);
+      npcInstance.updateDialog(800, 800);
+      expect(showDialogSpy).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(INACTIVITY_LIMIT + 100);
+      npcInstance.updateDialog(800, 800);
+
+      expect(showDialogSpy).toHaveBeenCalledWith(POST_ROBOT_MSG, true);
     });
 
     it("markActive starts linger instead of immediately hiding the inactivity hint", () => {
-      const limit = 8000;
-      const lingerDuration = 3000; 
-      vi.advanceTimersByTime(limit + 100);
+      const lingerDuration = 3000;
+      vi.advanceTimersByTime(INACTIVITY_LIMIT + 100);
       npcInstance.updateDialog(800, 800);
       expect(showDialogSpy).toHaveBeenCalled();
       expect(hideDialogSpy).not.toHaveBeenCalled();
       npcInstance.markActive();
       expect(hideDialogSpy).not.toHaveBeenCalled();
       vi.advanceTimersByTime(lingerDuration + 10);
-      npcInstance.updateDialog(800, 800); 
+      npcInstance.updateDialog(800, 800);
       expect(hideDialogSpy).toHaveBeenCalledTimes(1);
     });
   });
 
-  // urgent dialog
+
   describe("Urgent Dialog", () => {
     it("shows robot completion message", () => {
       npcInstance.showUrgentDialog("Robot complete!");
@@ -107,6 +132,12 @@ describe("NPC Logic Tests", () => {
     it("initializes X and Y", () => {
       expect((npcInstance as any).x).toBe(400);
       expect((npcInstance as any).y).toBe(300);
+    });
+
+    it("setRobotBuilt updates the state correctly", () => {
+      expect((npcInstance as any).robotBuilt).toBe(false);
+      npcInstance.setRobotBuilt(true);
+      expect((npcInstance as any).robotBuilt).toBe(true);
     });
   });
 
@@ -135,15 +166,10 @@ describe("NPC Logic Tests", () => {
     });
 
     it("does NOT show proximity trivia if hint is active", () => {
-      const limit = 8000;
-
-      vi.advanceTimersByTime(limit + 10);
+      vi.advanceTimersByTime(INACTIVITY_LIMIT + 10);
       npcInstance.updateDialog(500, 500);
-
-      // Only hint shown so far
       expect(showDialogSpy).toHaveBeenCalledTimes(1);
 
-      // Player gets close — should NOT override hint
       npcInstance.updateDialog(410, 310);
       expect(showDialogSpy).toHaveBeenCalledTimes(1);
     });
@@ -159,8 +185,6 @@ describe("NPC Logic Tests", () => {
       npcInstance.updateDialog(800, 800);
       npcInstance.updateDialog(820, 820);
       npcInstance.updateDialog(900, 900);
-
-      // Expected: 3 calls (far each time)
       expect(hideDialogSpy).toHaveBeenCalledTimes(3);
     });
 
@@ -173,8 +197,8 @@ describe("NPC Logic Tests", () => {
       const img = npcInstance.getCurrentImage();
       expect(img.attrs.x).toBe(400);
       expect(img.attrs.y).toBe(300);
-      expect(img.attrs.width).toBe(48);
-      expect(img.attrs.height).toBe(48);
+      expect(img.attrs.width).toBe(16);
+      expect(img.attrs.height).toBe(16);
     });
 
     it("does not crash when triviaFacts = []", () => {
