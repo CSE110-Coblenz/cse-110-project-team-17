@@ -1,24 +1,24 @@
-// ENSURE THIS RUNS BEFORE ANY OTHER IMPORTS
-import { vi } from "vitest";
-
-// Stub Audio globally BEFORE any module loads
-vi.stubGlobal("Audio", class {
-  constructor() {}
-  play() {}
-  pause() {}
-  loop = false;
-  volume = 1;
-});
-
+// combatModel.test.ts
 import { describe, it, expect, beforeAll } from "vitest";
 import { CombatScreenModel } from "../src/screens/CombatScreen/CombatScreenModel.ts";
 import { Robot } from "../src/entities/robot.ts";
 import { Zombie } from "../src/entities/zombie.ts";
 
-// Mock the Image class for Konva
+// Mock the Image class for Konva and Audio API
 beforeAll(() => {
   (globalThis as any).Image = class {
     src = "";
+  };
+  
+  (globalThis as any).Audio = class {
+    src = "";
+    loop = false;
+    volume = 1;
+    play() { return Promise.resolve(); }
+    pause() {}
+    load() {}
+    addEventListener() {}
+    removeEventListener() {}
   };
 });
 

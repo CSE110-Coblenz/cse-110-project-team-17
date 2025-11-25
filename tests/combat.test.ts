@@ -1,20 +1,21 @@
-// ENSURE THIS RUNS BEFORE ANY OTHER IMPORTS
-import { vi } from "vitest";
-
-// Stub Audio globally BEFORE any module loads
-vi.stubGlobal("Audio", class {
-  constructor() {}
-  play() {}
-  pause() {}
-  loop = false;
-  volume = 1;
-});
-
 // combat.test.ts
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll} from "vitest";
 import { Robot } from "../src/entities/robot";
 import { Zombie } from "../src/entities/zombie";
 import { Combat } from "../src/combat";
+
+beforeAll(() => {
+  (globalThis as any).Audio = class {
+    src = "";
+    loop = false;
+    volume = 1;
+    play() { return Promise.resolve(); }
+    pause() {}
+    load() {}
+    addEventListener() {}
+    removeEventListener() {}
+  };
+});
 
 describe("Combat Attack Logic", () => {
 
