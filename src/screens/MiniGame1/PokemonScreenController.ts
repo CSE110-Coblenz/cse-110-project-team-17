@@ -105,18 +105,18 @@ export class PokemonScreenController extends ScreenController {
 
 		} else {
 			// Incorrect answer: player takes damage
-				const damage = 20; // Fixed damage for incorrect answers
-				this.model.dealDamageToPlayer(damage);
-				this.view.updatePlayerHealthText(this.model.getPlayerHealth());
-				this.view.playPlayerDamageAnimation(damage);
-				if (this.model.isPlayerDefeated()) {
-					this.view.showLoseMessage();
-					audioManager.playSfx("minigame_lose");
-					this.waitForQuestion = true;
-					setTimeout(() => {
-						this.screenSwitcher.switchToScreen({ type: "exploration" });
-					}, 2000);
-					return; // Don't proceed to next question
+			const damage = 20; // Fixed damage for incorrect answers
+			this.model.dealDamageToPlayer(damage);
+			this.view.updatePlayerHealthText(this.model.getPlayerHealth());
+			this.view.playPlayerDamageAnimation(damage);
+			if (this.model.isPlayerDefeated()) {
+				this.view.showLoseMessage();
+				audioManager.playSfx("minigame_lose");
+				this.waitForQuestion = true;
+				setTimeout(() => {
+					this.screenSwitcher.switchToScreen({ type: "exploration" });
+				}, 2000);
+				return; // Don't proceed to next question
 			}
 		}
 		if (this.model.isBossDefeated()) {

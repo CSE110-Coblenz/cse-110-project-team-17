@@ -74,8 +74,7 @@ export class ExplorationScreenController extends ScreenController {
         /* Create player instance */
         const playerImage = await this.loadImage("/sprites/idle-frame1.png");
         this.player = new Player("player1", STAGE_WIDTH/2, STAGE_HEIGHT/2, playerImage);
-        this.moveSound = new Audio("/sounds/sfx/movement_cut.mp3");
-        this.moveSound.volume = 0.2;
+        this.moveSound = audioManager.createSfxInstance("movement", { volume: 0.2 });
 
         const hitbox = new Konva.Rect({
             x: 0, y: 0, width: 16, height: 16,

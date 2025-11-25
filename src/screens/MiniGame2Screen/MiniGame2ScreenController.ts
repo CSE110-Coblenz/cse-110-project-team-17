@@ -84,8 +84,7 @@ export class MiniGame2ScreenController extends ScreenController {
 
             this.player = new Player("player1", STAGE_WIDTH / 2, 80, playerImage);
             this.robot = new Robot("companion-robot", 100, 10, STAGE_WIDTH / 2, 120, robotImage);
-            this.moveSound = new Audio("/sounds/sfx/movement_cut.mp3");
-            this.moveSound.volume = 0.15;
+            this.moveSound = audioManager.createSfxInstance("movement", { volume: 0.15 });
             this.resetState();
 
             this.setupTextSnippets();
@@ -168,24 +167,13 @@ export class MiniGame2ScreenController extends ScreenController {
         // Update carried object position to follow player
         this.updateCarriedObjectPosition(newX, newY);
 
-        // Check if player is trying to go past the right edge
-        if (newX >= STAGE_WIDTH - this.EDGE_THRESHOLD) {
-            // Check if all items have been delivered
-            if (this.model.allObjectsDelivered()) {
-                // Transition to next screen
-                this.model.setRunning(false);
-                this.screenSwitcher.switchToScreen({ type: "combat" });
-                return;
-            } else {
-                // Prevent movement past the edge
-                playerImg.x(STAGE_WIDTH - this.EDGE_THRESHOLD);
-            }
-        }
-
         // Boundary checks
+        const maxX = STAGE_WIDTH - playerImg.width();
+        const maxY = STAGE_HEIGHT - playerImg.height();
         if (newX < 0) playerImg.x(0);
+        if (newX > maxX) playerImg.x(maxX);
         if (newY < 0) playerImg.y(0);
-        if (newY > STAGE_HEIGHT - 32) playerImg.y(STAGE_HEIGHT - 32);
+        if (newY > maxY) playerImg.y(maxY);
         if (newY <= 0) {
             playerImg.y(0);
             this.model.setRunning(false);

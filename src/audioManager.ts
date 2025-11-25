@@ -1,3 +1,5 @@
+// Centralized audio loader/dispatcher so the rest of the app does not need
+// to construct <audio> tags or remember volume defaults.
 type TrackKey = "menu" | "exploration" | "minigame2" | "combat" | "pokemon" | "result";
 type SfxKey =
   | "game_over"
@@ -23,6 +25,7 @@ class AudioManager {
   private readonly sfxVolume = 0.5;
 
   constructor() {
+    // Preload looping background tracks with a consistent volume cap.
     const makeTrack = (src: string) => {
       const audio = new Audio(src);
       audio.loop = true;
@@ -30,6 +33,7 @@ class AudioManager {
       return audio;
     };
 
+    // Preload one-shot sound effects with a shared base volume.
     const makeSfx = (src: string) => {
       const audio = new Audio(src);
       audio.volume = this.sfxVolume;
@@ -57,6 +61,10 @@ class AudioManager {
     };
   }
 
+  /**
+   * Swap to a new background track, stopping any track that was already playing.
+   * Does nothing if the requested track key is unknown.
+   */
   playTrack(key: TrackKey): void {
     const next = this.tracks[key];
     if (!next) return;
@@ -70,18 +78,32 @@ class AudioManager {
     });
   }
 
+  /**
+   * Clone and play a sound effect so multiple SFX can overlap safely.
+   * Optional playback rate / volume overrides and delayed playback are supported.
+   */
   playSfx(key: SfxKey, options: PlayOptions = {}): void {
-    const base = this.sfx[key];
-    if (!base) return;
-    const clone = base.cloneNode(true) as HTMLAudioElement;
-    clone.volume = options.volume ?? this.sfxVolume;
-    if (options.playbackRate) clone.playbackRate = options.playbackRate;
+    const clone = this.createSfxInstance(key, options);
+    if (!clone) return;
     const play = () => void clone.play().catch(() => {});
     if (options.delayMs && options.delayMs > 0) {
       setTimeout(play, options.delayMs);
     } else {
       play();
     }
+  }
+
+  /**
+   * Return a configured clone of a sound effect for callers that need to
+   * manage playback manually (looping, cancelation, etc.).
+   */
+  createSfxInstance(key: SfxKey, options: PlayOptions = {}): HTMLAudioElement | undefined {
+    const base = this.sfx[key];
+    if (!base) return undefined;
+    const clone = base.cloneNode(true) as HTMLAudioElement;
+    clone.volume = options.volume ?? this.sfxVolume;
+    if (options.playbackRate) clone.playbackRate = options.playbackRate;
+    return clone;
   }
 }
 

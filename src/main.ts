@@ -25,9 +25,8 @@ export class App implements ScreenSwitcher {
     private miniGame2Controller: MiniGame2ScreenController;
     private combatController: CombatScreenController;
     private resultsController: ResultsScreenController;
-	  private educationController: EducationScreenController;
+	private educationController: EducationScreenController;
     private pokemonController: PokemonScreenController;
-    private audioPrimed = false;
 
     constructor(container: string) {
         // Initialize Konva stage
@@ -87,17 +86,6 @@ export class App implements ScreenSwitcher {
         this.explorationLayer.draw();
         this.playerLayer.draw();
         this.combatLayer.draw();
-
-        // Prime audio after first gesture to bypass autoplay blocking
-        const primeAudio = () => {
-            if (this.audioPrimed) return;
-            this.audioPrimed = true;
-            audioManager.playTrack("menu");
-            window.removeEventListener("pointerdown", primeAudio);
-            window.removeEventListener("keydown", primeAudio);
-        };
-        window.addEventListener("pointerdown", primeAudio);
-        window.addEventListener("keydown", primeAudio);
 
         // Start with menu screen
         this.menuController.getView().show();

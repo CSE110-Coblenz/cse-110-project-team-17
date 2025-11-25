@@ -41,16 +41,16 @@ export class CombatScreenView extends MapView {
 		this.entityGroup.add(robot.getCurrentImage());
 
 		/* add both groups to this.screenGroup */
-			this.screenGroup.add(this.mapGroup);
-			this.screenGroup.add(this.entityGroup);
-			this.buildIntro();
-			this.screenGroup.add(this.introGroup);
-			this.introGroup.moveToTop();
-			this.RobotHealthText = new Konva.Text({
-				x: 1100,
-				y: 10,
-				text: "Robot Health: 100",
-				fontSize: 20,
+		this.screenGroup.add(this.mapGroup);
+		this.screenGroup.add(this.entityGroup);
+		this.buildIntro();
+		this.screenGroup.add(this.introGroup);
+		this.introGroup.moveToTop();
+		this.RobotHealthText = new Konva.Text({
+			x: 1100,
+			y: 10,
+			text: "Robot Health: 100",
+			fontSize: 20,
 			fontFamily: "Arial",
 			fill: "Black",
 		});
@@ -75,10 +75,10 @@ export class CombatScreenView extends MapView {
 				x,
 				y,
 				text: "Score: 0",
-			fontSize: 20,
-			fontFamily: "Arial",
-			fill: "black",
-		});
+				fontSize: 20,
+				fontFamily: "Arial",
+				fill: "black",
+			});
 		this.entityGroup.add(this.zombieCounterText);
 	}
 
