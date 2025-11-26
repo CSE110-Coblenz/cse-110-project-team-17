@@ -13,6 +13,7 @@ interface QuestionData {
  */
 export class ChoiceDialogBox {
   private questions: QuestionData[];
+  private readonly totalQuestions: number;
   private currentQuestion: QuestionData | null = null;
   private shuffledAnswers: string[] = [];
   private correctAnswerIndex: number = -1;
@@ -21,6 +22,7 @@ export class ChoiceDialogBox {
 
   constructor() {
     this.questions = this.initializeQuestions();
+    this.totalQuestions = this.questions.length;
     // Initially, all questions are incorrect
     this.questions.forEach(q => this.incorrectQuestions.add(q));
   }
@@ -83,6 +85,9 @@ export class ChoiceDialogBox {
       }, 
     ];
   }
+  getIncorrectQuestionsCount(): any {
+    return this.incorrectQuestions.size;
+  }
 
   /**
    * Selects a new question, prioritizing incorrect questions over correct ones, and avoids repeating the previous question.
@@ -101,6 +106,7 @@ export class ChoiceDialogBox {
       const correctArray = Array.from(this.correctQuestions);
       do {
         selectedQuestion = correctArray[Math.floor(Math.random() * correctArray.length)];
+        console.log("Selected from correct questions");
       } while (selectedQuestion === this.currentQuestion && correctArray.length > 1);
     } else {
       throw new Error("No questions available.");
@@ -177,5 +183,13 @@ export class ChoiceDialogBox {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
     }
+  }
+
+  public getCorrectQuestionsCount(): number {
+    return this.correctQuestions.size;
+  }
+
+  public getTotalQuestionsCount(): number {
+    return this.totalQuestions;
   }
 }
