@@ -187,6 +187,7 @@ export class ExplorationScreenController extends ScreenController {
                 this.movementLockUntil = 0;
                 this.hide();
                 this.view.hideEdgeIndicator("right");
+                this.nudgeFromEdge("right");
                 this.screenSwitcher.switchToScreen({ type: "combat" });
                 return;
             } else { // show one message every cooldown period
