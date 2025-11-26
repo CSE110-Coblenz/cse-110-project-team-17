@@ -35,6 +35,7 @@ export class ExplorationScreenController extends ScreenController {
     private moveSound?: HTMLAudioElement;
     private moveSoundPlaying = false;
     private collisionOverlay?: Konva.Group;
+    private partsOverlay: Konva.Group;
     private hitbox?: Konva.Rect;
     private movementLockUntil = 0;
     private collisionDebugEnabled = true;
@@ -48,6 +49,7 @@ export class ExplorationScreenController extends ScreenController {
         this.eduControl.setOnClose(() => this.handleBookClose());
         // this.view = new ExplorationScreenView();
         this.running = false;
+        this.partsOverlay = new Konva.Group();
     }
 
     /**
@@ -164,6 +166,11 @@ export class ExplorationScreenController extends ScreenController {
         if (this.collisionDebugEnabled && this.collisionOverlay && this.input.getToggleDebug()) {
             const showing = this.collisionOverlay.visible();
             this.collisionOverlay.visible(!showing);
+            if (!showing) {
+                this.showAllRobotParts();
+            } else {
+                this.hideAllRobotPartHighlights();
+            }
             this.view.getMapGroup().draw();
         }
 
@@ -374,6 +381,37 @@ export class ExplorationScreenController extends ScreenController {
 
         requestAnimationFrame(this.explorationLoop);
     };
+
+
+    // For debugging purposes
+    showAllRobotParts(): void {
+        const uncollectedParts = this.gameObjects.filter(
+            (obj) => !obj.isCollected() && obj.isInteractable() && obj.getName() !== "worktable"
+        );
+        if (uncollectedParts.length === 0) return;
+
+        for (const part of uncollectedParts) {
+            const partPos = part.getPosition();
+            const highlightBox = new Konva.Rect({
+                x: partPos.x,
+                y: partPos.y,
+                width: 16,
+                height: 16,
+                stroke: "yellow",
+                strokeWidth: 2,
+                dash: [4, 4],
+                listening: false,
+            });
+            this.partsOverlay.add(highlightBox);
+        }
+        this.view.getEntityGroup().add(this.partsOverlay);
+        this.view.getEntityGroup().draw();
+    }
+
+    hideAllRobotPartHighlights(): void {
+        this.partsOverlay.destroyChildren();
+        this.view.getEntityGroup().draw();
+    }
 
 
     /**
