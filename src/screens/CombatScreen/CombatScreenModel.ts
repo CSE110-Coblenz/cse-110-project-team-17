@@ -4,8 +4,9 @@ import { Zombie } from "../../entities/zombie.ts";
 import { MapModel } from "../MapScreen/MapModel";
 import { Map } from "../../entities/tempMap.ts";
 import Konva from "konva";
+import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 
-/**
+/**	
  * CombatScreenModel
  *
  * Holds combat-specific state: references to Robot and Zombie entities,
@@ -75,8 +76,20 @@ export class CombatScreenModel extends MapModel{
 
 		/* object collision logic */
 		const next = robot.getNextPosition(dx, dy);
+		if (next.y < 0) {
+			next.y = 0;
+		}
+		else if (next.y > STAGE_HEIGHT - 16) {
+			next.y = STAGE_HEIGHT - 16;
+		} 
+		if (next.x < 0) {
+			next.x = 0;
+		}
+		else if (next.x > STAGE_WIDTH - 16) {
+			next.x = STAGE_WIDTH - 16;
+		}
         if(mapObj.canMoveToArea(next.x, next.y, 16, 16)){
-			robot.moveTo(previousX + dx * robot.getSpeed(), previousY + dy * robot.getSpeed());
+			robot.moveTo(next.x, next.y);
 		}
 		const currentPosition = robot.getPosition();
 		if (currentPosition.x !== previousX) {
