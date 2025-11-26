@@ -344,7 +344,8 @@ export class ExplorationScreenController extends ScreenController {
             this.hitbox.position(this.player.getCurrentImage().position());
         }
 
-        if (this.npc.isNpcShowingHint() && !this.robotBuilt) {
+        if (this.npc.isNpcShowingHint() && !this.robotBuilt && !this.view.showingPartBoundary()) {
+            this.view.setShowingPartBoundary(true);
             // Get a random robot part position to highlight
             const uncollectedParts = this.gameObjects.filter(
                 (obj) => !obj.isCollected() && obj.isInteractable() && obj.getName() !== "worktable"
@@ -363,8 +364,12 @@ export class ExplorationScreenController extends ScreenController {
                     dash: [4, 4],
                     listening: false,
                 });
-                this.view.showRobotPartBoundary(highlightBox);
+                this.view.setRobotPartBoundaryBox(highlightBox);
+                this.view.showRobotPartBoundary();
             }
+        } else if (!this.npc.isNpcShowingHint() && this.view.showingPartBoundary()) {
+            this.view.setShowingPartBoundary(false);
+            this.view.removeRobotPartBoundary();
         }
 
         requestAnimationFrame(this.explorationLoop);
