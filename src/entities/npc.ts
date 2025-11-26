@@ -224,4 +224,8 @@ export class npc {
         }
     }
 
+    public isNpcShowingHint(): boolean {
+        return this.isShowingHint;
+    }
+
 }

@@ -305,6 +305,11 @@ export class ExplorationScreenView implements View {
         }
     }
 
+    showRobotPartBoundary(box: Konva.Rect): void {
+        this.entityGroup.add(box);
+        this.entityGroup.draw();
+    }
+
     show(): void {
         this.screenGroup.visible(true);
         this.mapGroup.visible(true);

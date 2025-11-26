@@ -37,7 +37,7 @@ export class ExplorationScreenController extends ScreenController {
     private collisionOverlay?: Konva.Group;
     private hitbox?: Konva.Rect;
     private movementLockUntil = 0;
-    private collisionDebugEnabled = false;
+    private collisionDebugEnabled = true;
 
     constructor(screenSwitcher: ScreenSwitcher, eduControl: EducationScreenController) {
         super();
@@ -342,6 +342,29 @@ export class ExplorationScreenController extends ScreenController {
 
         if (this.hitbox) {
             this.hitbox.position(this.player.getCurrentImage().position());
+        }
+
+        if (this.npc.isNpcShowingHint() && !this.robotBuilt) {
+            // Get a random robot part position to highlight
+            const uncollectedParts = this.gameObjects.filter(
+                (obj) => !obj.isCollected() && obj.isInteractable() && obj.getName() !== "worktable"
+            );
+            if (uncollectedParts.length > 0) {
+                const randomIndex = Math.floor(Math.random() * uncollectedParts.length);
+                const partToHighlight = uncollectedParts[randomIndex];
+                const partPos = partToHighlight.getPosition();
+                const highlightBox = new Konva.Rect({
+                    x: partPos.x,
+                    y: partPos.y,
+                    width: 16,
+                    height: 16,
+                    stroke: "yellow",
+                    strokeWidth: 2,
+                    dash: [4, 4],
+                    listening: false,
+                });
+                this.view.showRobotPartBoundary(highlightBox);
+            }
         }
 
         requestAnimationFrame(this.explorationLoop);
