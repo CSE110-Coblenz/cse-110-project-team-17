@@ -38,6 +38,7 @@ export class ExplorationScreenController extends ScreenController {
     private hitbox?: Konva.Rect;
     private movementLockUntil = 0;
     private collisionDebugEnabled = false;
+    private tutorialShown: boolean = false; 
 
     constructor(screenSwitcher: ScreenSwitcher, eduControl: EducationScreenController) {
         super();
@@ -49,11 +50,7 @@ export class ExplorationScreenController extends ScreenController {
         // this.view = new ExplorationScreenView();
         this.running = false;
     }
-
-    /**
-     * Called by top-level App class BEFORE the game starts
-     *  --> builds map, initializes entities
-     */
+    
     async init(): Promise<void> {
         /* mapData represents the map's .json file */
         const mapData = await this.loadMap("/maps/Exploration_Map_ZA.json");
@@ -74,7 +71,8 @@ export class ExplorationScreenController extends ScreenController {
         /* Create player instance */
         const playerImage = await this.loadImage("/sprites/idle-frame1.png");
         this.player = new Player("player1", STAGE_WIDTH/2, STAGE_HEIGHT/2, playerImage);
-        this.moveSound = audioManager.createSfxInstance("movement", { volume: 0.2 });
+        this.moveSound = new Audio("/sounds/sfx/movement_cut.mp3");
+        this.moveSound.volume = 0.2;
 
         const hitbox = new Konva.Rect({
             x: 0, y: 0, width: 16, height: 16,
@@ -140,7 +138,7 @@ export class ExplorationScreenController extends ScreenController {
             "The journey through the junkyard is as much about discovery as it is about survival—embrace both aspects to succeed.",
             "Remember, every piece of code you collect brings you one step closer to restoring your robot's full potential."
         ];
-        this.npc = new npc( 400, 300, gameTrivia, npcImage);
+        this.npc = new npc( 400, 300, gameTrivia, npcImage); 
         this.view.getEntityGroup().add(this.npc.getCurrentImage());
         this.view.getEntityGroup().draw();
 
@@ -257,7 +255,7 @@ export class ExplorationScreenController extends ScreenController {
 
 
     /* Initializes ExplorationScreen gameplay:
-    *   --> called by top-level App class when screen switches to ExplorationScreen
+    * --> called by top-level App class when screen switches to ExplorationScreen
     */
     startExploration(): void {
         this.running = true;
@@ -267,11 +265,21 @@ export class ExplorationScreenController extends ScreenController {
         requestAnimationFrame(this.explorationLoop);
         this.view.show();
         this.logicTickInterval = window.setInterval(() => this.logicTick(), 50);
+
+        // Show tutorial only once
+        if (!this.tutorialShown) {
+            this.lockMovement(4000); // Lock movement
+            this.npc.showUrgentDialogFor(
+                "Welcome to the Junkyard! Use W, A, S, D to move and press P to pick up the broken robot parts.",
+                4000
+            );
+            this.tutorialShown = true;
+        }
     }
 
 
     /* GAME LOOP: 
-    *    --> runs 60 times/sec, only responsible for playerSprite movement
+    * --> runs 60 times/sec, only responsible for playerSprite movement
     */
     private explorationLoop = (): void => {
         if(!this.running) return;
@@ -356,7 +364,7 @@ export class ExplorationScreenController extends ScreenController {
         const playerImg = this.player.getCurrentImage();
         const playerX = playerImg.x();
         const playerY = playerImg.y();
-
+        let itemCollected = false;
         for(const obj of this.gameObjects){
             if(obj.isCollected() || !obj.isInteractable()) continue;
             if (obj.getName() === "worktable") continue; // handled separately
@@ -388,11 +396,20 @@ export class ExplorationScreenController extends ScreenController {
                 if (this.model.allObjectsCollected() && this.worktable) {
                     this.view.showWorktableNotification(this.worktable.getPosition());
                 }
-                
+                itemCollected = true;
                 // Only collect one item per 'P' press
                 break;
-            }
+            }    
         }
+        if (itemCollected) {
+            // Check if all parts are now collected
+           if (this.model.allObjectsCollected()) {
+               this.npc.setAllPartsCollected(true); 
+               if (this.worktable) {
+                   this.view.showWorktableNotification(this.worktable.getPosition());
+               }
+           }
+       }
 
         if (this.model.allObjectsCollected()) {
             await this.handleWorktableInteraction();
@@ -415,6 +432,8 @@ export class ExplorationScreenController extends ScreenController {
         this.robot = new Robot("companion-robot", 100, 10, worktablePos.x, worktablePos.y, robotImage);
         this.view.getPlayerGroup().add(this.robot.getCurrentImage());
         this.robotBuilt = true;
+        this.npc.setRobotBuilt(true);
+        this.npc.setAllPartsCollected(false);
         this.view.hideWorktableNotification();
         audioManager.playSfx("robot_completion");
         this.view.showEdgeIndicators();
