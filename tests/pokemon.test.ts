@@ -12,6 +12,7 @@ beforeAll(async () => {
     currentTime = 0;
     play = () => Promise.resolve();
     pause = () => {};
+    cloneNode = (deep?: boolean) => new AudioStub();  // Add this
   }
   (globalThis as any).Audio = AudioStub;
   (globalThis as any).Image = class { src = ""; };
@@ -54,6 +55,8 @@ describe("PokemonScreenModel tests", () => {
 
   it("verifies correct answer index and scoring", () => {
     const model = new PokemonScreenModel(800, 600);
+    const emptyStr = model.getCorrectAnswerText();
+    expect(emptyStr).toBe("");
     const qa = model.generateNextQuestion();
     const correctText = model.getCorrectAnswerText();
     const correctIndex = qa.answers.indexOf(correctText);
@@ -67,6 +70,72 @@ describe("PokemonScreenModel tests", () => {
         expect(model.checkAnswer(i)).toBe(false);
       }
     }
+  });
+
+  it("Gets the player and the robot objects", () => {
+    const model = new PokemonScreenModel(800, 600);
+    const player = model.getPlayer();
+    const boss = model.getBoss();
+
+    expect(player).not.toBeNull();
+    expect(boss).not.toBeNull();
+  });
+
+  it("resets the game state", () => {
+    const model = new PokemonScreenModel(800, 600);
+    model.dealDamageToBoss(100);
+    model.dealDamageToPlayer(50);
+    expect(model.getBossHealth()).toBe(100);
+    expect(model.getPlayerHealth()).toBe(50);
+
+    model.resetGame();
+    expect(model.getBossHealth()).toBe(200);
+    expect(model.getPlayerHealth()).toBe(100);
+  });
+
+  it("Gets current question or null", () => {
+    const model = new PokemonScreenModel(800, 600);
+    expect(model.getCurrentQuestion()).toBeNull();
+    const qa = model.generateNextQuestion();
+    const currentQa = model.getCurrentQuestion();
+    expect(currentQa).not.toBeNull();
+    expect(currentQa).toEqual(qa);
+  });
+
+  it("detects player defeat", () => {
+    const model = new PokemonScreenModel(800, 600);
+    expect(model.isPlayerDefeated()).toBe(false);
+    model.dealDamageToPlayer(100);
+    expect(model.getPlayerHealth()).toBe(0);
+    expect(model.isPlayerDefeated()).toBe(true);
+  });
+
+  it("throws error when question data is missing", () => {
+    const model = new PokemonScreenModel(800, 600);
+    // Forcefully set choiceBox to an invalid state
+    (model as any).choiceBox.getQuestionAndAnswers = () => null;
+    expect(() => model.generateNextQuestion()).toThrowError("Failed to load question data");
+  });
+
+  it("checks if current question status updates correctly", () => {
+    const model = new PokemonScreenModel(800, 600);
+    const box: ChoiceDialogBox = (model as any).choiceBox;
+    let initialCorrectCount = box.getCorrectQuestionsCount();
+    let initialIncorrectCount = box.getIncorrectQuestionsCount();
+    
+    model.generateNextQuestion();
+    model.updateCurrentQuestionStatus(true);
+    expect(box.getCorrectQuestionsCount()).toBe(initialCorrectCount + 1);
+    expect(box.getIncorrectQuestionsCount()).toBe(initialIncorrectCount - 1);
+
+    initialCorrectCount = box.getCorrectQuestionsCount();
+    initialIncorrectCount = box.getIncorrectQuestionsCount();
+
+    model.generateNextQuestion();
+    model.updateCurrentQuestionStatus(false);
+    expect(box.getCorrectQuestionsCount()).toBe(initialCorrectCount);
+    // Incorrect count should stay the same because incorrect questions are all initially in the set
+    expect(box.getIncorrectQuestionsCount()).toBe(initialIncorrectCount);
   });
 });
 
