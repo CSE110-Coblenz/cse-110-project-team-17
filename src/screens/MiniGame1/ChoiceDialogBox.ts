@@ -106,7 +106,6 @@ export class ChoiceDialogBox {
       const correctArray = Array.from(this.correctQuestions);
       do {
         selectedQuestion = correctArray[Math.floor(Math.random() * correctArray.length)];
-        console.log("Selected from correct questions");
       } while (selectedQuestion === this.currentQuestion && correctArray.length > 1);
     } else {
       throw new Error("No questions available.");
