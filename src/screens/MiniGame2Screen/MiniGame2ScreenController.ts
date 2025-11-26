@@ -48,7 +48,6 @@ export class MiniGame2ScreenController extends ScreenController {
     private gameObjects: Map<string, GameObject> = new Map(); // Map name to GameObject
     private dropSlots: DropSlotState[] = [];
     private celebrationTriggered = false;
-    private readonly EDGE_THRESHOLD = 10;
     private readonly PICKUP_DISTANCE = 50;
     private readonly PICKUP_COLUMN_X = 140;
     private readonly SLOT_COLUMN_X = STAGE_WIDTH - 520;
