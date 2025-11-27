@@ -24,10 +24,6 @@ export class Zombie extends MovableEntity {
         
         this.group = new Konva.Group({ x, y });
         this.createSprite();
-
-        
-        // Spawn the zombie on the screen
-        // this.screen.addEntity(this.group);
     }
 
     getIsZombie(): boolean {
@@ -61,28 +57,13 @@ export class Zombie extends MovableEntity {
             }
             this.sprite = image;
             this.group.add(image);
-            // this.screen.render();
         });
     }
-
-    //getCurrentImage(){
-    //    return this.currentImage;
-    //}
 
     /**
      * Render the Zombie (update the screen)
      */
     render(): void {
-        // this.screen.render();
-    }
-
-    /**
-     * Move the zombie to a specific position
-     *
-    moveTo(x: number, y: number): void {
-        this.currentImage.x(x);
-        this.currentImage.y(y);
-        this.position = { x: this.currentImage.x(), y: this.currentImage.y() };
         // this.screen.render();
     }
 
@@ -120,19 +101,6 @@ export class Zombie extends MovableEntity {
      */
     terminate(): void {
         this.terminated = true;
-    }
-
-    /* 
-    getPosition(): position {
-        return this.position;
-    }
-
-    getDirection(): Directions {
-        return this.dir;
-    }
-
-    faceDirection(direction: Directions): void {
-        this.dir = direction;
     }
 
     /**

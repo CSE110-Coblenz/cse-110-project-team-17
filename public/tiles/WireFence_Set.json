@@ -1,0 +1,10 @@
+{
+    "name": "WireFence_Set",
+    "tileWidth": 16,
+    "tileHeight": 16,
+    "tilecount": 1580,
+    "columns": 5,
+    "source": "/mapAssets/Wire-Fence_TileSet.png",
+    "width": 80,
+    "height": 48
+}

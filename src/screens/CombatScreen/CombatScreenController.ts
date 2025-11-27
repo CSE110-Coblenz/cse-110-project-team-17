@@ -7,6 +7,7 @@ import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { Robot } from "../../entities/robot.ts";
 import { Map } from "../../entities/tempMap.ts";
+import { audioManager } from "../../audioManager.ts";
 
 /**
  * CombatScreenController
@@ -39,30 +40,37 @@ export class CombatScreenController extends ScreenController {
 	constructor(screenSwitcher: ScreenSwitcher) {
 		super();
 		this.screenSwitcher = screenSwitcher;
+
 		this.model = new CombatScreenModel(STAGE_WIDTH, STAGE_HEIGHT);
 		this.view = new CombatScreenView(this.model);
 	}
 
-	/* Loads Map and Player data (on boot) */
+	/* Loads Map and Player data */
 	async init(): Promise<void> {
 		/* mapData represents .json data of this screen's map */
-		const mapData = await this.loadMap("/porj0.json");
+		const mapData = await this.loadMap("/maps/SECOND_MAP_ZA.json");
 		this.model.setMapData(mapData);
 
 		/* create a new Map class object */
-		this.mapBuilder = new Map("/tiles/colony.png", 16, mapData, this.loadImage.bind(this));
+		this.mapBuilder = new Map(16, mapData, this.loadImage.bind(this));
+		this.model.setMapBuilder(this.mapBuilder);
+		await this.mapBuilder.loadTilesets();
 
 		/* retrieve Konva.Group representhing this screen's map */
 		const mapGroup = await this.mapBuilder.buildMap();
 
+<<<<<<< HEAD
 		/* add mapGroup to this.view */
+=======
+		/* add mapGroup to the mapGroup in this.view */
+>>>>>>> origin
 		this.view.getMapGroup().add(mapGroup);
 
 		// load images used by robot/zombie and attack animations
-		const robotImage = await this.loadImage("/lemon.png");
-		const zombieImage = await this.loadImage("/imagesTemp.jpg");
-		const attackingImage = await this.loadImage("/image.png");
-		const idleImage = await this.loadImage("/lemon.png");
+		const robotImage = await this.loadImage("/sprites/fish.png");
+		const zombieImage = await this.loadImage("/sprites/imagesTemp.jpg");
+		const attackingImage = await this.loadImage("/sprites/image.png");
+		const idleImage = await this.loadImage("/sprites/fish.png");
 
 		// create entities centered on stage
 		const robot = new Robot("robot", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
@@ -81,6 +89,7 @@ export class CombatScreenController extends ScreenController {
 
 		// build view (map + add entity images to the view's groups)
 		await this.view.build(robot);
+		this.view.setIntroHandler(this.beginCombat);
 	}
 
 	/**
@@ -92,13 +101,14 @@ export class CombatScreenController extends ScreenController {
 	startCombat(): void {
 		this.input = new InputManager();
 		this.view.show();
-
-		// set running variable to active
-		this.model.setRunning(true);
-
-		// start the frame loop
-		this.animationFrameId = requestAnimationFrame(this.gameLoop);
+		this.view.showIntro();
 	}
+
+	private beginCombat = (): void => {
+		this.view.hideIntro();
+		this.model.setRunning(true);
+		this.animationFrameId = requestAnimationFrame(this.gameLoop);
+	};
 
 	/**  * hide
 	 *
@@ -111,7 +121,7 @@ export class CombatScreenController extends ScreenController {
 	}
 	
 	private async spawnZombie(): Promise<void> {
-		const zombieImage = await this.loadImage("/imagesTemp.jpg");
+		const zombieImage = await this.loadImage("/sprites/imagesTemp.jpg");
 		const x = Math.random() * (STAGE_WIDTH - 32);
 		const y = Math.random() * (STAGE_HEIGHT - 32);
 		const newZombie = new Zombie(`zombie-${Date.now()}`, 100, 50, x, y, zombieImage);
@@ -131,6 +141,7 @@ export class CombatScreenController extends ScreenController {
 	private gameLoop = (timestamp: number): void => {
 
 		if (this.model.getRobot().getHealth() <= 0) {
+			audioManager.playSfx("game_over");
 			this.model.getRobot().setHealth(100);
 			console.log("Robot defeated! Game Over.");
 			this.model.setRunning(false);
@@ -178,6 +189,7 @@ export class CombatScreenController extends ScreenController {
 		let returned = this.model.processAttackRequest(attack, timestamp, this.lastAttackTime, true);
 		if (attack && returned != -1) {
 			this.lastAttackTime = timestamp;
+			audioManager.playSfx("robot_punch");
 		}
 
 		// spawn zombies periodically
@@ -186,7 +198,7 @@ export class CombatScreenController extends ScreenController {
 			this.lastSpawnTime = timestamp;
 		}
 
-		if (timestamp - this.lastIncrementTimeForSpawning >= 10000 && this.rateOfSpawn < 5) {
+		if (timestamp - this.lastIncrementTimeForSpawning >= 10000) {
 			this.rateOfSpawn += 0.5;
 			console.log(`Increased zombie spawn rate to ${this.rateOfSpawn}x`);
 			this.lastIncrementTimeForSpawning = timestamp;

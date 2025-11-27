@@ -18,8 +18,11 @@ export interface View {
 export type Screen =
 	| { type: "menu" }
 	| { type: "exploration" }
+	| { type: "minigame2" }
 	| { type: "combat" }
-	| { type: "result"; score: number };
+	| { type: "result"; score: number }
+	| { type: "education" }
+	| { type: "pokemon" };
 
 export abstract class ScreenController {
 	abstract getView(): View;

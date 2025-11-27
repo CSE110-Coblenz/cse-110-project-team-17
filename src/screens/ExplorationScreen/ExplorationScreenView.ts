@@ -2,6 +2,7 @@ import Konva from "konva";
 import { Player } from "../../entities/player.ts";
 import { GameObject } from "../../entities/object.ts";
 import type { View } from "../../types.ts";
+import { STAGE_HEIGHT, STAGE_WIDTH } from "../../constants.ts";
 
 /**
  * ExplorationScreenView - Renders the exploration/object collection screen
@@ -15,14 +16,24 @@ export class ExplorationScreenView implements View {
     private inventoryText: Konva.Text;
     private collectionMessageText: Konva.Text;
     private messageTimer: number | null = null;
+    private bookButtonGroup: Konva.Group;
+    private bookIndicator?: Konva.Group;
+    private worktableIndicator?: Konva.Group;
+    private edgeIndicatorGroup: Konva.Group;
+    private edgeBadges: Record<"top" | "right" | "bottom", Konva.Group | null> = {
+        top: null,
+        right: null,
+        bottom: null,
+    };
 
-    constructor() {
+    constructor(onBookClick: () => void) {
         this.screenGroup = new Konva.Group({ visible: false });
         this.mapGroup = new Konva.Group({ visible: false });
         this.entityGroup = new Konva.Group({ visible: false });
         this.uiGroup = new Konva.Group({ visible: false });
 
         this.playerGroup = new Konva.Group({ visible: false });
+        this.edgeIndicatorGroup = new Konva.Group();
 
         // Create inventory display
         this.inventoryText = new Konva.Text({
@@ -52,7 +63,57 @@ export class ExplorationScreenView implements View {
         });
         this.uiGroup.add(this.collectionMessageText);
 
-        this.screenGroup.add(this.uiGroup);
+         // Create education book button in top right using image icon
+         this.bookButtonGroup = new Konva.Group();
+         Konva.Image.fromURL("/objects/book.png", (img) => {
+            const iconSize = 60;
+            const margin = 20;
+            img.width(iconSize);
+            img.height(iconSize);
+            // Position top-right based on stage width
+            const targetX = STAGE_WIDTH - margin - iconSize;
+            img.position({ x: targetX, y: margin });
+
+            this.bookButtonGroup.add(img);
+
+            // Notification badge (hidden by default)
+            const badge = new Konva.Group({ visible: false, listening: false });
+            const badgeCircle = new Konva.Circle({
+                radius: 12,
+                fill: "red",
+                stroke: "black",
+                strokeWidth: 1,
+            });
+            const badgeText = new Konva.Text({
+                text: "!",
+                fontSize: 18,
+                fontFamily: "Arial",
+                fill: "white",
+            });
+            badgeText.offsetX(badgeText.width() / 2);
+            badgeText.offsetY(badgeText.height() / 2);
+            badge.add(badgeCircle);
+            badge.add(badgeText);
+            badge.position({
+                x: img.x() + iconSize - 6,
+                y: img.y() - 6,
+            });
+            this.bookIndicator = badge;
+            this.bookButtonGroup.add(badge);
+
+            this.bookButtonGroup.on("click", onBookClick);
+            this.bookButtonGroup.on('mouseover', function (e) {
+              const stage = e.target.getStage();
+              if (stage) stage.container().style.cursor = 'pointer';
+            });
+            this.bookButtonGroup.on('mouseout', function (e) {
+              const stage = e.target.getStage();
+              if (stage) stage.container().style.cursor = 'default';
+            });
+            this.entityGroup.add(this.bookButtonGroup);
+         });
+
+         this.screenGroup.add(this.uiGroup);
     }
 
     /* 
@@ -75,9 +136,13 @@ export class ExplorationScreenView implements View {
             this.entityGroup.add(objGroup);
         }
 
+        this.buildEdgeIndicators();
+        this.entityGroup.add(this.edgeIndicatorGroup);
+
         /* Add groups to screenGroup */
         this.screenGroup.add(this.mapGroup);
         this.screenGroup.add(this.entityGroup);
+        this.hideEdgeIndicators();
     }
 
     /**
@@ -128,6 +193,116 @@ export class ExplorationScreenView implements View {
 
     getUIGroup(): Konva.Group {
         return this.uiGroup;
+    }
+
+    hideEntities(): void {
+        this.entityGroup.visible(false);
+        this.playerGroup.visible(false);
+        this.screenGroup.draw();
+    }
+
+    showEntities(): void {
+        this.entityGroup.visible(true);
+        this.playerGroup.visible(true);
+        this.screenGroup.draw();
+    }
+
+    showBookNotification(): void {
+        if (this.bookIndicator) {
+            this.bookIndicator.visible(true);
+            this.entityGroup.draw();
+        }
+    }
+
+    hideBookNotification(): void {
+        if (this.bookIndicator) {
+            this.bookIndicator.visible(false);
+            this.entityGroup.draw();
+        }
+    }
+
+    showWorktableNotification(pos: { x: number; y: number }): void {
+        if (!this.worktableIndicator) {
+            const badge = new Konva.Group({ listening: false });
+            const badgeCircle = new Konva.Circle({
+                radius: 10,
+                fill: "red",
+                stroke: "black",
+                strokeWidth: 1,
+            });
+            const badgeText = new Konva.Text({
+                text: "!",
+                fontSize: 14,
+                fontFamily: "Arial",
+                fill: "white",
+            });
+            badgeText.offsetX(badgeText.width() / 2);
+            badgeText.offsetY(badgeText.height() / 2);
+            badge.add(badgeCircle);
+            badge.add(badgeText);
+            this.worktableIndicator = badge;
+            this.entityGroup.add(badge);
+        }
+        const offset = { x: 10, y: -10 };
+        this.worktableIndicator.position({ x: pos.x + offset.x, y: pos.y + offset.y });
+        this.worktableIndicator.visible(true);
+        this.entityGroup.draw();
+    }
+
+    hideWorktableNotification(): void {
+        if (this.worktableIndicator) {
+            this.worktableIndicator.visible(false);
+            this.entityGroup.draw();
+        }
+    }
+
+    private buildEdgeIndicators(): void {
+        const addBadge = (x: number, y: number, key: "top" | "right" | "bottom") => {
+            const group = new Konva.Group({ listening: false });
+            const circle = new Konva.Circle({
+                radius: 12,
+                fill: "red",
+                stroke: "black",
+                strokeWidth: 1.5,
+            });
+            const text = new Konva.Text({
+                text: "!",
+                fontSize: 18,
+                fontFamily: "Arial",
+                fill: "white",
+            });
+            text.offsetX(text.width() / 2);
+            text.offsetY(text.height() / 2);
+            group.add(circle);
+            group.add(text);
+            group.position({ x, y });
+            this.edgeIndicatorGroup.add(group);
+            this.edgeBadges[key] = group;
+        };
+
+        const margin = 24;
+        // Top (Pokemon), Right (Combat), Bottom (MiniGame2)
+        addBadge(STAGE_WIDTH / 2 + 30, margin, "top"); // near top center, nudged right
+        addBadge(STAGE_WIDTH - margin, STAGE_HEIGHT / 2 + 100, "right"); // right edge, lowered
+        addBadge(STAGE_WIDTH / 2, STAGE_HEIGHT - margin, "bottom"); // bottom center
+    }
+
+    showEdgeIndicators(): void {
+        this.edgeIndicatorGroup.visible(true);
+        this.entityGroup.draw();
+    }
+
+    hideEdgeIndicators(): void {
+        this.edgeIndicatorGroup.visible(false);
+        this.entityGroup.draw();
+    }
+
+    hideEdgeIndicator(edge: "top" | "right" | "bottom"): void {
+        const badge = this.edgeBadges[edge];
+        if (badge) {
+            badge.visible(false);
+            this.entityGroup.draw();
+        }
     }
 
     show(): void {

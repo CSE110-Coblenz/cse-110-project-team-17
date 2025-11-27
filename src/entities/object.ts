@@ -10,6 +10,12 @@ export class GameObject{
     private interactable: boolean;
     private collected: boolean = false;
     private currentImage: Konva.Image | null = null;
+    private size = { width: 40, height: 40 };
+    private cubeSize = { width: 42, height: 42 };
+    private textSize: { width: number; height: number } | null = null;
+    private placeholder: Konva.Rect | null = null;
+    private textWrapper: Konva.Group | null = null;
+    private textBackground: Konva.Rect | null = null;
     protected name: string = '';
 
     constructor(
@@ -30,22 +36,25 @@ export class GameObject{
      */
     private createSprite(): void {
         // Placeholder - replace with actual image loading
-        this.sprite = new Konva.Rect({
+        this.placeholder = new Konva.Rect({
             x: 0,
             y: 0,
-            width: 40,
-            height: 40,
-            fill: this.interactable ? 'gold' : 'gray',
-            stroke: this.interactable ? 'orange' : 'darkgray',
+            width: this.cubeSize.width,
+            height: this.cubeSize.height,
+            fill: '#1f2933',
+            stroke: '#5ac8fa',
             strokeWidth: 2,
+            cornerRadius: 6,
         });
-        this.group.add(this.sprite);
+        this.group.add(this.placeholder);
+        this.sprite = this.placeholder;
+        this.size = { ...this.cubeSize };
     }
 
     /**
      * Load object image from URL or HTMLImageElement
      */
-    async loadImage(imageSource: string | HTMLImageElement): Promise<void> {
+    async loadImage(imageSource: string | HTMLImageElement, scale: number = 1): Promise<void> {
         if (typeof imageSource === 'string') {
             // Load from URL
             return new Promise((resolve) => {
@@ -55,7 +64,10 @@ export class GameObject{
                     }
                     this.sprite = image;
                     this.currentImage = image;
+                    image.width(image.width() * scale);
+                    image.height(image.height() * scale);
                     this.group.add(image);
+                    this.size = { width: image.width(), height: image.height() };
                     resolve();
                 });
             });
@@ -67,13 +79,86 @@ export class GameObject{
             this.currentImage = new Konva.Image({
                 x: 0,
                 y: 0,
-                width: 40,
-                height: 40,
+                width: 40 * scale,
+                height: 40 * scale,
                 image: imageSource,
             });
             this.sprite = this.currentImage;
             this.group.add(this.currentImage);
+            this.size = { width: this.currentImage.width(), height: this.currentImage.height() };
         }
+    }
+
+    /**
+     * Replace the sprite with a block of text (used for drag-and-drop snippets)
+     */
+    setTextSprite(
+        text: string,
+        options: {
+            width?: number;
+            padding?: number;
+            fontSize?: number;
+            fontFamily?: string;
+            textColor?: string;
+            backgroundColor?: string;
+            borderColor?: string;
+            align?: 'left' | 'center' | 'right';
+        } = {}
+    ): void {
+        const {
+            width = 320,
+            padding = 10,
+            fontSize = 18,
+            fontFamily = 'Courier New',
+            textColor = 'white',
+            backgroundColor = '#14213d',
+            borderColor = '#5ac8fa',
+            align = 'left',
+        } = options;
+
+        if (!this.placeholder) {
+            this.createSprite();
+        }
+
+        if (this.textWrapper) {
+            this.textWrapper.destroy();
+            this.textWrapper = null;
+            this.textBackground = null;
+        }
+
+        const textNode = new Konva.Text({
+            x: padding,
+            y: padding,
+            text,
+            fontSize,
+            fontFamily,
+            fill: textColor,
+            width: width - padding * 2,
+            align,
+        });
+
+        const totalHeight = textNode.height() + padding * 2;
+
+        const background = new Konva.Rect({
+            x: 0,
+            y: 0,
+            width,
+            height: totalHeight,
+            cornerRadius: 6,
+            fill: backgroundColor,
+            stroke: borderColor,
+            strokeWidth: 2,
+        });
+
+        const wrapper = new Konva.Group({ visible: false });
+        wrapper.add(background);
+        wrapper.add(textNode);
+
+        this.group.add(wrapper);
+        this.textWrapper = wrapper;
+        this.textBackground = background;
+        this.textSize = { width, height: totalHeight };
+        this.showCubeAppearance();
     }
 
     /**
@@ -166,8 +251,43 @@ export class GameObject{
     }
 
     /**
-     * Get the name of the entity
+     * Return current rendered size (useful for aligning drop slots)
      */
+    getSize(): { width: number; height: number } {
+        return this.size;
+    }
+
+    /**
+     * Update highlight styling for text blocks
+     */
+    setHighlight(status: 'idle' | 'correct' | 'incorrect'): void {
+        const strokeColor =
+            status === 'correct' ? '#22d3ee' : status === 'incorrect' ? '#fb7185' : '#5ac8fa';
+        const strokeWidth = status === 'idle' ? 2 : 3;
+
+        const targets = [this.placeholder, this.textBackground].filter(Boolean) as Konva.Rect[];
+        for (const node of targets) {
+            node.stroke(strokeColor);
+            node.strokeWidth(strokeWidth);
+        }
+    }
+
+    showCubeAppearance(): void {
+        if (this.placeholder) this.placeholder.visible(true);
+        if (this.textWrapper) this.textWrapper.visible(false);
+        this.sprite = this.placeholder;
+        this.size = { ...this.cubeSize };
+    }
+
+    showTextAppearance(): void {
+        if (this.textWrapper) this.textWrapper.visible(true);
+        if (this.placeholder) this.placeholder.visible(false);
+        if (this.textBackground) this.sprite = this.textBackground;
+        if (this.textSize) {
+            this.size = { ...this.textSize };
+        }
+    }
+
     getName(): string {
         return this.name;
     }

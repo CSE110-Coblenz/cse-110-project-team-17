@@ -64,13 +64,6 @@ export abstract class MovableEntity {
         };
     }
 
-    /** Apply new position to the sprite */
-    applyPosition(x: number, y: number) {
-        this.currentImage.x(x);
-        this.currentImage.y(y);
-        this.position = { x, y };
-    }
-
     moveTo(x: number, y: number): void {
         this.currentImage.x(x);
         this.currentImage.y(y);

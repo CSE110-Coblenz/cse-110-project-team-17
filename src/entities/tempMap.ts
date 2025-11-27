@@ -7,18 +7,25 @@ import type { Maps } from "../types.ts";
 /* the Map layer, so it isn't accidentally drawn repeatedly in the gameLoop */
 /* it also makes the ScreenView class more readable/scalable.				*/
 export class Map implements Maps {
-	private tilePath: string;
-	private mapSize: number;
+	private tileSize: number;
     private mapData: any;
 	private loadImage: (src: string) => Promise<HTMLImageElement>;
-    private collisionData: number[];     // <--- ADD THIS
+    private collisionData: number[];
     private width: number;
     private height: number;
 
-	constructor(tilePath: string, size: number, mapData: any, loadImage: (src: string) => Promise<HTMLImageElement>) {
-		this.tilePath = tilePath;
-		this.mapSize = size;
+    private tilesets: {
+        firstgid: number;
+        image: HTMLImageElement;
+        tilesPerRow: number;
+        tileWidth: number,
+        tileHeight: number,
+        name: string
+    }[] = [];
+
+	constructor(tileSize: number, mapData: any, loadImage: (src: string) => Promise<HTMLImageElement>) {
         this.mapData = mapData;
+        this.tileSize = tileSize;
 		this.loadImage = loadImage;
 		this.height = mapData.height;
 		this.width = mapData.width;
@@ -27,12 +34,8 @@ export class Map implements Maps {
 		this.collisionData = objectLayer.data;
 	}
 
-	getTilesetPath(): string {
-		return this.tilePath;
-	}
-
-	getSize(): number {
-		return this.mapSize;
+	getTileSize(): number {
+		return this.tileSize;
 	}
 
 	getMapData(): any {
@@ -47,85 +50,169 @@ export class Map implements Maps {
 		return this.height;
 	}
 
-	/**
-	 * Builds a Konva.Group representing the map layers and tiles
-	 */
-	async buildMap(): Promise<Konva.Group> {
-		const mapGroup = new Konva.Group();
+    /* Store each tilesheet's data so it can be used to render map */
+    /*  --> data stored in this.tilesets[j]                        */
+    async loadTilesets() {
+        this.tilesets = [];
 
-		if(!this.mapData?.tilesets?.length){
-			console.warn("No tilesets found in map data");
-			return mapGroup;
-		}
+        /* iterate through tilesets given in map's json file */
+        for(const ts of this.mapData.tilesets){
+            const response = await fetch(ts.source);
+            const tsJson = await response.json();
 
-		const tilesetInfo = this.mapData.tilesets[0];
-		const tileWidth = this.mapData.tilewidth;
-		const tileHeight = this.mapData.tileheight;
+            /* use the path hardcoded in the json to load image from /public/tiles/* */
+            const image = await this.loadImage(tsJson.source);
 
-		const tileset = await this.loadImage(this.tilePath);
-		const tilesPerRow = Math.floor(tileset.width / tileWidth);
+            /* store tileset data in this.tilesets struct */
+            this.tilesets.push({
+                firstgid: ts.firstgid,
+                image,
+                tileWidth: tsJson.tileWidth,
+                tileHeight: tsJson.tileHeight,
+                tilesPerRow: tsJson.columns,
+                name: tsJson.name
+            });
+        }
+    }
 
-		for(const layer of this.mapData.layers){
-			if(layer.type !== "tilelayer") continue;
+    /* identify which spriteSheet to use given gid */
+    private getTilesetForGid(gid: number) {
+        let found = null;
+        for (const ts of this.tilesets) {
+            if (gid >= ts.firstgid) {
+                found = ts;
+            } else break;
+        }
+        return found;
+    }
 
-			const layerGroup = new Konva.Group({ name: layer.name });
-			const tiles = layer.data;
-			const mapWidth = layer.width;
-			const mapHeight = layer.height;
+    // in src/entities/tempMap.ts
+    buildCollisionOverlay(): Konva.Group {
+    const g = new Konva.Group({ name: "collisionOverlay", listening: false });
+    for (let y = 0; y < this.height; y++) {
+        for (let x = 0; x < this.width; x++) {
+        if (this.isBlocked(x, y)) {
+            g.add(new Konva.Rect({
+            x: x * this.tileSize,
+            y: y * this.tileSize,
+            width: this.tileSize,
+            height: this.tileSize,
+            fill: "rgba(255,0,0,0.25)",
+            stroke: "red",
+            strokeWidth: 0.5,
+            listening: false,
+            }));
+        }
+        }
+    }
+    return g;
+    }
 
-			for (let y = 0; y < mapHeight; y++) {
-				for (let x = 0; x < mapWidth; x++) {
-					const tileId = tiles[y * mapWidth + x];
-					if (tileId === 0) continue;
 
-					const gid = tileId - tilesetInfo.firstgid;
+    async buildMap(): Promise<Konva.Group> {
+        const mapGroup = new Konva.Group();
 
-					const tile = new Konva.Image({
-						x: x * tileWidth,
-						y: y * tileHeight,
-						width: tileWidth,
-						height: tileHeight,
-						image: tileset,
-						crop: {
-							x: (gid % tilesPerRow) * tileWidth,
-							y: Math.floor(gid / tilesPerRow) * tileHeight,
-							width: tileWidth,
-							height: tileHeight,
-						},
-					});
-					layerGroup.add(tile);
-				}
-			}
+        if (!this.tilesets.length) {
+            console.warn("Tilesets not loaded — call loadTilesets() first");
+            return mapGroup;
+        }
 
-			mapGroup.add(layerGroup);
-		}
+        for (const layer of this.mapData.layers) {
+            if (layer.type !== "tilelayer") continue;
 
-		return mapGroup;
-	}
+            const layerGroup = new Konva.Group({ name: layer.name });
 
+            const tiles = layer.data;
+            const mapWidth = layer.width;
+            const mapHeight = layer.height;
+
+            for (let y = 0; y < mapHeight; y++) {
+                for (let x = 0; x < mapWidth; x++) {
+
+                    const tileId = tiles[y * mapWidth + x];
+                    if (tileId === 0) continue;
+
+                    const ts = this.getTilesetForGid(tileId);
+                    if (!ts) continue;
+
+                    const tileWidth = ts.tileWidth;
+                    const tileHeight = ts.tileHeight;
+
+                    const localId = tileId - ts.firstgid;
+
+                    const cropX = (localId % ts.tilesPerRow) * tileWidth;
+                    const cropY = Math.floor(localId / ts.tilesPerRow) * tileHeight;
+
+                    const tile = new Konva.Image({
+                        x: x * tileWidth,
+                        y: y * tileHeight,
+                        width: tileWidth,
+                        height: tileHeight,
+                        image: ts.image,
+                        crop: {
+                            x: cropX,
+                            y: cropY,
+                            width: tileWidth,
+                            height: tileHeight
+                        }
+                    });
+
+                    layerGroup.add(tile);
+                }
+            }
+
+            mapGroup.add(layerGroup);
+        }
+
+        return mapGroup;
+    }
+
+    /* given pixel coordinates, compute the corresponding tile */
 	getTileAtPixel(x: number, y: number) {
-		const tileX = Math.floor(x / this.mapSize);
-		const tileY = Math.floor(y / this.mapSize);
+		const tileX = Math.floor(x / this.tileSize);
+		const tileY = Math.floor(y / this.tileSize);
 
 		return { tileX, tileY };
 	}
 
+    /* verify that the tile has no obstacle on it */
 	isBlocked(tileX: number, tileY: number): boolean {
 		const index = tileY * this.width + tileX;
 		return this.collisionData[index] !== 0;
 	}
 
+    /* returns true if the player/robot is allowed to move to the pixel coordinates given */
 	canMoveToPixel(x: number, y: number): boolean {
 		const { tileX, tileY } = this.getTileAtPixel(x, y);
 		return !this.isBlocked(tileX, tileY);
 	}
 
-	canMoveToArea(x: number, y: number, w: number, h: number): boolean {
-		return (
-			this.canMoveToPixel(x, y) &&
-			this.canMoveToPixel(x + w, y) &&
-			this.canMoveToPixel(x, y + h) &&
-			this.canMoveToPixel(x + w, y + h)
-		);
-	}
+    /*canMoveToArea(x: number, y: number, w: number, h: number): boolean {
+        const tl = this.canMoveToPixel(x, y);
+        const tr = this.canMoveToPixel(x + w, y);
+        const bl = this.canMoveToPixel(x, y + h);
+        const br = this.canMoveToPixel(x + w, y + h);
+
+        const ok = tl && tr && bl && br;
+
+        return ok;
+    }*/
+
+    canMoveToArea(x: number, y: number, w: number, h: number): boolean {
+        const tileSize = this.tileSize;
+
+        const leftTile   = Math.floor(x / tileSize);
+        const rightTile  = Math.floor((x + w) / tileSize);
+        const topTile    = Math.floor(y / tileSize);
+        const bottomTile = Math.floor((y + h) / tileSize);
+
+        for (let ty = topTile; ty <= bottomTile; ty++) {
+            for (let tx = leftTile; tx <= rightTile; tx++) {
+                if (this.isBlocked(tx, ty)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }
