@@ -104,11 +104,18 @@ export class ExplorationScreenController extends ScreenController {
 
         if(dx !== 0 || dy !== 0){
             this.checkEdges();
+            this.npc.markActive();
         }
 
         if(this.input.getInteract()){
             this.checkObjectCollection();
         }
+
+        const next = this.player.getNextPosition(dx, dy);
+        this.npc.updateDialog(
+            next.x,
+            next.y,
+        );
     };
 
 
@@ -180,35 +187,12 @@ export class ExplorationScreenController extends ScreenController {
     private explorationLoop = (): void => {
         if(!this.running) return;
         const { dx, dy } = this.input.getDirection();
-
-        if (dx !== 0 || dy !== 0) {
-            this.npc.markActive();
-        }
         
         /* added functionality for OBJECT COLLISION */
         const next = this.player.getNextPosition(dx, dy);
         if(this.mapBuilder.canMoveToArea(next.x, next.y, 16, 16)){
             this.player.moveTo(next.x, next.y);
         }
-
-        this.npc.updateDialog(
-            next.x,
-            next.y,
-        );
-
-        /* console.log(
-            "corner ->",
-            next.x, next.y,
-            "tile:",
-            Math.floor(next.x / this.mapBuilder.getTileSize()),
-            Math.floor(next.y / this.mapBuilder.getTileSize()),
-            "blocked:", this.mapBuilder.isBlocked(Math.floor(next.x / this.mapBuilder.getTileSize()), Math.floor(next.y / this.mapBuilder.getTileSize()))
-        ); */
-
-        console.log("mapBuilder =", this.mapBuilder);
-        console.log("next.x =", next.x);
-        console.log("next.y =", next.y);
-        console.log("tileSize =", this.mapBuilder.getTileSize());
 
         this.screenSwitcher.redrawExplorationPlayer();
         requestAnimationFrame(this.explorationLoop);

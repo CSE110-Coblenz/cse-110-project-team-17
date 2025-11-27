@@ -164,17 +164,7 @@ export class Map implements Maps {
 		return !this.isBlocked(tileX, tileY);
 	}
 
-    /*canMoveToArea(x: number, y: number, w: number, h: number): boolean {
-        const tl = this.canMoveToPixel(x, y);
-        const tr = this.canMoveToPixel(x + w, y);
-        const bl = this.canMoveToPixel(x, y + h);
-        const br = this.canMoveToPixel(x + w, y + h);
-
-        const ok = tl && tr && bl && br;
-
-        return ok;
-    }*/
-
+    /* check every pixel in the 16x16 tile representing the player */
     canMoveToArea(x: number, y: number, w: number, h: number): boolean {
         const tileSize = this.tileSize;
 
@@ -183,9 +173,9 @@ export class Map implements Maps {
         const topTile    = Math.floor(y / tileSize);
         const bottomTile = Math.floor((y + h) / tileSize);
 
-        for (let ty = topTile; ty <= bottomTile; ty++) {
-            for (let tx = leftTile; tx <= rightTile; tx++) {
-                if (this.isBlocked(tx, ty)) {
+        for(let ty = topTile; ty <= bottomTile; ty++){
+            for (let tx = leftTile; tx <= rightTile; tx++){
+                if(this.isBlocked(tx, ty)){
                     return false;
                 }
             }

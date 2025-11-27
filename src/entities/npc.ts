@@ -21,6 +21,8 @@ export class npc {
     private lingerEndTime: number = 0;
     private readonly LINGER_DURATION: number = 3000; // 3 seconds
 
+    private lastUpdate = 0;
+
     constructor(x: number, y: number, triviaFacts: string[], image: HTMLImageElement) {
         this.x = x;
         this.y = y;
@@ -153,7 +155,8 @@ export class npc {
     // Main update method to be called each frame.
     public updateDialog(playerX: number, playerY: number): void {
         const now = Date.now();
-
+        if(now - this.lastUpdate < 500) return; // only run 10 times per second
+        this.lastUpdate = now;
         // If a dialog is currently lingering, check its timer.
         // If the linger time has passed, hide the dialog.
         if (this.lingerEndTime > 0) {
