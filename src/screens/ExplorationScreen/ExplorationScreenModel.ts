@@ -75,4 +75,8 @@ export class ExplorationScreenModel {
     shouldTransitionToCombat(playerX: number): boolean {
         return playerX >= STAGE_WIDTH - EDGE_THRESHOLD && this.allObjectsCollected();
     }
+
+    getNumCollectedObjects(): number {
+        return this.collectedCount;
+    }
 }

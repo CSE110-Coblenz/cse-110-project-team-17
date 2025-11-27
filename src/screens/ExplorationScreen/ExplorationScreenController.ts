@@ -39,6 +39,9 @@ export class ExplorationScreenController extends ScreenController {
     private hitbox?: Konva.Rect;
     private movementLockUntil = 0;
     private collisionDebugEnabled = true;
+    private recentlyCollectedPart = true;
+    private recentlyCollectedPartTimeout?: number;
+    private readonly PART_HIGHLIGHT_MS = 30000;
 
     constructor(screenSwitcher: ScreenSwitcher, eduControl: EducationScreenController) {
         super();
@@ -351,7 +354,7 @@ export class ExplorationScreenController extends ScreenController {
             this.hitbox.position(this.player.getCurrentImage().position());
         }
 
-        if (this.npc.isNpcShowingHint() && !this.robotBuilt && !this.view.showingPartBoundary()) {
+        if (!this.robotBuilt && !this.view.showingPartBoundary() && !this.recentlyCollectedPart) {
             this.view.setShowingPartBoundary(true);
             // Get a random robot part position to highlight
             const uncollectedParts = this.gameObjects.filter(
@@ -374,9 +377,14 @@ export class ExplorationScreenController extends ScreenController {
                 this.view.setRobotPartBoundaryBox(highlightBox);
                 this.view.showRobotPartBoundary();
             }
-        } else if (!this.npc.isNpcShowingHint() && this.view.showingPartBoundary()) {
+        } else if (this.recentlyCollectedPart && this.view.showingPartBoundary()) {
             this.view.setShowingPartBoundary(false);
             this.view.removeRobotPartBoundary();
+        }
+        // Add 1 for the crafting table
+        if (!this.npc.isNpcShowingHint() && !this.recentlyCollectedPart && (this.gameObjects.length != this.model.getNumCollectedObjects()+1)) {
+            // console.log(`${this.model.getNumCollectedObjects()} + ${this.gameObjects.length}`);
+            this.npc.showUrgentDialogFor("The robot parts are scattered around the map, they look a little different from other obstacles...", 100);
         }
 
         requestAnimationFrame(this.explorationLoop);
@@ -437,6 +445,15 @@ export class ExplorationScreenController extends ScreenController {
 
             // If player is close enough (within 50 pixels), collect the object
             if (distance < 50) {
+                this.recentlyCollectedPart = true;
+                // Reset the previous timout
+                if (this.recentlyCollectedPartTimeout) {
+                    clearTimeout(this.recentlyCollectedPartTimeout);
+                }
+                // WHen the popup should highlight a part for the user
+                this.recentlyCollectedPartTimeout = setTimeout(() => {
+                    this.recentlyCollectedPart = false;
+                }, this.PART_HIGHLIGHT_MS);
                 obj.collect();
                 this.model.collectObject(obj.getName());
                 this.player.addToInventory(obj.getName());
