@@ -4,6 +4,7 @@ import { Zombie } from "../../entities/zombie.ts";
 import { MapView } from "../MapScreen/MapView.ts";
 import { CombatScreenModel } from "./CombatScreenModel.ts";
 import { STAGE_WIDTH } from "../../constants.ts";
+import type { Directions } from "../../entities/base.ts";
 
 /**
  * CombatScreenView
@@ -19,6 +20,7 @@ export class CombatScreenView extends MapView {
 	private zombies: Zombie[] = [];
 	private RobotHealthText!: Konva.Text;
 	private introGroup: Konva.Group;
+	private dict!: Record<Directions, Konva.Group>;
 	private onIntroClick?: () => void;
 
 	constructor(model: CombatScreenModel) {
@@ -38,7 +40,15 @@ export class CombatScreenView extends MapView {
 	): Promise<void> {
 		/* Add robot and zombie images (their Konva.Image instances)
            to the entity group so they are rendered above the map. */
-		this.entityGroup.add(robot.getCurrentImage());
+		//this.entityGroup.add(robot.getCurrentImage());
+        this.dict = robot.getAllSprites();
+        this.dict['right'].visible(true);
+
+        this.entityGroup.add(this.dict['up']);
+        this.entityGroup.add(this.dict['down']);
+        this.entityGroup.add(this.dict['left']);
+        this.entityGroup.add(this.dict['right']);
+
 
 		/* add both groups to this.screenGroup */
 		this.screenGroup.add(this.mapGroup);
@@ -70,7 +80,7 @@ export class CombatScreenView extends MapView {
 
 	private zombieCounterText!: Konva.Text;
 
-		addZombieCounter(x: number, y: number): void {
+	addZombieCounter(x: number, y: number): void {
 			this.zombieCounterText = new Konva.Text({
 				x,
 				y,
@@ -163,6 +173,37 @@ export class CombatScreenView extends MapView {
 		this.introGroup.on("click", () => {
 			if (this.onIntroClick) this.onIntroClick();
 		});
+	}
+
+	updateSprite(robot: Robot): void {
+		const direction = robot.getDirection();
+
+		switch (direction) {
+			case 'up':
+				this.dict['up'].visible(true);
+				this.dict['down'].visible(false);
+				this.dict['left'].visible(false);
+				this.dict['right'].visible(false);
+				break;
+			case 'down':
+				this.dict['up'].visible(false);
+				this.dict['down'].visible(true);
+				this.dict['left'].visible(false);
+				this.dict['right'].visible(false);
+				break;
+			case 'left':
+				this.dict['up'].visible(false);
+				this.dict['down'].visible(false);
+				this.dict['left'].visible(true);
+				this.dict['right'].visible(false);
+				break;
+			case 'right':
+				this.dict['up'].visible(false);
+				this.dict['down'].visible(false);
+				this.dict['left'].visible(false);
+				this.dict['right'].visible(true);
+				break;
+		}
 	}
 
 	showIntro(): void {

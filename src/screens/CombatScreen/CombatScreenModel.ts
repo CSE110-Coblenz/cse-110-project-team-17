@@ -71,8 +71,8 @@ export class CombatScreenModel extends MapModel{
 	updateRobotPosition(dx: number, dy: number): void {
 		const robot = this.getRobot();
 		const mapObj = this.getMapBuilder();
-		const previousY = robot.getPosition().y;
-		const previousX = robot.getPosition().x;
+		//const previousY = robot.getPosition().y;
+		//const previousX = robot.getPosition().x;
 
 		/* object collision logic */
 		const next = robot.getNextPosition(dx, dy);
@@ -89,16 +89,16 @@ export class CombatScreenModel extends MapModel{
 			next.x = STAGE_WIDTH - 16;
 		}
         if(mapObj.canMoveToArea(next.x, next.y, 16, 16)){
-			robot.moveTo(next.x, next.y);
+			robot.move(next.x, next.y);
 		}
-		const currentPosition = robot.getPosition();
+		/* const currentPosition = robot.getPosition();
 		if (currentPosition.x !== previousX) {
 			robot.faceDirection(currentPosition.x > previousX ? "right" : "left");
 		}
 		else if (currentPosition.y !== previousY) {
 			robot.faceDirection(currentPosition.y > previousY ? "down" : "up");
 		}
-		console.log("direction: " + robot.getDirection());
+		console.log("direction: " + robot.getDirection()); */
 	}
 
 	/**
@@ -109,11 +109,11 @@ export class CombatScreenModel extends MapModel{
 	 */
 	updateZombieAI(): void {
 		const robot = this.getRobot();
-		const robotImg = robot.getCurrentImage();
+		//const robotImg = robot.getCurrentImage();
 
 		// Move all other zombies
 		for (const z of this.zombies) {
-			this.moveSingleZombieTowardRobot(z, robotImg);
+			this.moveSingleZombieTowardRobot(z, robot);
 		}
 	}
 
@@ -122,10 +122,10 @@ export class CombatScreenModel extends MapModel{
 	 *
 	 * Helper function to move one zombie toward robot smoothly.
 	 */
-	private moveSingleZombieTowardRobot(zombie: Zombie, robotImg: Konva.Image) {
+	private moveSingleZombieTowardRobot(zombie: Zombie, robot: Robot) {
 		const zImg = zombie.getCurrentImage();
-		const dx = robotImg.x() - zImg.x();
-		const dy = robotImg.y() - zImg.y();
+		const dx = robot.getX() - zImg.x();
+		const dy = robot.getY() - zImg.y();
 		const dist = Math.sqrt(dx * dx + dy * dy);
 
 		if (dist < 10) return; // close enough, don't move

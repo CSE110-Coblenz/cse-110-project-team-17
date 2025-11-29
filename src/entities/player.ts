@@ -49,7 +49,7 @@ export class Player extends MovableEntity {
                 }
             });
             
-            let tempGroup = new Konva.Group({ x: x, y: y,visible: false });
+            let tempGroup = new Konva.Group({ x: x, y: y, visible: false });
             tempGroup.add(img);
             this.sprites[sprite.name] = tempGroup;
         }

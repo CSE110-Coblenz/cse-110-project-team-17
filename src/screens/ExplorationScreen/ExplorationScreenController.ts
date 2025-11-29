@@ -444,7 +444,7 @@ export class ExplorationScreenController extends ScreenController {
 
      
     private nudgeFromEdge(edge: "right" | "top" | "bottom"): void {
-        const duration = 150;
+        //const duration = 150;
         let targetX = this.player.getX();
         let targetY = this.player.getY();
 

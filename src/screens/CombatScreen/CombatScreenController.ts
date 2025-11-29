@@ -154,6 +154,7 @@ export class CombatScreenController extends ScreenController {
 		// movement input (WASD)
 		let { dx, dy } = this.input.getDirection();
 		this.model.updateRobotPosition(dx, dy);
+		this.view.updateSprite(this.model.getRobot());
 
 		// Zombie AI movement
 		if (timestamp - this.lastZombieMoveTime >= 150) {
