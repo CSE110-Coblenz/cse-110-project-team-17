@@ -14,9 +14,15 @@ export class Zombie extends MovableEntity {
         let currentImage = new Konva.Image({
             x,
             y,
-            width: 32,
-            height: 32,
+            width: 20,
+            height: 25,
             image: robotImage,
+            crop: {
+                x: 0,
+                y: 0,
+                width: 20,
+                height: 25
+            }
         });
         super(name, 1, currentImage, x, y);
         this.health = health;

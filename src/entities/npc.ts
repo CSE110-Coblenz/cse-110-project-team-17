@@ -24,6 +24,8 @@ export class npc {
     private robotBuilt: boolean = false;
     private allPartsCollected: boolean = false;
 
+    private lastUpdate = 0;
+
     constructor(x: number, y: number, triviaFacts: string[], image: HTMLImageElement) {
         this.x = x;
         this.y = y;
@@ -175,6 +177,8 @@ export class npc {
     // Main update method to be called each frame.
     public updateDialog(playerX: number, playerY: number): void {
         const now = Date.now();
+        if(now - this.lastUpdate < 500) return;
+        this.lastUpdate = now;
 
         // If a dialog is currently lingering, check its timer.
         // If the linger time has passed, hide the dialog.

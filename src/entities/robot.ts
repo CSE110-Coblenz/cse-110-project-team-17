@@ -16,9 +16,15 @@ export class Robot extends MovableEntity {
         let currentImage = new Konva.Image({
             x,
             y,
-            width: 16,
+            width: 12,
             height: 16,
             image: robotImage,
+            crop: {
+                x: 0,
+                y: 0,
+                width: 12,
+                height: 16
+            }
         });
         super(name, speed, currentImage, x, y);
 

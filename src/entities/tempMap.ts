@@ -201,14 +201,14 @@ export class Map implements Maps {
     canMoveToArea(x: number, y: number, w: number, h: number): boolean {
         const tileSize = this.tileSize;
 
-        const leftTile   = Math.floor(x / tileSize);
-        const rightTile  = Math.floor((x + w) / tileSize);
-        const topTile    = Math.floor(y / tileSize);
+        const leftTile = Math.floor(x / tileSize);
+        const rightTile = Math.floor((x + w) / tileSize);
+        const topTile = Math.floor(y / tileSize);
         const bottomTile = Math.floor((y + h) / tileSize);
 
-        for (let ty = topTile; ty <= bottomTile; ty++) {
-            for (let tx = leftTile; tx <= rightTile; tx++) {
-                if (this.isBlocked(tx, ty)) {
+        for(let ty = topTile; ty <= bottomTile; ty++){
+            for(let tx = leftTile; tx <= rightTile; tx++){
+                if(this.isBlocked(tx, ty)){
                     return false;
                 }
             }
