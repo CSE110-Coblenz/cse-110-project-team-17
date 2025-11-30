@@ -27,15 +27,9 @@ export class Robot extends MovableEntity {
         let currentImage = new Konva.Image({
             x,
             y,
-            width: 12,
+            width: 16,
             height: 16,
             image: robotImage,
-            crop: {
-                x: 0,
-                y: 0,
-                width: 12,
-                height: 16
-            }
         });
         super(name, speed, currentImage, x, y);
 
@@ -149,6 +143,7 @@ export class Robot extends MovableEntity {
     loadImage(image?: HTMLImageElement): void {
         if (!image) return;
 
+        
         // Update existing image on the sprite
         this.getCurrentImage().image(image);
     }

@@ -8,6 +8,7 @@ import { Zombie } from "../../entities/zombie.ts";
 import { Robot } from "../../entities/robot.ts";
 import { Map } from "../../entities/tempMap.ts";
 import { audioManager } from "../../audioManager.ts";
+import Konva from "konva";
 
 /**
  * CombatScreenController
@@ -65,8 +66,9 @@ export class CombatScreenController extends ScreenController {
 		// load images used by robot/zombie and attack animations
 		const robotImage = await this.loadImage("/spritesheets/Robot_Right.png");
 		const zombieImage = await this.loadImage("/spritesheets/Zombie_Small_Down_First-Attack-Sheet4.png");
-		const attackingImage = await this.loadImage("/spritesheets/Robot_Right.png");
+		const attackingImage = await this.loadImage("/sprites/explosion-03.png");
 		const idleImage = await this.loadImage("/spritesheets/Robot_Right.png");
+		
 
 		// create entities centered on stage
 		const robot = new Robot("robot", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
@@ -79,6 +81,7 @@ export class CombatScreenController extends ScreenController {
 		this.model.setEntities(robot, zombie);
 		this.model.setAttackingImage(attackingImage);
 		this.model.setIdleImage(idleImage);
+		this.view.addAttack(attackingImage);
 
 		// after building the view
 		this.view.addZombieCounter(10, 10); // top-left corner
@@ -153,7 +156,9 @@ export class CombatScreenController extends ScreenController {
 
 		// movement input (WASD)
 		let { dx, dy } = this.input.getDirection();
-		this.model.updateRobotPosition(dx, dy);
+		let moved = this.model.updateRobotPosition(dx, dy);
+		if(moved)
+			this.view.getAttackGroup().position(this.model.getRobot().getPosition());
 		this.view.updateSprite(this.model.getRobot());
 
 		// Zombie AI movement
@@ -184,9 +189,13 @@ export class CombatScreenController extends ScreenController {
 		// attack input (space): model handles attack timing/animation
 		const attack = this.input.getAttack();
 		let returned = this.model.processAttackRequest(attack, timestamp, this.lastAttackTime, true);
-		if (attack && returned != -1) {
+		if (attack && returned > 0) {
 			this.lastAttackTime = timestamp;
 			audioManager.playSfx("robot_punch");
+			this.view.showAttackSprite();
+			setTimeout(() => {
+				this.view.hideAttackSprite();
+			}, returned);
 		}
 
 		// spawn zombies periodically

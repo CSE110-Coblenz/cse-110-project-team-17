@@ -3,7 +3,7 @@ import { Robot } from "../../entities/robot.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { MapModel } from "../MapScreen/MapModel";
 import { Map } from "../../entities/tempMap.ts";
-import Konva from "konva";
+//import Konva from "konva";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 
 /**	
@@ -68,7 +68,7 @@ export class CombatScreenModel extends MapModel{
      * Applies delta movement to the robot, updates facing direction,
      * and logs movement for debugging.
      */
-	updateRobotPosition(dx: number, dy: number): void {
+	updateRobotPosition(dx: number, dy: number): boolean {
 		const robot = this.getRobot();
 		const mapObj = this.getMapBuilder();
 		//const previousY = robot.getPosition().y;
@@ -90,7 +90,10 @@ export class CombatScreenModel extends MapModel{
 		}
         if(mapObj.canMoveToArea(next.x, next.y, 16, 16)){
 			robot.move(next.x, next.y);
+			return true;
 		}
+		
+		return false;
 		/* const currentPosition = robot.getPosition();
 		if (currentPosition.x !== previousX) {
 			robot.faceDirection(currentPosition.x > previousX ? "right" : "left");
@@ -134,7 +137,13 @@ export class CombatScreenModel extends MapModel{
 		const newX = zImg.x() + (dx / dist) * step;
 		const newY = zImg.y() + (dy / dist) * step;
 
-		zombie.moveTo(newX, newY);
+		if(this.getMapBuilder().canMoveToArea(newX, newY, 16, 16))
+			zombie.moveTo(newX, newY);
+		else{
+			const ignore = 0.25;
+			if(Math.random() < ignore)
+				zombie.moveTo(newX, newY);
+		}
 
 		// update facing direction
 		if (Math.abs(dx) > Math.abs(dy)) {
@@ -195,7 +204,7 @@ export class CombatScreenModel extends MapModel{
 
 		this.attackRequested = false;
 
-		// swap robot sprite to attacking image then back to idle
+		/* swap robot sprite to attacking image then back to idle
 		if (isRobotAttack) {
 			const attackingImage = this.getAttackingImage();
 			const idleImage = this.getIdleImage();
@@ -203,6 +212,10 @@ export class CombatScreenModel extends MapModel{
 			setTimeout(() => {
 				robot.loadImage(idleImage);
 			}, this.getAttackDuration());
+		}*/
+
+		if(isRobotAttack){
+			return this.getAttackDuration();
 		}
 		return 0;
 	}

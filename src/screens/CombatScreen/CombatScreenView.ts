@@ -3,7 +3,7 @@ import { Robot } from "../../entities/robot.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { MapView } from "../MapScreen/MapView.ts";
 import { CombatScreenModel } from "./CombatScreenModel.ts";
-import { STAGE_WIDTH } from "../../constants.ts";
+import { STAGE_WIDTH , STAGE_HEIGHT } from "../../constants.ts";
 import type { Directions } from "../../entities/base.ts";
 
 /**
@@ -17,6 +17,7 @@ export class CombatScreenView extends MapView {
 	private screenGroup: Konva.Group;
 	private mapGroup: Konva.Group;
 	private entityGroup: Konva.Group;
+	private attackGroup: Konva.Group;
 	private zombies: Zombie[] = [];
 	private RobotHealthText!: Konva.Text;
 	private introGroup: Konva.Group;
@@ -29,6 +30,7 @@ export class CombatScreenView extends MapView {
 		this.mapGroup = new Konva.Group({ visible: false });
 		this.entityGroup = new Konva.Group({ visible: false });
 		this.introGroup = new Konva.Group({ visible: false });
+		this.attackGroup = new Konva.Group({ visible: false });
 	}
 
 	/**
@@ -48,6 +50,7 @@ export class CombatScreenView extends MapView {
         this.entityGroup.add(this.dict['down']);
         this.entityGroup.add(this.dict['left']);
         this.entityGroup.add(this.dict['right']);
+		this.entityGroup.add(this.attackGroup);
 
 
 		/* add both groups to this.screenGroup */
@@ -104,6 +107,32 @@ export class CombatScreenView extends MapView {
 		}
 	}
 
+	addAttack(attack: HTMLImageElement): void {
+		let tempImg = new Konva.Image({
+			x: 0,
+			y: 0,
+			width: 16,
+			height: 16,
+			image: attack
+		});
+		this.attackGroup.add(tempImg);
+	}
+
+	showAttackSprite(): void {
+		this.dict['up'].visible(false);
+		this.dict['down'].visible(false);
+		this.dict['left'].visible(false);
+		this.dict['right'].visible(false);
+		this.attackGroup.visible(true);
+	}
+
+	hideAttackSprite(): void {
+		this.attackGroup.visible(false);
+	}
+
+	getAttackGroup(): Konva.Group {
+		return this.attackGroup;
+	}
 
 	/* Expose the groups so the App can mix them into the stage layers. */
 	getGroup(): Konva.Group {
