@@ -78,7 +78,6 @@ export class ExplorationScreenController extends ScreenController {
         this.view = new ExplorationScreenView(() => this.handleBookClick());
         this.eduControl = eduControl;
         this.eduControl.setOnClose(() => this.handleBookClose());
-        // this.view = new ExplorationScreenView();
         this.running = false;
     }
     
@@ -116,7 +115,7 @@ export class ExplorationScreenController extends ScreenController {
         });
         this.view.getPlayerGroup().add(this.hitbox);
 
-        this.gameObjects.length = 0; // ensure no duplicate pushes on re-init
+        this.gameObjects.length = 0;
         for (const definition of collectibleDefinitions) {
             const gameObject = new GameObject(definition.name, definition.x, definition.y, true);
             const objectImage = await this.loadImage(definition.sprite);
@@ -133,9 +132,9 @@ export class ExplorationScreenController extends ScreenController {
 
         const npcImage = await this.loadImage("/npc.png");
 
-        this.npc = new npc( 400, 300, gameTrivia, npcImage); 
-        this.view.getEntityGroup().add(this.npc.getCurrentImage());
-        this.view.getEntityGroup().draw();
+        this.npc = new npc(400, 300, gameTrivia, npcImage); 
+        this.view.getPlayerGroup().add(this.npc.getCurrentImage());
+        this.view.getPlayerGroup().draw();
 
         /* */
         await this.view.build(this.player, this.gameObjects);

@@ -120,7 +120,7 @@ export class ExplorationScreenView implements View {
 
     /* 
     *  Since Map is already built in the ScreenController:
-    *   --> add player to its own layer
+    *   --> add all player sprite groups to same layer
     *   --> add game objects to their own layer
     *   --> add built map && game objects to the screenGroup
     * 

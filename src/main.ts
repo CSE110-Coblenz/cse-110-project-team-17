@@ -77,13 +77,9 @@ export class App implements ScreenSwitcher {
         this.layer.add(this.pokemonController.getView().getGroup());
 
         // Add entity groups
-        // this.entityLayer.add(this.explorationController.getView().getEntityGroup());
         this.miniLayer.add(this.miniGame2Controller.getView().getEntityGroup());
-        // this.entityLayer.add(this.combatController.getView().getEntityGroup());
-        /* ENTITY LAYER = (EXPLORATION)+(PLAYER)+(COMBAT) */
         this.explorationLayer.add(this.explorationController.getView().getEntityGroup());
         this.playerLayer.add(this.explorationController.getView().getPlayerGroup());
-        //this.combatLayer.add(this.combatController.getView().getEntityGroup());
 
         // Draw layers
         this.layer.draw();
@@ -156,9 +152,10 @@ export class App implements ScreenSwitcher {
                 this.resultsController.showResults(screen.score);
                 audioManager.playTrack("result");
                 break;
-			  case "education":
-				   this.educationController.show();
-				   break;
+
+			case "education":
+			   this.educationController.show();
+			   break;
         
             case "pokemon":
                 this.pokemonController.startCombat();
@@ -167,32 +164,39 @@ export class App implements ScreenSwitcher {
         }
     }
 
+    /* redraw every screen */
     redraw(): void {
         this.layer.batchDraw();
     }
 
-    getLayer(): Konva.Layer {
-        return this.layer;
-    }
-
+    /* redraw the Player in the ExplorationScreen */
     redrawExplorationPlayer(): void {
         this.playerLayer.batchDraw();
     }
 
+    /* redraw robot/zombies in CombatScreen */
     redrawCombatEntities(): void {
         this.combatLayer.batchDraw();
     }
 
+    /* redraw the player, robot, and all game objects */
     redrawMiniLayer(): void {
         this.miniLayer.batchDraw();
     }
 
+    /* return the player and game objects */
     getExplorationLayer(): Konva.Layer {
         return this.explorationLayer;
     }
 
+    /* return the robot and zombies */
     getCombatLayer(): Konva.Layer {
         return this.combatLayer;
+    }
+
+    /* return top-level layer */
+    getLayer(): Konva.Layer {
+        return this.layer;
     }
 }
 
