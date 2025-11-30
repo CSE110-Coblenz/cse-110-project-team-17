@@ -7,7 +7,7 @@ import { STAGE_WIDTH, STAGE_HEIGHT , EDGE_THRESHOLD } from "../../constants.ts";
 import { Player } from "../../entities/player.ts";
 import { GameObject } from "../../entities/object.ts";
 import type { ScreenSwitcher } from "../../types.ts";
-import { Map } from "../../entities/tempMap.ts";
+import { Mapp } from "../../entities/tempMap.ts";
 import { npc } from "../../entities/npc.ts"
 import { Robot } from "../../entities/robot.ts";
 import { audioManager } from "../../audioManager.ts";
@@ -62,7 +62,7 @@ export class ExplorationScreenController extends ScreenController {
     private logicTickInterval?: number;
     private lastCollectionMsgTs = 0;
     private COLLECTION_MSG_COOLDOWN_MS = 750;
-    private mapBuilder!: Map;
+    private mapBuilder!: Mapp;
     private moveSound?: HTMLAudioElement;
     private moveSoundPlaying = false;
     private collisionOverlay?: Konva.Group;
@@ -87,7 +87,7 @@ export class ExplorationScreenController extends ScreenController {
         const mapData = await this.loadMap("/maps/Exploration_Map_ZA.json");
 
         /* mapBuilder uses the Map class to build the map using the mapData(.json)*/
-        this.mapBuilder = new Map(16, mapData, this.loadImage.bind(this));
+        this.mapBuilder = new Mapp(16, mapData, this.loadImage.bind(this));
         await this.mapBuilder.loadTilesets();
 
         /* Assemble the mapGroup in the Map class and give it to the ScreenView */
@@ -422,7 +422,7 @@ export class ExplorationScreenController extends ScreenController {
 
         if (distance >= 60) return;
 
-        const robotImage = await this.loadImage("/sprites/idle-frame1.png");
+        const robotImage = await this.loadImage("/spritesheets/Robot_Right.png");
         this.robot = new Robot("companion-robot", 100, 10, worktablePos.x, worktablePos.y, robotImage);
         this.view.getPlayerGroup().add(this.robot.getCurrentImage());
         this.robotBuilt = true;

@@ -2,6 +2,7 @@ import Konva from "konva";
 import { Player } from "../../entities/player.ts";
 import { GameObject } from "../../entities/object.ts";
 import type { View } from "../../types.ts";
+import type { Directions } from "../../entities/base.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 
 /**
@@ -18,6 +19,7 @@ export class MiniGame2ScreenView implements View {
     private failureText!: Konva.Text;
     private dropSlotVisuals: Map<string, { rect: Konva.Rect; label: Konva.Text }>;
     private introGroup: Konva.Group;
+    private dict!: Record<Directions, Konva.Group>;
     private onIntroClick?: () => void;
 
     constructor() {
@@ -72,61 +74,24 @@ export class MiniGame2ScreenView implements View {
     }
 
     async build(
-        mapData: any,
         player: Player,
         gameObjects: GameObject[],
-        loadImage: (src: string) => Promise<HTMLImageElement>
     ): Promise<void> {
-        const tilesetInfo = mapData.tilesets[0];
-        const tileWidth = mapData.tilewidth;
-        const tileHeight = mapData.tileheight;
-        const tileset = await loadImage("/tiles/colony.png");
-        const tilesPerRow = Math.floor(tileset.width / tileWidth);
+        /* Add player to entity layer last */
+        //this.entityGroup.add(player.getCurrentImage());
+        this.dict = player.getAllSprites();
+        this.dict['right'].visible(true);
 
-        /* Build map and add it to the mapGroup */
-        for(const layer of mapData.layers){
-            if(layer.type !== "tilelayer") continue;
-
-            const tiledLayerGroup = new Konva.Group();
-            const tiles = layer.data;
-            const mapWidth = layer.width;
-            const mapHeight = layer.height;
-
-            /* Render the layers of the Tiled map */
-            for(let y = 0; y < mapHeight; y++){
-                for(let x = 0; x < mapWidth; x++){
-                    const tileId = tiles[y * mapWidth + x];
-                    if (tileId === 0) continue; // empty tile
-
-                    const gid = tileId - tilesetInfo.firstgid;
-
-                    const tile = new Konva.Image({
-                        x: x * tileWidth,
-                        y: y * tileHeight,
-                        width: tileWidth,
-                        height: tileHeight,
-                        image: tileset,
-                        crop: {
-                            x: (gid % tilesPerRow) * tileWidth,
-                            y: Math.floor(gid / tilesPerRow) * tileHeight,
-                            width: tileWidth,
-                            height: tileHeight,
-                        },
-                    });
-                    tiledLayerGroup.add(tile);
-                }
-            }
-            this.mapGroup.add(tiledLayerGroup);
-        }
+        this.entityGroup.add(this.dict['up']);
+        this.entityGroup.add(this.dict['down']);
+        this.entityGroup.add(this.dict['left']);
+        this.entityGroup.add(this.dict['right']);
 
         /* Add game objects to entity layer first so player renders on top */
         for (const obj of gameObjects) {
             const objGroup = obj.getGroup();
             this.entityGroup.add(objGroup);
         }
-
-        /* Add player to entity layer last */
-        this.entityGroup.add(player.getCurrentImage());
     }
 
     renderDropSlots(
@@ -382,5 +347,36 @@ export class MiniGame2ScreenView implements View {
 
     setIntroHandler(fn: () => void): void {
         this.onIntroClick = fn;
+    }
+
+    updateSprite(player: Player): void {
+        const direction = player.getDirection();
+
+        switch (direction) {
+            case 'up':
+                this.dict['up'].visible(true);
+                this.dict['down'].visible(false);
+                this.dict['left'].visible(false);
+                this.dict['right'].visible(false);
+                break;
+            case 'down':
+                this.dict['up'].visible(false);
+                this.dict['down'].visible(true);
+                this.dict['left'].visible(false);
+                this.dict['right'].visible(false);
+                break;
+            case 'left':
+                this.dict['up'].visible(false);
+                this.dict['down'].visible(false);
+                this.dict['left'].visible(true);
+                this.dict['right'].visible(false);
+                break;
+            case 'right':
+                this.dict['up'].visible(false);
+                this.dict['down'].visible(false);
+                this.dict['left'].visible(false);
+                this.dict['right'].visible(true);
+                break;
+        }
     }
 }

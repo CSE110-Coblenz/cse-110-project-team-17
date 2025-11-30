@@ -24,6 +24,22 @@ export class Zombie extends MovableEntity {
                 height: 25
             }
         });
+        if(name === "boss"){
+            currentImage = new Konva.Image({
+                x,
+                y,
+                width: 16,
+                height: 16,
+                image: robotImage,
+                crop: {
+                    x: 8,
+                    y: 0,
+                    width: 16,
+                    height: 16
+                }
+            });
+        }
+        
         super(name, 1, currentImage, x, y);
         this.health = health;
         this.maxAttack = maxAttack;

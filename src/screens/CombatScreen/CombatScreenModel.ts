@@ -2,7 +2,7 @@ import { Combat } from "../../combat.ts";
 import { Robot } from "../../entities/robot.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { MapModel } from "../MapScreen/MapModel";
-import { Map } from "../../entities/tempMap.ts";
+import { Mapp } from "../../entities/tempMap.ts";
 //import Konva from "konva";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 
@@ -25,7 +25,7 @@ export class CombatScreenModel extends MapModel{
 	private idleImage!: any;
 	private attackDuration: number = 500; // milliseconds
 	private zombies: Zombie[] = [];
-	private mapBuilder?: Map;
+	private mapBuilder?: Mapp;
 
 	constructor(width: number, height: number) {
 		super(width, height);
@@ -52,7 +52,7 @@ export class CombatScreenModel extends MapModel{
 	}
 
 	/* init this screen's Map class object */
-	setMapBuilder(mapBuilder: Map): any{
+	setMapBuilder(mapBuilder: Mapp): any{
 		this.mapBuilder = mapBuilder;
 	}
 

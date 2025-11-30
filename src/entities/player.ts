@@ -27,7 +27,7 @@ export class Player extends MovableEntity {
         let temp2 = new Konva.Image({
             x: 0,
             y: 0,
-            width: 16,
+            width: 12,
             height: 16,
             image: temp
         });

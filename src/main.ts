@@ -19,6 +19,7 @@ export class App implements ScreenSwitcher {
     private explorationLayer: Konva.Layer;
     private combatLayer: Konva.Layer;
     private playerLayer: Konva.Layer;
+    private miniLayer: Konva.Layer;
 
     private menuController: MenuScreenController;
     private explorationController: ExplorationScreenController;
@@ -49,6 +50,9 @@ export class App implements ScreenSwitcher {
         this.playerLayer = new Konva.Layer();
         this.stage.add(this.playerLayer);
 
+        this.miniLayer = new Konva.Layer();
+        this.stage.add(this.miniLayer);
+
         // Initialize all screen controllers
         this.menuController = new MenuScreenController(this);
         this.miniGame2Controller = new MiniGame2ScreenController(this);
@@ -74,7 +78,7 @@ export class App implements ScreenSwitcher {
 
         // Add entity groups
         // this.entityLayer.add(this.explorationController.getView().getEntityGroup());
-        // this.entityLayer.add(this.miniGame2Controller.getView().getEntityGroup());
+        this.miniLayer.add(this.miniGame2Controller.getView().getEntityGroup());
         // this.entityLayer.add(this.combatController.getView().getEntityGroup());
         /* ENTITY LAYER = (EXPLORATION)+(PLAYER)+(COMBAT) */
         this.explorationLayer.add(this.explorationController.getView().getEntityGroup());
@@ -177,6 +181,10 @@ export class App implements ScreenSwitcher {
 
     redrawCombatEntities(): void {
         this.combatLayer.batchDraw();
+    }
+
+    redrawMiniLayer(): void {
+        this.miniLayer.batchDraw();
     }
 
     getExplorationLayer(): Konva.Layer {

@@ -6,7 +6,7 @@ import type { Maps } from "../types.ts";
 /* maps can be built in the Controller. The purpose of this is to separate  */
 /* the Map layer, so it isn't accidentally drawn repeatedly in the gameLoop */
 /* it also makes the ScreenView class more readable/scalable.				*/
-export class Map implements Maps {
+export class Mapp implements Maps {
 	private tileSize: number;
     private mapData: any;
 	private loadImage: (src: string) => Promise<HTMLImageElement>;

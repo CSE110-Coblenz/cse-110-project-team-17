@@ -6,10 +6,8 @@ import { InputManager } from "../../input.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { Robot } from "../../entities/robot.ts";
-import { Map } from "../../entities/tempMap.ts";
+import { Mapp } from "../../entities/tempMap.ts";
 import { audioManager } from "../../audioManager.ts";
-import Konva from "konva";
-
 /**
  * CombatScreenController
  *
@@ -32,7 +30,7 @@ export class CombatScreenController extends ScreenController {
 	private animationFrameId: number | null = null; // Track animation frame
 	private rateOfSpawn = 1;
 	private lastIncrementTimeForSpawning = 0;
-	private mapBuilder!: Map;
+	private mapBuilder!: Mapp;
 
 
 	private readonly ZOMBIE_SPAWN_INTERVAL = 10000;
@@ -53,7 +51,7 @@ export class CombatScreenController extends ScreenController {
 		this.model.setMapData(mapData);
 
 		/* create a new Map class object */
-		this.mapBuilder = new Map(16, mapData, this.loadImage.bind(this));
+		this.mapBuilder = new Mapp(16, mapData, this.loadImage.bind(this));
 		this.model.setMapBuilder(this.mapBuilder);
 		await this.mapBuilder.loadTilesets();
 
