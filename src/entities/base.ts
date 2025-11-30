@@ -49,15 +49,20 @@ export abstract class MovableEntity {
 
     /** Current X/Y accessors */
     getX(): number {
-        return this.currentImage.x();
+        return this.position.x;
     }
 
     getY(): number {
-        return this.currentImage.y();
+        return this.position.y;
     }
 
     /** Calculate next position given dx/dy */
     getNextPosition(dx: number, dy: number) {
+        if(dx>0) this.dir = 'right';
+        if(dy>0) this.dir = 'down';
+        if(dx<0) this.dir = 'left';
+        if(dy<0) this.dir = 'up';
+
         return {
             x: this.getX() + dx * this.speed,
             y: this.getY() + dy * this.speed,

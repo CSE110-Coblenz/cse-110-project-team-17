@@ -19,10 +19,10 @@ export class InputManager {
 
   getDirection() {
     let dx = 0, dy = 0;
-    if (this.keys["w"]) dy -= 1;
-    if (this.keys["s"]) dy += 1;
-    if (this.keys["a"]) dx -= 1;
-    if (this.keys["d"]) dx += 1;
+    if(this.keys["w"]) dy -= 1;
+    if(this.keys["s"]) dy += 1;
+    if(this.keys["a"]) dx -= 1;
+    if(this.keys["d"]) dx += 1;
     return { dx, dy };
   }
 

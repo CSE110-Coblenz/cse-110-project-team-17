@@ -6,7 +6,7 @@ import type { Maps } from "../types.ts";
 /* maps can be built in the Controller. The purpose of this is to separate  */
 /* the Map layer, so it isn't accidentally drawn repeatedly in the gameLoop */
 /* it also makes the ScreenView class more readable/scalable.				*/
-export class Map implements Maps {
+export class Mapp implements Maps {
 	private tileSize: number;
     private mapData: any;
 	private loadImage: (src: string) => Promise<HTMLImageElement>;
@@ -60,10 +60,10 @@ export class Map implements Maps {
             const response = await fetch(ts.source);
             const tsJson = await response.json();
 
-            /* use the path hardcoded in the json to load image from /public/tiles/* */
+            /* use the path hardcoded in the json to load image from '/public/tiles/*' */
             const image = await this.loadImage(tsJson.source);
 
-            /* store tileset data in this.tilesets struct */
+            /* append tileset data to the end of this.tilesets array*/
             this.tilesets.push({
                 firstgid: ts.firstgid,
                 image,
@@ -78,9 +78,11 @@ export class Map implements Maps {
     /* identify which spriteSheet to use given gid */
     private getTilesetForGid(gid: number) {
         let found = null;
-        for (const ts of this.tilesets) {
-            if (gid >= ts.firstgid) {
-                found = ts;
+
+        /* once gid is less than a spritesheets first tileID, break loop  */
+        for(const tileset of this.tilesets){
+            if(gid >= tileset.firstgid){
+                found = tileset;
             } else break;
         }
         return found;
@@ -112,13 +114,13 @@ export class Map implements Maps {
     async buildMap(): Promise<Konva.Group> {
         const mapGroup = new Konva.Group();
 
-        if (!this.tilesets.length) {
-            console.warn("Tilesets not loaded — call loadTilesets() first");
+        if(this.tilesets.length === 0){
+            console.log("Tilesets not loaded — call loadTilesets() first");
             return mapGroup;
         }
 
-        for (const layer of this.mapData.layers) {
-            if (layer.type !== "tilelayer") continue;
+        for(const layer of this.mapData.layers){
+            if(layer.type !== "tilelayer") continue;
 
             const layerGroup = new Konva.Group({ name: layer.name });
 
@@ -126,8 +128,8 @@ export class Map implements Maps {
             const mapWidth = layer.width;
             const mapHeight = layer.height;
 
-            for (let y = 0; y < mapHeight; y++) {
-                for (let x = 0; x < mapWidth; x++) {
+            for(let y = 0; y < mapHeight; y++){
+                for(let x = 0; x < mapWidth; x++){
 
                     const tileId = tiles[y * mapWidth + x];
                     if (tileId === 0) continue;
@@ -201,14 +203,14 @@ export class Map implements Maps {
     canMoveToArea(x: number, y: number, w: number, h: number): boolean {
         const tileSize = this.tileSize;
 
-        const leftTile   = Math.floor(x / tileSize);
-        const rightTile  = Math.floor((x + w) / tileSize);
-        const topTile    = Math.floor(y / tileSize);
+        const leftTile = Math.floor(x / tileSize);
+        const rightTile = Math.floor((x + w) / tileSize);
+        const topTile = Math.floor(y / tileSize);
         const bottomTile = Math.floor((y + h) / tileSize);
 
-        for (let ty = topTile; ty <= bottomTile; ty++) {
-            for (let tx = leftTile; tx <= rightTile; tx++) {
-                if (this.isBlocked(tx, ty)) {
+        for(let ty = topTile; ty <= bottomTile; ty++){
+            for(let tx = leftTile; tx <= rightTile; tx++){
+                if(this.isBlocked(tx, ty)){
                     return false;
                 }
             }

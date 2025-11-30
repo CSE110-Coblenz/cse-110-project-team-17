@@ -2,8 +2,8 @@ import { Combat } from "../../combat.ts";
 import { Robot } from "../../entities/robot.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { MapModel } from "../MapScreen/MapModel";
-import { Map } from "../../entities/tempMap.ts";
-import Konva from "konva";
+import { Mapp } from "../../entities/tempMap.ts";
+//import Konva from "konva";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 
 /**	
@@ -25,7 +25,7 @@ export class CombatScreenModel extends MapModel{
 	private idleImage!: any;
 	private attackDuration: number = 500; // milliseconds
 	private zombies: Zombie[] = [];
-	private mapBuilder?: Map;
+	private mapBuilder?: Mapp;
 
 	constructor(width: number, height: number) {
 		super(width, height);
@@ -52,7 +52,7 @@ export class CombatScreenModel extends MapModel{
 	}
 
 	/* init this screen's Map class object */
-	setMapBuilder(mapBuilder: Map): any{
+	setMapBuilder(mapBuilder: Mapp): any{
 		this.mapBuilder = mapBuilder;
 	}
 
@@ -68,11 +68,11 @@ export class CombatScreenModel extends MapModel{
      * Applies delta movement to the robot, updates facing direction,
      * and logs movement for debugging.
      */
-	updateRobotPosition(dx: number, dy: number): void {
+	updateRobotPosition(dx: number, dy: number): boolean {
 		const robot = this.getRobot();
 		const mapObj = this.getMapBuilder();
-		const previousY = robot.getPosition().y;
-		const previousX = robot.getPosition().x;
+		//const previousY = robot.getPosition().y;
+		//const previousX = robot.getPosition().x;
 
 		/* object collision logic */
 		const next = robot.getNextPosition(dx, dy);
@@ -89,16 +89,19 @@ export class CombatScreenModel extends MapModel{
 			next.x = STAGE_WIDTH - 16;
 		}
         if(mapObj.canMoveToArea(next.x, next.y, 16, 16)){
-			robot.moveTo(next.x, next.y);
+			robot.move(next.x, next.y);
+			return true;
 		}
-		const currentPosition = robot.getPosition();
+		
+		return false;
+		/* const currentPosition = robot.getPosition();
 		if (currentPosition.x !== previousX) {
 			robot.faceDirection(currentPosition.x > previousX ? "right" : "left");
 		}
 		else if (currentPosition.y !== previousY) {
 			robot.faceDirection(currentPosition.y > previousY ? "down" : "up");
 		}
-		console.log("direction: " + robot.getDirection());
+		console.log("direction: " + robot.getDirection()); */
 	}
 
 	/**
@@ -109,11 +112,11 @@ export class CombatScreenModel extends MapModel{
 	 */
 	updateZombieAI(): void {
 		const robot = this.getRobot();
-		const robotImg = robot.getCurrentImage();
+		//const robotImg = robot.getCurrentImage();
 
 		// Move all other zombies
 		for (const z of this.zombies) {
-			this.moveSingleZombieTowardRobot(z, robotImg);
+			this.moveSingleZombieTowardRobot(z, robot);
 		}
 	}
 
@@ -122,10 +125,10 @@ export class CombatScreenModel extends MapModel{
 	 *
 	 * Helper function to move one zombie toward robot smoothly.
 	 */
-	private moveSingleZombieTowardRobot(zombie: Zombie, robotImg: Konva.Image) {
+	private moveSingleZombieTowardRobot(zombie: Zombie, robot: Robot) {
 		const zImg = zombie.getCurrentImage();
-		const dx = robotImg.x() - zImg.x();
-		const dy = robotImg.y() - zImg.y();
+		const dx = robot.getX() - zImg.x();
+		const dy = robot.getY() - zImg.y();
 		const dist = Math.sqrt(dx * dx + dy * dy);
 
 		if (dist < 10) return; // close enough, don't move
@@ -134,7 +137,13 @@ export class CombatScreenModel extends MapModel{
 		const newX = zImg.x() + (dx / dist) * step;
 		const newY = zImg.y() + (dy / dist) * step;
 
-		zombie.moveTo(newX, newY);
+		if(this.getMapBuilder().canMoveToArea(newX, newY, 16, 16))
+			zombie.moveTo(newX, newY);
+		else{
+			const ignore = 0.25;
+			if(Math.random() < ignore)
+				zombie.moveTo(newX, newY);
+		}
 
 		// update facing direction
 		if (Math.abs(dx) > Math.abs(dy)) {
@@ -195,7 +204,7 @@ export class CombatScreenModel extends MapModel{
 
 		this.attackRequested = false;
 
-		// swap robot sprite to attacking image then back to idle
+		/* swap robot sprite to attacking image then back to idle
 		if (isRobotAttack) {
 			const attackingImage = this.getAttackingImage();
 			const idleImage = this.getIdleImage();
@@ -203,6 +212,10 @@ export class CombatScreenModel extends MapModel{
 			setTimeout(() => {
 				robot.loadImage(idleImage);
 			}, this.getAttackDuration());
+		}*/
+
+		if(isRobotAttack){
+			return this.getAttackDuration();
 		}
 		return 0;
 	}

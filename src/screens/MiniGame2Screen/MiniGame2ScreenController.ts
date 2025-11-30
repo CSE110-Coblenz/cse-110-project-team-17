@@ -13,6 +13,7 @@ import { GameObject } from "../../entities/object.ts";
 import { Robot } from "../../entities/robot.ts";
 import type { ScreenSwitcher } from "../../types.ts";
 import { audioManager } from "../../audioManager.ts";
+import { Mapp } from "../../entities/tempMap.ts";
 
 type DropSlotState = {
     id: string;
@@ -65,6 +66,7 @@ export class MiniGame2ScreenController extends ScreenController {
     private readonly COUNTDOWN_MS = 60000;
     private timerInterval?: number;
     private timerTimeout?: number;
+    private mapBuilder!: Mapp;
     static completed = false;
 
     constructor(screenSwitcher: ScreenSwitcher) {
@@ -78,9 +80,16 @@ export class MiniGame2ScreenController extends ScreenController {
     /* Load Map and spawn objects */
     async init(): Promise<void> {
         try {
-            const mapData = await this.loadMap("/maps/porj0.json");
+            const mapData = await this.loadMap("/maps/FOREST_MAP_ZA.json");
+            /* mapBuilder uses the Map class to build the map using the mapData(.json)*/
+            this.mapBuilder = new Mapp(16, mapData, this.loadImage.bind(this));
+            await this.mapBuilder.loadTilesets();
+
+            /* Assemble the mapGroup in the Map class and give it to the ScreenView */
+            const mapGroup = await this.mapBuilder.buildMap();
+            this.view.getMapGroup().add(mapGroup);
             const playerImage = await this.loadImage("/sprites/idle-frame1.png");
-            const robotImage = await this.loadImage("/sprites/idle-frame1.png");
+            const robotImage = await this.loadImage("/spritesheets/Robot_Right.png");
 
             this.player = new Player("player1", STAGE_WIDTH / 2, 80, playerImage);
             this.robot = new Robot("companion-robot", 100, 10, STAGE_WIDTH / 2, 120, robotImage);
@@ -90,10 +99,8 @@ export class MiniGame2ScreenController extends ScreenController {
             this.setupTextSnippets();
 
             await this.view.build(
-                mapData,
                 this.player,
-                Array.from(this.gameObjects.values()),
-                this.loadImage.bind(this)
+                Array.from(this.gameObjects.values())
             );
             if (this.robot) {
                 this.view.getEntityGroup().add(this.robot.getCurrentImage());
@@ -139,16 +146,21 @@ export class MiniGame2ScreenController extends ScreenController {
         }
 
         const { dx, dy } = this.input.getDirection();
-        this.player.setSpeed(this.input.isSprinting() ? 10 : 6);
-        const playerImg = this.player.getCurrentImage();
+        this.player.setSpeed(this.input.isSprinting() ? 6 : 3);
+        //const playerImg = this.player.getCurrentImage();
 
         // Move player
-        const prevPos = playerImg.position();
-        this.player.move(dx, dy);
+        const prevPos = this.player.getPosition();
+        const next = this.player.getNextPosition(dx, dy);
+        if(next.y <= 0) next.y = 20;
+        if(this.mapBuilder.canMoveToArea(next.x, next.y, 16, 16)){
+            this.player.move(next.x, next.y);
+        }
+        this.view.updateSprite(this.player);
 
         // Get new position after movement
-        const newX = playerImg.x();
-        const newY = playerImg.y();
+        const newX = this.player.getX();
+        const newY = this.player.getY();
 
         const moved = (dx !== 0 || dy !== 0) && (newX !== prevPos.x || newY !== prevPos.y);
         if (moved) {
@@ -168,14 +180,15 @@ export class MiniGame2ScreenController extends ScreenController {
         this.updateCarriedObjectPosition(newX, newY);
 
         // Boundary checks
-        const maxX = STAGE_WIDTH - playerImg.width();
-        const maxY = STAGE_HEIGHT - playerImg.height();
-        if (newX < 0) playerImg.x(0);
-        if (newX > maxX) playerImg.x(maxX);
-        if (newY < 0) playerImg.y(0);
-        if (newY > maxY) playerImg.y(maxY);
+        const maxX = STAGE_WIDTH - 16;
+        const maxY = STAGE_HEIGHT - 16;
+        if (newX < 0) this.player.move(0, newY);
+        if (newX > maxX) this.player.move(maxX, newY);
+        if (newY < 0) this.player.move(newX, 20);
+        if (newY > maxY) this.player.move(newX, maxY);
         if (newY <= 0) {
-            playerImg.y(0);
+            console.log("newY <= 0, going back to exploration...");
+            this.player.move(newX, 50);
             this.model.setRunning(false);
             this.hide();
             this.screenSwitcher.switchToScreen({ type: "exploration" });
@@ -189,8 +202,8 @@ export class MiniGame2ScreenController extends ScreenController {
         }
 
         if (this.robot) {
-            const rx = this.robot.getCurrentImage().x();
-            const ry = this.robot.getCurrentImage().y();
+            const rx = this.robot.getX();
+            const ry = this.robot.getY();
             const dxToPlayer = newX - rx;
             const dyToPlayer = newY - ry;
             const dist = Math.sqrt(dxToPlayer * dxToPlayer + dyToPlayer * dyToPlayer);
@@ -203,8 +216,8 @@ export class MiniGame2ScreenController extends ScreenController {
             }
         }
 
-        // Redraw the main layer; App exposes redraw() instead of a dedicated mini-game entity redraw
-        this.screenSwitcher.redraw();
+        // Redraw mini-game entities
+        this.screenSwitcher.redrawMiniLayer();
         requestAnimationFrame(this.miniGameLoop);
     };
 
@@ -257,14 +270,14 @@ export class MiniGame2ScreenController extends ScreenController {
      * Handle pickup/drop interaction with 'P' key
      */
     private handleInteraction(): void {
-        const playerImg = this.player.getCurrentImage();
-        const playerX = playerImg.x();
-        const playerY = playerImg.y();
+        //const playerImg = this.player.getCurrentImage();
+        const playerX = this.player.getX();
+        const playerY = this.player.getY();
         const playerBounds: RectBounds = {
             left: playerX,
-            right: playerX + playerImg.width(),
+            right: playerX + 16,
             top: playerY,
-            bottom: playerY + playerImg.height(),
+            bottom: playerY + 16,
         };
 
         // If carrying something, try to drop it
@@ -308,7 +321,7 @@ export class MiniGame2ScreenController extends ScreenController {
                 obj.show();
                 obj.showTextAppearance();
                 const objSize = obj.getSize();
-                const playerWidth = playerImg.width();
+                const playerWidth = 16;
                 const offsetX = playerX + playerWidth / 2 - objSize.width / 2;
                 const offsetY = playerY - objSize.height - 10;
                 obj.moveTo(offsetX, offsetY);
@@ -332,7 +345,7 @@ export class MiniGame2ScreenController extends ScreenController {
             if (obj) {
                 const objSize = obj.getSize();
                 const playerImg = this.player.getCurrentImage();
-                const playerWidth = playerImg ? playerImg.width() : 0;
+                const playerWidth = playerImg ? 16 : 0;
                 const offsetX = playerX + playerWidth / 2 - objSize.width / 2;
                 const offsetY = playerY - objSize.height - 10;
                 obj.moveTo(offsetX, offsetY);
