@@ -1,5 +1,24 @@
 // combat.test.ts
-import { describe, it, expect, vi} from "vitest";
+import { describe, it, expect, vi, beforeAll } from "vitest";
+
+// Mock the Image constructor
+beforeAll(() => {
+  globalThis.Image = class Image {
+    src: string = '';
+    onload: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    width: number = 0;
+    height: number = 0;
+    
+    constructor() {
+      // Simulate immediate load
+      setTimeout(() => {
+        if (this.onload) this.onload();
+      }, 0);
+    }
+  } as any;
+});
+
 import { Robot } from "../src/entities/robot";
 import { Zombie } from "../src/entities/zombie";
 import { Combat } from "../src/combat";
