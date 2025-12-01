@@ -1,6 +1,63 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Player } from "../src/entities/player.ts"
 
+globalThis.Image = class {
+    src = "";
+    width = 32;
+    height = 32;
+} as any;
+
+vi.mock("konva", () => {
+    class MockImage {
+        x!: number;
+        y!: number;
+        width!: number;
+        height!: number;
+        crop?: any;
+        image?: any;
+
+        constructor(config: any) {
+            Object.assign(this, config);
+        }
+
+        position(pos: { x: number; y: number }) {
+            this.x = pos.x;
+            this.y = pos.y;
+        }
+    }
+
+    class MockGroup {
+        x: number;
+        y: number;
+        visible: boolean;
+        children: any[];
+
+        constructor(config: any = {}) {
+            this.x = config.x ?? 0;
+            this.y = config.y ?? 0;
+            this.visible = config.visible ?? true;
+            this.children = [];
+        }
+
+        add(child: any) {
+            this.children.push(child);
+        }
+
+        position(pos: { x: number; y: number }) {
+            this.x = pos.x;
+            this.y = pos.y;
+        }
+    }
+
+    const mockModule = {
+        default: { Image: MockImage, Group: MockGroup },
+        Image: MockImage,
+        Group: MockGroup,
+    };
+
+    return mockModule;
+});
+
 const fakeHTMLImage = {
   width: 64,
   height: 64
@@ -54,7 +111,7 @@ describe("Player class methods/MovableEntity inherited methods", () => {
     });
 
     it("move() function updates position of all player sprites", () => {
-        player.move(104, 5);
+        player.move(104, 50);
         expect(player.getPosition()).toEqual({ x: 104, y: 50 });
     })
 });

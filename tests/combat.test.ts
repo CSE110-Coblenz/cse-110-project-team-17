@@ -2,6 +2,8 @@
 import { describe, it, expect, vi} from "vitest";
 import { Robot } from "../src/entities/robot";
 import { Zombie } from "../src/entities/zombie";
+import { Combat } from "../src/combat";
+
 vi.mock('../src/audioManager.ts', () => { // Use the actual relative path
     return {
         audioManager: {
@@ -9,7 +11,7 @@ vi.mock('../src/audioManager.ts', () => { // Use the actual relative path
         },
     };
 });
-import { Combat } from "../src/combat";
+
 
 describe("Combat Attack Logic", () => {
 
@@ -23,19 +25,19 @@ describe("Combat Attack Logic", () => {
     expect(zombie.getHealth()).toBe(50);
 
     // Move robot next to zombie (left of zombie)
-    robot.moveTo(249, 250);
+    robot.move(249, 250);
     robot.faceDirection("right");
     combat.performAttack({ attacker: robot }, { attacked: zombie });
     expect(zombie.getHealth()).toBe(30); // got hit once
 
     // Move robot above zombie
-    robot.moveTo(250, 249);
+    robot.move(250, 249);
     robot.faceDirection("down");
     combat.performAttack({ attacker: robot }, { attacked: zombie });
     expect(zombie.getHealth()).toBe(10); // second hit
 
     // Move robot below zombie and face up
-    robot.moveTo(250, 251);
+    robot.move(250, 251);
     robot.faceDirection("up");
     combat.performAttack({ attacker: robot }, { attacked: zombie });
     expect(zombie.getHealth()).toBe(-10);
