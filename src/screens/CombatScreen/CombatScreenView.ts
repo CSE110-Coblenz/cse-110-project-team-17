@@ -56,9 +56,6 @@ export class CombatScreenView extends MapView {
 		/* add both groups to this.screenGroup */
 		this.screenGroup.add(this.mapGroup);
 		this.screenGroup.add(this.entityGroup);
-		this.buildIntro();
-		this.screenGroup.add(this.introGroup);
-		this.introGroup.moveToTop();
 		this.RobotHealthText = new Konva.Text({
 			x: 1100,
 			y: 10,
@@ -68,6 +65,9 @@ export class CombatScreenView extends MapView {
 			fill: "Black",
 		});
 		this.entityGroup.add(this.RobotHealthText);
+		this.buildIntro();
+		this.screenGroup.add(this.introGroup);
+		this.introGroup.moveToTop();
 	}
 
 	/** Optionally: get all zombies for AI logic */

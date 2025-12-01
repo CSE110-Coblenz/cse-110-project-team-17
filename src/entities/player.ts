@@ -85,8 +85,6 @@ export class Player extends MovableEntity {
         this.sprites['left'].position({ x, y });
         this.sprites['down'].position({ x, y });
         this.sprites['right'].position({ x, y });
-        //this.currentImage.x(x);
-        //this.currentImage.y(y);
         this.position = { x, y };
     }
 }
