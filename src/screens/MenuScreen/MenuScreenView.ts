@@ -64,7 +64,7 @@ export class MenuScreenView implements View {
     // Load the image asset for the menu screen
     static loadAssets(): Promise<MenuAssets> {
         return new Promise((resolve) => {
-            const menuImageUrl = "/public/Menu/Main_Menu.jpg";
+            const menuImageUrl = "/Menu/Main_Menu.jpg";
             const menuImg = new window.Image();
             menuImg.onload = () => {
                 resolve({ menuImage: menuImg });

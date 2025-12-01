@@ -1,29 +1,58 @@
-import { MovableEntity } from './base';
+import { MovableEntity, type Directions } from './base';
 import Konva from 'konva';
+
+
+const playerSprites: { name: Directions; width: number; src: string }[] = [
+    {name: 'up', width: 11, src: "/spritesheets/Character_up_idle-Sheet6.png"},
+    {name: 'down', width: 13, src: "/spritesheets/Character_down_idle-Sheet6.png"},
+    {name: 'right', width: 12, src: "/spritesheets/Character_side_idle-Sheet6.png"},
+    {name: 'left', width: 12, src: "/spritesheets/Character_side-left_idle-Sheet6.png"},
+]
+
 
 /* 
 * Set the Player Sprite, and control how it moves across the map.
 */
 export class Player extends MovableEntity {
     private inventory: string[] = [];
+    private sprites: Record<Directions, Konva.Group> = {
+        up: null!,
+        down: null!,
+        left: null!,
+        right: null!,
+    };
 
-    constructor(name: string, x: number, y: number, playerImage: HTMLImageElement){
-        const currentImage = new Konva.Image({
-            x,
-            y,
-            width: 16,
+    constructor(name: string, x: number, y: number, temp: HTMLImageElement){
+        const speed = 2;
+        let temp2 = new Konva.Image({
+            x: 0,
+            y: 0,
+            width: 12,
             height: 16,
-            image: playerImage,
+            image: temp
         });
-        const speed = 3;
+        super(name, speed, temp2, x, y);
 
-        super(name, speed, currentImage, x, y);
-    }
-
-    /** Move by delta and update position */
-    move(dx: number, dy: number): void {
-        const next = this.getNextPosition(dx, dy);
-        this.moveTo(next.x, next.y);
+        for(const sprite of playerSprites){
+            let html = this.loadImage(sprite.src);
+            let img = new Konva.Image({
+                x: 0,
+                y: 0,
+                width: sprite.width,
+                height: 16,
+                image: html,
+                crop: {
+                    x: 0,
+                    y: 0,
+                    width: sprite.width,
+                    height: 16
+                }
+            });
+            
+            let tempGroup = new Konva.Group({ x: x, y: y, visible: false });
+            tempGroup.add(img);
+            this.sprites[sprite.name] = tempGroup;
+        }
     }
 
     /**
@@ -38,5 +67,24 @@ export class Player extends MovableEntity {
      */
     getInventory(): string[] {
         return [...this.inventory];
+    }
+
+    getAllSprites(): Record<Directions, Konva.Group> {
+        return this.sprites;
+    }
+
+    private loadImage(src: string): HTMLImageElement {
+        const img = new Image();
+        img.src = src;
+        return img;
+    }
+
+
+    move(x: number, y: number): void {
+        this.sprites['up'].position({ x, y });
+        this.sprites['left'].position({ x, y });
+        this.sprites['down'].position({ x, y });
+        this.sprites['right'].position({ x, y });
+        this.position = { x, y };
     }
 }
