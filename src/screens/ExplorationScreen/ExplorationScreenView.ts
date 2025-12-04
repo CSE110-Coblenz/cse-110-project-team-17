@@ -2,6 +2,7 @@ import Konva from "konva";
 import { Player } from "../../entities/player.ts";
 import { GameObject } from "../../entities/object.ts";
 import type { View } from "../../types.ts";
+import type { Directions } from "../../entities/base.ts";
 import { STAGE_HEIGHT, STAGE_WIDTH } from "../../constants.ts";
 
 /**
@@ -27,6 +28,7 @@ export class ExplorationScreenView implements View {
     };
     private isShowingBoundary: boolean = false;
     private robotPartBoundaryBox?: Konva.Rect;
+    private dict!: Record<Directions, Konva.Group>;
 
     constructor(onBookClick: () => void) {
         this.screenGroup = new Konva.Group({ visible: false });
@@ -120,7 +122,7 @@ export class ExplorationScreenView implements View {
 
     /* 
     *  Since Map is already built in the ScreenController:
-    *   --> add player to its own layer
+    *   --> add all player sprite groups to same layer
     *   --> add game objects to their own layer
     *   --> add built map && game objects to the screenGroup
     * 
@@ -130,7 +132,13 @@ export class ExplorationScreenView implements View {
         player: Player,
         gameObjects: GameObject[]
     ): Promise<void> {
-        this.playerGroup.add(player.getCurrentImage());
+        this.dict = player.getAllSprites();
+        this.dict['right'].visible(true);
+
+        this.playerGroup.add(this.dict['up']);
+        this.playerGroup.add(this.dict['down']);
+        this.playerGroup.add(this.dict['left']);
+        this.playerGroup.add(this.dict['right']);
 
         /* Add game objects to entity layer - use the group, not just the image */
         for (const obj of gameObjects) {
@@ -330,6 +338,37 @@ export class ExplorationScreenView implements View {
     }
     setRobotPartBoundaryBox(box: Konva.Rect): void {
         this.robotPartBoundaryBox = box;
+    }
+
+    updateSprite(player: Player): void {
+        const direction = player.getDirection();
+
+        switch (direction) {
+            case 'up':
+                this.dict['up'].visible(true);
+                this.dict['down'].visible(false);
+                this.dict['left'].visible(false);
+                this.dict['right'].visible(false);
+                break;
+            case 'down':
+                this.dict['up'].visible(false);
+                this.dict['down'].visible(true);
+                this.dict['left'].visible(false);
+                this.dict['right'].visible(false);
+                break;
+            case 'left':
+                this.dict['up'].visible(false);
+                this.dict['down'].visible(false);
+                this.dict['left'].visible(true);
+                this.dict['right'].visible(false);
+                break;
+            case 'right':
+                this.dict['up'].visible(false);
+                this.dict['down'].visible(false);
+                this.dict['left'].visible(false);
+                this.dict['right'].visible(true);
+                break;
+        }
     }
 
     show(): void {

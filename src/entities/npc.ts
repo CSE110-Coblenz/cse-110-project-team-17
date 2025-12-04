@@ -14,12 +14,15 @@ export class npc {
 
     // Inactivity state
     private lastPlayerActivity = Date.now();
-    private readonly INACTIVITY_LIMIT = 8000; // 8 seconds
+    private readonly INACTIVITY_LIMIT = 30000; // 30 seconds
     private isShowingHint = false;
     private dialogBackground?: Konva.Rect;
 
     private lingerEndTime: number = 0;
     private readonly LINGER_DURATION: number = 3000; // 3 seconds
+
+    private robotBuilt: boolean = false;
+    private allPartsCollected: boolean = false;
 
     constructor(x: number, y: number, triviaFacts: string[], image: HTMLImageElement) {
         this.x = x;
@@ -30,9 +33,16 @@ export class npc {
             x: this.x,
             y: this.y,
             image: image,
-            width: 48,
-            height: 48,
+            width: 16,
+            height: 16,
         });
+    }
+
+    public setRobotBuilt(isBuilt: boolean): void {
+        this.robotBuilt = isBuilt;
+    }
+    public setAllPartsCollected(isCollected: boolean): void {
+        this.allPartsCollected = isCollected;
     }
 
     getCurrentImage() {
@@ -180,7 +190,19 @@ export class npc {
 
         // Check for inactivity 
         if (!this.isShowingHint && now - this.lastPlayerActivity > this.INACTIVITY_LIMIT) {
-            this.showDialog("Don't forget to explore and find those robot parts!", true);
+            let hintMessage = "";
+            if (this.robotBuilt) {
+                // NEW: Post-robot inactivity message
+                hintMessage = "Don't stop now! Let's keep exploring the other areas to unlock new capabilities.";
+            } else if (this.allPartsCollected) {
+                // Pre-robot inactivity message
+                hintMessage = "You have all the pieces! Head to the workbench with the '!' mark and press 'P' to assemble the robot.";
+            } else {
+                // State 1: Default, pre-robot (Generic parts collection hint)
+                hintMessage = "Don't forget to explore and find those robot parts!";
+            }
+
+            this.showDialog(hintMessage, true);
             this.isShowingHint = true;
             this.lastPlayerActivity = now;
             return;

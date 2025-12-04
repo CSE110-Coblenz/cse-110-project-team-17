@@ -45,6 +45,7 @@ export interface ScreenSwitcher {
 	getLayer(): Konva.Layer;
 	redrawCombatEntities(): void;
 	redrawExplorationPlayer(): void;
+	redrawMiniLayer(): void;
 	getCombatLayer(): Konva.Layer;
 }
 

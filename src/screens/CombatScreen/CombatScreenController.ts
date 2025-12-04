@@ -6,9 +6,8 @@ import { InputManager } from "../../input.ts";
 import { STAGE_WIDTH, STAGE_HEIGHT } from "../../constants.ts";
 import { Zombie } from "../../entities/zombie.ts";
 import { Robot } from "../../entities/robot.ts";
-import { Map } from "../../entities/tempMap.ts";
+import { Mapp } from "../../entities/tempMap.ts";
 import { audioManager } from "../../audioManager.ts";
-
 /**
  * CombatScreenController
  *
@@ -31,7 +30,7 @@ export class CombatScreenController extends ScreenController {
 	private animationFrameId: number | null = null; // Track animation frame
 	private rateOfSpawn = 1;
 	private lastIncrementTimeForSpawning = 0;
-	private mapBuilder!: Map;
+	private mapBuilder!: Mapp;
 
 
 	private readonly ZOMBIE_SPAWN_INTERVAL = 10000;
@@ -52,7 +51,7 @@ export class CombatScreenController extends ScreenController {
 		this.model.setMapData(mapData);
 
 		/* create a new Map class object */
-		this.mapBuilder = new Map(16, mapData, this.loadImage.bind(this));
+		this.mapBuilder = new Mapp(16, mapData, this.loadImage.bind(this));
 		this.model.setMapBuilder(this.mapBuilder);
 		await this.mapBuilder.loadTilesets();
 
@@ -63,10 +62,11 @@ export class CombatScreenController extends ScreenController {
 		this.view.getMapGroup().add(mapGroup);
 
 		// load images used by robot/zombie and attack animations
-		const robotImage = await this.loadImage("/sprites/fish.png");
-		const zombieImage = await this.loadImage("/sprites/imagesTemp.jpg");
-		const attackingImage = await this.loadImage("/sprites/image.png");
-		const idleImage = await this.loadImage("/sprites/fish.png");
+		const robotImage = await this.loadImage("/spritesheets/Robot_Right.png");
+		const zombieImage = await this.loadImage("/spritesheets/Zombie_Small_Down_First-Attack-Sheet4.png");
+		const attackingImage = await this.loadImage("/sprites/explosion-03.png");
+		const idleImage = await this.loadImage("/spritesheets/Robot_Right.png");
+		
 
 		// create entities centered on stage
 		const robot = new Robot("robot", 100, 50, STAGE_WIDTH / 2, STAGE_HEIGHT / 2, robotImage);
@@ -79,6 +79,7 @@ export class CombatScreenController extends ScreenController {
 		this.model.setEntities(robot, zombie);
 		this.model.setAttackingImage(attackingImage);
 		this.model.setIdleImage(idleImage);
+		this.view.addAttack(attackingImage);
 
 		// after building the view
 		this.view.addZombieCounter(10, 10); // top-left corner
@@ -117,7 +118,7 @@ export class CombatScreenController extends ScreenController {
 	}
 	
 	private async spawnZombie(): Promise<void> {
-		const zombieImage = await this.loadImage("/sprites/imagesTemp.jpg");
+		const zombieImage = await this.loadImage("/spritesheets/Zombie_Big_Down_First-Attack-Sheet8.png");
 		const x = Math.random() * (STAGE_WIDTH - 32);
 		const y = Math.random() * (STAGE_HEIGHT - 32);
 		const newZombie = new Zombie(`zombie-${Date.now()}`, 100, 50, x, y, zombieImage);
@@ -153,7 +154,10 @@ export class CombatScreenController extends ScreenController {
 
 		// movement input (WASD)
 		let { dx, dy } = this.input.getDirection();
-		this.model.updateRobotPosition(dx, dy);
+		let moved = this.model.updateRobotPosition(dx, dy);
+		if(moved)
+			this.view.getAttackGroup().position(this.model.getRobot().getPosition());
+		this.view.updateSprite(this.model.getRobot());
 
 		// Zombie AI movement
 		if (timestamp - this.lastZombieMoveTime >= 150) {
@@ -183,9 +187,13 @@ export class CombatScreenController extends ScreenController {
 		// attack input (space): model handles attack timing/animation
 		const attack = this.input.getAttack();
 		let returned = this.model.processAttackRequest(attack, timestamp, this.lastAttackTime, true);
-		if (attack && returned != -1) {
+		if (attack && returned > 0) {
 			this.lastAttackTime = timestamp;
 			audioManager.playSfx("robot_punch");
+			this.view.showAttackSprite();
+			setTimeout(() => {
+				this.view.hideAttackSprite();
+			}, returned);
 		}
 
 		// spawn zombies periodically
