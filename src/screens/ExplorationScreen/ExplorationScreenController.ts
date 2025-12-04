@@ -70,9 +70,14 @@ export class ExplorationScreenController extends ScreenController {
     private hitbox?: Konva.Rect;
     private movementLockUntil = 0;
     private collisionDebugEnabled = true;
-    private recentlyCollectedPart = true;
+    private recentlyCollectedPart = false;
     private recentlyCollectedPartTimeout?: number;
-    private readonly PART_HIGHLIGHT_MS = 30000;
+    private partHighlightTimeout?: number;
+    private nextPartHighlightTime = 0;
+    private nextReminderTime = 0;
+    private readonly PART_HIGHLIGHT_MS = 5000;
+    private readonly PART_HIGHLIGHT_DURATION_MS = 10000;
+    private readonly REMINDER_INTERVAL_MS = 3000;
     private tutorialShown: boolean = false; 
 
     constructor(screenSwitcher: ScreenSwitcher, eduControl: EducationScreenController) {
@@ -84,6 +89,8 @@ export class ExplorationScreenController extends ScreenController {
         this.eduControl.setOnClose(() => this.handleBookClose());
         this.running = false;
         this.partsOverlay = new Konva.Group();
+        this.schedulePartHighlightCooldown();
+        this.nextReminderTime = performance.now() + this.REMINDER_INTERVAL_MS;
     }
     
     async init(): Promise<void> {
@@ -273,6 +280,8 @@ export class ExplorationScreenController extends ScreenController {
         this.running = true;
         this.transitioning = false;
         this.movementLockUntil = 0;
+        this.schedulePartHighlightCooldown();
+        this.nextReminderTime = performance.now() + this.REMINDER_INTERVAL_MS;
         this.input = new InputManager();
         requestAnimationFrame(this.explorationLoop);
         this.view.show();
@@ -307,7 +316,8 @@ export class ExplorationScreenController extends ScreenController {
         /* added functionality for OBJECT COLLISION */
         const prevPos = this.player.getPosition();
         const next = this.player.getNextPosition(dx, dy);
-        if(next.y <= 0) next.y = 0;
+        if (next.y <= 0) next.y = 0;
+        else if (next.y >= STAGE_HEIGHT - EDGE_THRESHOLD) next.y = STAGE_HEIGHT - EDGE_THRESHOLD;
         if(this.mapBuilder.canMoveToArea(next.x, next.y, 16, 16)){
             this.player.move(next.x, next.y);
             const moved = dx !== 0 || dy !== 0;
@@ -356,7 +366,8 @@ export class ExplorationScreenController extends ScreenController {
             this.hitbox.position(this.player.getCurrentImage().position());
         }
 
-        if (!this.robotBuilt && !this.view.showingPartBoundary() && !this.recentlyCollectedPart) {
+        const nowMs = performance.now();
+        if (!this.robotBuilt && !this.view.showingPartBoundary() && !this.recentlyCollectedPart && nowMs >= this.nextPartHighlightTime) {
             this.view.setShowingPartBoundary(true);
             // Get a random robot part position to highlight
             const uncollectedParts = this.gameObjects.filter(
@@ -378,15 +389,38 @@ export class ExplorationScreenController extends ScreenController {
                 });
                 this.view.setRobotPartBoundaryBox(highlightBox);
                 this.view.showRobotPartBoundary();
+                if (this.partHighlightTimeout) {
+                    clearTimeout(this.partHighlightTimeout);
+                }
+                this.partHighlightTimeout = window.setTimeout(() => {
+                    this.view.setShowingPartBoundary(false);
+                    this.view.removeRobotPartBoundary();
+                    this.npc.clearDialog();
+                    this.nextPartHighlightTime = performance.now() + this.PART_HIGHLIGHT_MS;
+                    this.nextReminderTime = performance.now() + this.REMINDER_INTERVAL_MS;
+                }, this.PART_HIGHLIGHT_DURATION_MS);
             }
         } else if (this.recentlyCollectedPart && this.view.showingPartBoundary()) {
             this.view.setShowingPartBoundary(false);
             this.view.removeRobotPartBoundary();
+            if (this.partHighlightTimeout) {
+                clearTimeout(this.partHighlightTimeout);
+                this.partHighlightTimeout = undefined;
+            }
         }
-        // Add 1 for the crafting table
-        if (!this.npc.isNpcShowingHint() && !this.recentlyCollectedPart && (this.gameObjects.length != this.model.getNumCollectedObjects()+1)) {
-            // console.log(`${this.model.getNumCollectedObjects()} + ${this.gameObjects.length}`);
-            this.npc.showUrgentDialogFor("The robot parts are scattered around the map, they look a little different from other obstacles...", 100);
+        // NPC reminder only when no part highlight is showing and parts remain uncollected
+        if (
+            !this.model.allObjectsCollected() &&
+            !this.view.showingPartBoundary() &&
+            !this.npc.isNpcShowingHint() &&
+            !this.recentlyCollectedPart &&
+            nowMs >= this.nextReminderTime
+        ) {
+            this.npc.showUrgentDialogFor(
+                "The robot parts are scattered around the map, they look a little different from other obstacles...",
+                3000
+            );
+            this.nextReminderTime = performance.now() + this.REMINDER_INTERVAL_MS;
         }
 
         requestAnimationFrame(this.explorationLoop);
@@ -446,15 +480,7 @@ export class ExplorationScreenController extends ScreenController {
 
             // If player is close enough (within 50 pixels), collect the object
             if (distance < 50) {
-                this.recentlyCollectedPart = true;
-                // Reset the previous timout
-                if (this.recentlyCollectedPartTimeout) {
-                    clearTimeout(this.recentlyCollectedPartTimeout);
-                }
-                // WHen the popup should highlight a part for the user
-                this.recentlyCollectedPartTimeout = setTimeout(() => {
-                    this.recentlyCollectedPart = false;
-                }, this.PART_HIGHLIGHT_MS);
+                this.schedulePartHighlightCooldown();
                 obj.collect();
                 this.model.collectObject(obj.getName());
                 this.player.addToInventory(obj.getName());
@@ -523,6 +549,23 @@ export class ExplorationScreenController extends ScreenController {
     private lockMovement(durationMs: number): void {
         this.movementLockUntil = performance.now() + durationMs;
     }
+
+    // Reset the cooldown that prevents part highlights/NPC hints from spamming
+    private schedulePartHighlightCooldown = (): void => {
+        this.recentlyCollectedPart = true;
+        this.nextPartHighlightTime = performance.now() + this.PART_HIGHLIGHT_MS;
+        this.nextReminderTime = performance.now() + this.REMINDER_INTERVAL_MS;
+        if (this.recentlyCollectedPartTimeout) {
+            clearTimeout(this.recentlyCollectedPartTimeout);
+        }
+        this.recentlyCollectedPartTimeout = window.setTimeout(() => {
+            this.recentlyCollectedPart = false;
+            if (this.partHighlightTimeout) {
+                clearTimeout(this.partHighlightTimeout);
+                this.partHighlightTimeout = undefined;
+            }
+        }, this.PART_HIGHLIGHT_MS);
+    };
 
      
     private nudgeFromEdge(edge: "right" | "top" | "bottom"): void {
