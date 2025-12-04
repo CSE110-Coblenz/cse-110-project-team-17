@@ -292,9 +292,9 @@ export class ExplorationScreenView implements View {
 
         const margin = 24;
         // Top (Pokemon), Right (Combat), Bottom (MiniGame2)
-        addBadge(STAGE_WIDTH / 2 + 30, margin, "top"); // near top center, nudged right
-        addBadge(STAGE_WIDTH - margin, STAGE_HEIGHT / 2 + 100, "right"); // right edge, lowered
-        addBadge(STAGE_WIDTH / 2, STAGE_HEIGHT - margin, "bottom"); // bottom center
+        addBadge(STAGE_WIDTH / 2 + 255, margin, "top"); // near top center, nudged further right
+        addBadge(STAGE_WIDTH - margin, STAGE_HEIGHT / 2 + 145, "right"); // right edge, lowered
+        addBadge(STAGE_WIDTH / 2 + 35, STAGE_HEIGHT - margin, "bottom"); // bottom center, nudged right
     }
 
     showEdgeIndicators(): void {
