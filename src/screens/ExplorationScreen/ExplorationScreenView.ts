@@ -26,6 +26,8 @@ export class ExplorationScreenView implements View {
         right: null,
         bottom: null,
     };
+    private isShowingBoundary: boolean = false;
+    private robotPartBoundaryBox?: Konva.Rect;
     private dict!: Record<Directions, Konva.Group>;
 
     constructor(onBookClick: () => void) {
@@ -311,6 +313,31 @@ export class ExplorationScreenView implements View {
             badge.visible(false);
             this.entityGroup.draw();
         }
+    }
+
+    showRobotPartBoundary(): void {
+        this.entityGroup.add(this.robotPartBoundaryBox!);
+        this.entityGroup.draw();
+    }
+
+    removeRobotPartBoundary(): void {
+        this.robotPartBoundaryBox?.destroy();
+        this.entityGroup.draw();
+    }
+
+    showingPartBoundary(): boolean {
+        return this.isShowingBoundary;
+    }
+
+    setShowingPartBoundary(value: boolean): void {
+        this.isShowingBoundary = value;
+    }
+
+    getRobotPartBoundaryBox(): Konva.Rect | undefined {
+        return this.robotPartBoundaryBox;
+    }
+    setRobotPartBoundaryBox(box: Konva.Rect): void {
+        this.robotPartBoundaryBox = box;
     }
 
     updateSprite(player: Player): void {

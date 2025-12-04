@@ -66,9 +66,13 @@ export class ExplorationScreenController extends ScreenController {
     private moveSound?: HTMLAudioElement;
     private moveSoundPlaying = false;
     private collisionOverlay?: Konva.Group;
+    private partsOverlay: Konva.Group;
     private hitbox?: Konva.Rect;
     private movementLockUntil = 0;
-    private collisionDebugEnabled = false;
+    private collisionDebugEnabled = true;
+    private recentlyCollectedPart = true;
+    private recentlyCollectedPartTimeout?: number;
+    private readonly PART_HIGHLIGHT_MS = 30000;
     private tutorialShown: boolean = false; 
 
     constructor(screenSwitcher: ScreenSwitcher, eduControl: EducationScreenController) {
@@ -79,6 +83,7 @@ export class ExplorationScreenController extends ScreenController {
         this.eduControl = eduControl;
         this.eduControl.setOnClose(() => this.handleBookClose());
         this.running = false;
+        this.partsOverlay = new Konva.Group();
     }
     
     async init(): Promise<void> {
@@ -157,6 +162,11 @@ export class ExplorationScreenController extends ScreenController {
         if(this.collisionDebugEnabled && this.collisionOverlay && this.input.getToggleDebug()){
             const showing = this.collisionOverlay.visible();
             this.collisionOverlay.visible(!showing);
+            if (!showing) {
+                this.showAllRobotParts();
+            } else {
+                this.hideAllRobotPartHighlights();
+            }
             this.view.getMapGroup().draw();
         }
 
@@ -343,11 +353,75 @@ export class ExplorationScreenController extends ScreenController {
         this.screenSwitcher.redrawExplorationPlayer();
 
         if (this.hitbox) {
-            this.hitbox.position(this.player.getPosition());
+            this.hitbox.position(this.player.getCurrentImage().position());
+        }
+
+        if (!this.robotBuilt && !this.view.showingPartBoundary() && !this.recentlyCollectedPart) {
+            this.view.setShowingPartBoundary(true);
+            // Get a random robot part position to highlight
+            const uncollectedParts = this.gameObjects.filter(
+                (obj) => !obj.isCollected() && obj.isInteractable() && obj.getName() !== "worktable"
+            );
+            if (uncollectedParts.length > 0) {
+                const randomIndex = Math.floor(Math.random() * uncollectedParts.length);
+                const partToHighlight = uncollectedParts[randomIndex];
+                const partPos = partToHighlight.getPosition();
+                const highlightBox = new Konva.Rect({
+                    x: partPos.x,
+                    y: partPos.y,
+                    width: 16,
+                    height: 16,
+                    stroke: "yellow",
+                    strokeWidth: 2,
+                    dash: [4, 4],
+                    listening: false,
+                });
+                this.view.setRobotPartBoundaryBox(highlightBox);
+                this.view.showRobotPartBoundary();
+            }
+        } else if (this.recentlyCollectedPart && this.view.showingPartBoundary()) {
+            this.view.setShowingPartBoundary(false);
+            this.view.removeRobotPartBoundary();
+        }
+        // Add 1 for the crafting table
+        if (!this.npc.isNpcShowingHint() && !this.recentlyCollectedPart && (this.gameObjects.length != this.model.getNumCollectedObjects()+1)) {
+            // console.log(`${this.model.getNumCollectedObjects()} + ${this.gameObjects.length}`);
+            this.npc.showUrgentDialogFor("The robot parts are scattered around the map, they look a little different from other obstacles...", 100);
         }
 
         requestAnimationFrame(this.explorationLoop);
     };
+
+
+    // For debugging purposes
+    showAllRobotParts(): void {
+        const uncollectedParts = this.gameObjects.filter(
+            (obj) => !obj.isCollected() && obj.isInteractable() && obj.getName() !== "worktable"
+        );
+        if (uncollectedParts.length === 0) return;
+
+        for (const part of uncollectedParts) {
+            const partPos = part.getPosition();
+            const highlightBox = new Konva.Rect({
+                x: partPos.x,
+                y: partPos.y,
+                width: 16,
+                height: 16,
+                stroke: "yellow",
+                strokeWidth: 2,
+                dash: [4, 4],
+                listening: false,
+            });
+            this.partsOverlay.add(highlightBox);
+        }
+        this.view.getEntityGroup().add(this.partsOverlay);
+        this.view.getEntityGroup().draw();
+    }
+
+    hideAllRobotPartHighlights(): void {
+        this.partsOverlay.destroyChildren();
+        this.view.getEntityGroup().draw();
+    }
 
 
     /**
@@ -372,6 +446,15 @@ export class ExplorationScreenController extends ScreenController {
 
             // If player is close enough (within 50 pixels), collect the object
             if (distance < 50) {
+                this.recentlyCollectedPart = true;
+                // Reset the previous timout
+                if (this.recentlyCollectedPartTimeout) {
+                    clearTimeout(this.recentlyCollectedPartTimeout);
+                }
+                // WHen the popup should highlight a part for the user
+                this.recentlyCollectedPartTimeout = setTimeout(() => {
+                    this.recentlyCollectedPart = false;
+                }, this.PART_HIGHLIGHT_MS);
                 obj.collect();
                 this.model.collectObject(obj.getName());
                 this.player.addToInventory(obj.getName());
